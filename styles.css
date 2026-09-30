@@ -29,3 +29,44 @@
  #inventoryGrid .inventory-large-qty{font-size:27px}
  #inventoryGrid .inventory-large-unit{font-size:15px}
 }
+
+/* ===== WORK LOG — ARCHIVE FORM ===== */
+.worklog-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+.worklog-form-card{border:1px solid #a17a38;background:#f8edd3b8;box-shadow:inset 0 0 0 5px #a77e3714,0 10px 28px #4b35191c;padding:28px 30px 30px}
+.worklog-form-card .section-title{margin:0 0 24px;padding-bottom:14px;border-bottom:1px solid #c4a66d;font-size:14px;letter-spacing:2.5px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.form-grid>label,.target-fields>label{display:flex;flex-direction:column;gap:7px;min-width:0}
+.form-grid label>span,.target-fields label>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e}
+.form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{width:100%;min-height:46px;padding:9px 12px;border:1px solid #a17a38;background:#fff9e9;color:#4b3519;border-radius:3px;font:inherit;font-size:14px;outline:none}
+.form-grid input:focus,.form-grid select:focus,.inventory-entry-row select:focus,.inventory-entry-row input:focus{border-color:#6e4b16;box-shadow:0 0 0 3px #a17a3820}
+.form-grid input[readonly]{background:#efe1bf}
+.form-grid-span-2{grid-column:1/-1}
+.target-fields{display:grid!important;grid-template-columns:1fr 1fr;gap:18px 20px}
+.conditional-fields{margin-top:22px;padding:18px;border:1px dashed #a17a38;background:#fff8e44d}
+.field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
+.field-title small{font-size:11px;font-weight:400;color:#85672f}
+.inventory-entry-list{display:flex;flex-direction:column;gap:10px}
+.inventory-entry-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:10px;align-items:center}
+.inventory-entry-row .entry-unit{font-size:13px;text-align:center;color:#765727;font-weight:500}
+.remove-item-btn{min-height:44px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
+.add-item-btn{margin-top:12px;padding:9px 14px;border:1px solid #a17a38;background:#f4e6c8;font-size:13px}
+.add-item-btn:hover,.remove-item-btn:hover{background:#ead5a6}
+.primary-action{width:100%;margin-top:24px;min-height:52px;padding:12px 18px;border:1px solid #7e5b24;background:#5c421d;color:#fff8e7;font-size:15px;font-weight:600;letter-spacing:1px;box-shadow:0 5px 14px #4b351926}
+.primary-action:disabled{opacity:.55;cursor:wait}
+.form-status{min-height:24px;margin-top:14px;text-align:center;font-size:13px}
+.form-status.success{color:#4f6d36}.form-status.error{color:#9a3e2b}
+.table-wrap{width:100%;overflow-x:auto}
+#workLogGrid{margin-top:4px}
+#workLogGrid table{width:100%;min-width:900px;border-collapse:collapse;background:#f8edd3b8;border:1px solid #a17a38}
+#workLogGrid th,#workLogGrid td{padding:12px 10px;border-right:1px solid #c4a66d;border-bottom:1px solid #c4a66d;text-align:left;font-size:12px;white-space:nowrap}
+#workLogGrid th{background:#ead7ad;font-size:11px;letter-spacing:.7px}
+#workLogGrid tr:last-child td{border-bottom:0}
+#workLogGrid th:last-child,#workLogGrid td:last-child{border-right:0}
+@media(max-width:700px){
+ .worklog-form-card{padding:20px 16px 22px}
+ .form-grid{grid-template-columns:1fr;gap:15px}
+ .form-grid-span-2{grid-column:auto}
+ .target-fields{grid-template-columns:1fr;gap:15px}
+ .inventory-entry-row{grid-template-columns:minmax(0,1fr) 78px 62px auto;gap:6px}
+ .form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{font-size:13px;min-height:44px}
+}

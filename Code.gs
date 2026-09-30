@@ -50,7 +50,7 @@ function saveWorkLog_(data) {
 
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
-      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
+      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'รูปการทำงาน',
       'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
@@ -101,6 +101,12 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
     setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
+
+    // อัปโหลดรูปการทำงานเข้า Google Drive แล้วเก็บ URL รูปไว้ใน WORK LOG
+    if (data.photo && data.photo.data) {
+      const photoUrl = saveWorkPhoto_(data.photo, workId, data.recorder);
+      setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
+    }
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
     if (checkedWithdrawals.length) {
@@ -172,15 +178,53 @@ function normalizeItems_(items) {
   })).filter(x => x.id || x.name || x.qty);
 }
 
+function saveWorkPhoto_(photo, workId, recorder) {
+  if (!photo || !photo.data) return '';
+  const raw = String(photo.data);
+  // ป้องกัน payload ใหญ่เกินไปโดยไม่ตั้งใจ (ประมาณไม่เกิน 6 MB หลัง decode)
+  if (raw.length > 8 * 1024 * 1024) throw new Error('รูปการทำงานมีขนาดใหญ่เกินไปหลังบีบอัด');
+
+  const mime = String(photo.mimeType || 'image/jpeg').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
+    throw new Error('ชนิดไฟล์รูปการทำงานไม่รองรับ');
+  }
+
+  const bytes = Utilities.base64Decode(raw);
+  if (bytes.length > 6 * 1024 * 1024) throw new Error('รูปการทำงานมีขนาดใหญ่เกิน 6 MB');
+
+  const folders = DriveApp.getFoldersByName('MYSTICAL BEASTS ALLIANCE — WORK LOG PHOTOS');
+  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('MYSTICAL BEASTS ALLIANCE — WORK LOG PHOTOS');
+  const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+  const safeRecorder = String(recorder || 'unknown').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
+  const filename = workId + '_' + safeRecorder + '_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss') + '.' + ext;
+  const blob = Utilities.newBlob(bytes, mime, filename);
+  const file = folder.createFile(blob);
+
+  // ต้องเปิดดูได้จากหน้าเว็บ GitHub Pages ด้วย จึงตั้งเป็น Anyone with the link เมื่อระบบอนุญาต
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    // บาง Google Workspace อาจบังคับนโยบายการแชร์ภายนอกโดเมน แต่ยังเก็บไฟล์ไว้ได้
+    console.warn('ไม่สามารถเปิดแชร์ลิงก์สาธารณะของรูปได้: ' + sharingError);
+  }
+
+  // thumbnail URL เหมาะกับการแสดงในประวัติการทำงานบนเว็บ
+  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.getId()) + '&sz=w1200';
+}
+
 function getOrCreateSheet_(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);
 }
 function ensureHeaders_(sheet, expected) {
-  const lastCol = Math.max(sheet.getLastColumn(), expected.length);
-  const existing = sheet.getLastRow() ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String) : [];
-  if (!sheet.getLastRow()) { sheet.getRange(1, 1, 1, expected.length).setValues([expected]); return expected; }
-  const headers = existing.slice(0, Math.max(existing.length, expected.length));
-  expected.forEach((h, i) => { if (!headers[i]) headers[i] = h; });
+  if (!sheet.getLastRow()) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    return expected.slice();
+  }
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(v => String(v || '').trim());
+  expected.forEach(h => {
+    if (headers.indexOf(h) < 0) headers.push(h);
+  });
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   return headers;
 }
