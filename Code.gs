@@ -1,6 +1,4 @@
 const SPREADSHEET_ID = '1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0';
-// ใส่อีเมล Google Account ของผู้ดูแลที่มีสิทธิ์แก้ไข Spreadsheet
-const ADMIN_EMAILS = ['YOUR_ADMIN_EMAIL@gmail.com'];
 
 const WIZARD_DAYS = [
   'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
@@ -23,12 +21,7 @@ const WORK_TYPES = {
   ]
 };
 
-function doGet(e) {
-  const action = String(e && e.parameter && e.parameter.action || '').trim();
-  if (action === 'adminStatus') {
-    const email = getActiveUserEmail_();
-    return json_({ ok: true, email, isAdmin: isAdminEmail_(email) });
-  }
+function doGet() {
   return json_({ ok: true, service: 'MYSTICAL BEASTS ALLIANCE WORK LOG API' });
 }
 
@@ -37,110 +30,11 @@ function doPost(e) {
     const payloadText = e && e.parameter && e.parameter.payload;
     if (!payloadText) throw new Error('ไม่พบ payload');
     const data = JSON.parse(payloadText);
-    if (data.action === 'cancelWork') {
-      const result = cancelWorkLog_(data);
-      return json_(result);
-    }
     const result = saveWorkLog_(data);
     return json_(result);
   } catch (err) {
     return json_({ ok: false, error: String(err.message || err) });
   }
-}
-
-
-function getActiveUserEmail_() {
-  return String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
-}
-function isAdminEmail_(email) {
-  const e = String(email || '').trim().toLowerCase();
-  return !!e && ADMIN_EMAILS.map(x => String(x).trim().toLowerCase()).includes(e) && !e.includes('your_admin_email');
-}
-function requireAdmin_() {
-  const email = getActiveUserEmail_();
-  if (!email) throw new Error('ไม่สามารถยืนยัน Google Account ได้ กรุณาเข้าสู่ระบบ Google และอนุญาต Web App ก่อน');
-  if (!isAdminEmail_(email)) throw new Error('บัญชี Google นี้ไม่มีสิทธิ์ผู้ดูแลระบบ');
-  return email;
-}
-function cancelWorkLog_(data) {
-  const adminEmail = requireAdmin_();
-  const workId = String(data.workId || '').trim();
-  const reason = String(data.reason || '').trim();
-  if (!workId) throw new Error('ไม่พบ Work ID');
-  if (!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const workSheet = getOrCreateSheet_(ss, 'WORK LOG');
-    const invSheet = getOrCreateSheet_(ss, 'INVENTORY');
-    const invLogSheet = getOrCreateSheet_(ss, 'INVENTORY LOG');
-    const workHeaders = ensureHeaders_(workSheet, [
-      'Category','Work ID','วันที่ (มักเกิ้ล)','วันผู้วิเศษ','เวลา (IC)','ประเภทการทำงาน',
-      'Target ID','Target Name','ผู้ลงบันทึก','ผู้ลงบันทึก ID','รูปการทำงาน',
-      'เบิกคลังชมรม','จำนวนที่เบิก','หน่วยที่เบิก','จำนวนที่ได้รับ','หน่วยที่ได้รับ',
-      'Status','Cancel Date','Cancel By','Cancel Reason'
-    ]);
-    const invHeaders = ensureHeaders_(invSheet, ['Category','ID','รายการ','จำนวน','หน่วย']);
-    const invLogHeaders = ensureHeaders_(invLogSheet, [
-      'Transaction ID','วันที่ (มักเกิ้ล)','เวลา (IC)','ประเภท','Item ID','รายการ','จำนวน','หน่วย',
-      'Work ID','ผู้ลงบันทึก','ผู้ลงบันทึก ID','หมายเหตุ'
-    ]);
-    const workIdCol = findHeader_(workHeaders, ['Work ID']);
-    const statusCol = findHeader_(workHeaders, ['Status']);
-    if (workIdCol < 0) throw new Error('ไม่พบคอลัมน์ Work ID');
-    let rowNum = -1;
-    for (let r=2; r<=workSheet.getLastRow(); r++) {
-      if (String(workSheet.getRange(r, workIdCol+1).getValue()).trim() === workId) { rowNum=r; break; }
-    }
-    if (rowNum < 0) throw new Error('ไม่พบ WORK LOG: ' + workId);
-    const row = workSheet.getRange(rowNum,1,1,workHeaders.length).getValues()[0];
-    if (statusCol >= 0 && String(row[statusCol] || '').trim().toLowerCase() === 'cancelled') {
-      throw new Error('รายการนี้ถูกยกเลิกไปแล้ว');
-    }
-    const category = String(row[findHeader_(workHeaders,['Category'])] || '');
-    const workType = String(row[findHeader_(workHeaders,['ประเภทการทำงาน'])] || '');
-    const recorder = String(row[findHeader_(workHeaders,['ผู้ลงบันทึก'])] || '');
-    const recorderId = String(row[findHeader_(workHeaders,['ผู้ลงบันทึก ID'])] || '');
-    const dateValue = new Date();
-    const time = Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'HH:mm');
-    const originalTx = [];
-    const logLast = invLogSheet.getLastRow();
-    if (logLast >= 2) {
-      const dataRows = invLogSheet.getRange(2,1,logLast-1,invLogHeaders.length).getValues();
-      const typeIdx=findHeader_(invLogHeaders,['ประเภท']), itemIdx=findHeader_(invLogHeaders,['Item ID']), nameIdx=findHeader_(invLogHeaders,['รายการ']), qtyIdx=findHeader_(invLogHeaders,['จำนวน']), unitIdx=findHeader_(invLogHeaders,['หน่วย']), workIdx=findHeader_(invLogHeaders,['Work ID']), recIdx=findHeader_(invLogHeaders,['ผู้ลงบันทึก']), recIdIdx=findHeader_(invLogHeaders,['ผู้ลงบันทึก ID']);
-      for (const x of dataRows) {
-        if (String(x[workIdx] || '').trim() === workId) originalTx.push({
-          type:String(x[typeIdx]||''), itemId:String(x[itemIdx]||''), name:String(x[nameIdx]||''), qty:Number(x[qtyIdx]||0), unit:String(x[unitIdx]||''), recorder:String(x[recIdx]||recorder), recorderId:String(x[recIdIdx]||recorderId)
-        });
-      }
-    }
-    const invIdCol=findHeader_(invHeaders,['ID','Item ID']), invNameCol=findHeader_(invHeaders,['รายการ','Name','Item']), invQtyCol=findHeader_(invHeaders,['จำนวน','Quantity']), invUnitCol=findHeader_(invHeaders,['หน่วย','Unit']);
-    const rollbackTx=[];
-    for (const tx of originalTx) {
-      if (!(tx.qty>0) || !tx.itemId) continue;
-      let invRow=-1;
-      for(let r=2;r<=invSheet.getLastRow();r++) if(String(invSheet.getRange(r,invIdCol+1).getValue()).trim()===tx.itemId){invRow=r;break;}
-      if(invRow<0) throw new Error('ไม่พบรายการคลังสำหรับ Rollback: '+(tx.name||tx.itemId));
-      const current=Number(invSheet.getRange(invRow,invQtyCol+1).getValue()||0);
-      let newQty=current;
-      if(tx.type==='เบิก') newQty=current+tx.qty;
-      else if(tx.type==='รับเข้า') { if(current<tx.qty) throw new Error('คลังปัจจุบันไม่พอสำหรับ Rollback: '+tx.name); newQty=current-tx.qty; }
-      else continue;
-      invSheet.getRange(invRow,invQtyCol+1).setValue(newQty);
-      const txId=nextId_(invLogSheet,'Transaction ID','T',5);
-      appendInventoryLog_(invLogSheet, invLogHeaders, {txId,dateValue,time,type:'Rollback',itemId:tx.itemId,name:tx.name,qty:tx.qty,unit:tx.unit,workId,recorder:adminEmail,recorderId:'',note:'ยกเลิก WORK LOG '+workId+' ('+tx.type+')'+(reason?' — '+reason:'')});
-      rollbackTx.push({id:txId,item:tx.name,quantity:tx.qty,unit:tx.unit,from:tx.type});
-    }
-    if(statusCol<0) throw new Error('ไม่พบคอลัมน์ Status');
-    setCell_(row,workHeaders,'Status','Cancelled');
-    setCell_(row,workHeaders,'Cancel Date',dateValue);
-    setCell_(row,workHeaders,'Cancel By',adminEmail);
-    setCell_(row,workHeaders,'Cancel Reason',reason);
-    workSheet.getRange(rowNum,1,1,workHeaders.length).setValues([row]);
-    SpreadsheetApp.flush();
-    return {ok:true,workId,status:'Cancelled',cancelBy:adminEmail,rollbackTransactions:rollbackTx};
-  } finally { lock.releaseLock(); }
 }
 
 function saveWorkLog_(data) {
@@ -156,13 +50,13 @@ function saveWorkLog_(data) {
 
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
-      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'ผู้ลงบันทึก ID', 'รูปการทำงาน',
+      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
       'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
       'Transaction ID', 'วันที่ (มักเกิ้ล)', 'เวลา (IC)', 'ประเภท',
-      'Item ID', 'รายการ', 'จำนวน', 'หน่วย', 'Work ID', 'ผู้ลงบันทึก', 'ผู้ลงบันทึก ID', 'หมายเหตุ'
+      'Item ID', 'รายการ', 'จำนวน', 'หน่วย', 'Work ID', 'ผู้ลงบันทึก', 'หมายเหตุ'
     ]);
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
@@ -207,13 +101,6 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
     setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
-    setCell_(workRow, workHeaders, 'ผู้ลงบันทึก ID', data.recorderId || '');
-
-    // อัปโหลดรูปการทำงานเข้า Google Drive แล้วเก็บ URL รูปไว้ใน WORK LOG
-    if (data.photo && data.photo.data) {
-      const photoUrl = saveWorkPhoto_(data.photo, workId, data.recorder);
-      setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
-    }
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
     if (checkedWithdrawals.length) {
@@ -236,7 +123,7 @@ function saveWorkLog_(data) {
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
         txId, dateValue, time: data.icTime, type: 'เบิก', itemId: x.found.id,
-        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder, recorderId: data.recorderId || '',
+        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
         note: data.workType
       });
       transactions.push({ id: txId, type: 'เบิก', item: x.found.name, quantity: x.qty, unit });
@@ -249,7 +136,7 @@ function saveWorkLog_(data) {
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
         txId, dateValue, time: data.icTime, type: 'รับเข้า', itemId: x.found.id,
-        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder, recorderId: data.recorderId || '',
+        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
         note: data.workType
       });
       transactions.push({ id: txId, type: 'รับเข้า', item: x.found.name, quantity: x.qty, unit });
@@ -285,53 +172,15 @@ function normalizeItems_(items) {
   })).filter(x => x.id || x.name || x.qty);
 }
 
-function saveWorkPhoto_(photo, workId, recorder) {
-  if (!photo || !photo.data) return '';
-  const raw = String(photo.data);
-  // ป้องกัน payload ใหญ่เกินไปโดยไม่ตั้งใจ (ประมาณไม่เกิน 6 MB หลัง decode)
-  if (raw.length > 8 * 1024 * 1024) throw new Error('รูปการทำงานมีขนาดใหญ่เกินไปหลังบีบอัด');
-
-  const mime = String(photo.mimeType || 'image/jpeg').toLowerCase();
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
-    throw new Error('ชนิดไฟล์รูปการทำงานไม่รองรับ');
-  }
-
-  const bytes = Utilities.base64Decode(raw);
-  if (bytes.length > 6 * 1024 * 1024) throw new Error('รูปการทำงานมีขนาดใหญ่เกิน 6 MB');
-
-  const folders = DriveApp.getFoldersByName('MYSTICAL BEASTS ALLIANCE — WORK LOG PHOTOS');
-  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('MYSTICAL BEASTS ALLIANCE — WORK LOG PHOTOS');
-  const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
-  const safeRecorder = String(recorder || 'unknown').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
-  const filename = workId + '_' + safeRecorder + '_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss') + '.' + ext;
-  const blob = Utilities.newBlob(bytes, mime, filename);
-  const file = folder.createFile(blob);
-
-  // ต้องเปิดดูได้จากหน้าเว็บ GitHub Pages ด้วย จึงตั้งเป็น Anyone with the link เมื่อระบบอนุญาต
-  try {
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  } catch (sharingError) {
-    // บาง Google Workspace อาจบังคับนโยบายการแชร์ภายนอกโดเมน แต่ยังเก็บไฟล์ไว้ได้
-    console.warn('ไม่สามารถเปิดแชร์ลิงก์สาธารณะของรูปได้: ' + sharingError);
-  }
-
-  // thumbnail URL เหมาะกับการแสดงในประวัติการทำงานบนเว็บ
-  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(file.getId()) + '&sz=w1200';
-}
-
 function getOrCreateSheet_(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);
 }
 function ensureHeaders_(sheet, expected) {
-  if (!sheet.getLastRow()) {
-    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
-    return expected.slice();
-  }
-  const lastCol = Math.max(sheet.getLastColumn(), 1);
-  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(v => String(v || '').trim());
-  expected.forEach(h => {
-    if (headers.indexOf(h) < 0) headers.push(h);
-  });
+  const lastCol = Math.max(sheet.getLastColumn(), expected.length);
+  const existing = sheet.getLastRow() ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String) : [];
+  if (!sheet.getLastRow()) { sheet.getRange(1, 1, 1, expected.length).setValues([expected]); return expected; }
+  const headers = existing.slice(0, Math.max(existing.length, expected.length));
+  expected.forEach((h, i) => { if (!headers[i]) headers[i] = h; });
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   return headers;
 }
@@ -362,7 +211,7 @@ function appendInventoryLog_(sheet, headers, tx) {
   setCell_(row, headers, 'Transaction ID', tx.txId); setCell_(row, headers, 'วันที่ (มักเกิ้ล)', tx.dateValue);
   setCell_(row, headers, 'เวลา (IC)', tx.time); setCell_(row, headers, 'ประเภท', tx.type); setCell_(row, headers, 'Item ID', tx.itemId);
   setCell_(row, headers, 'รายการ', tx.name); setCell_(row, headers, 'จำนวน', tx.qty); setCell_(row, headers, 'หน่วย', tx.unit);
-  setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'ผู้ลงบันทึก ID', tx.recorderId || ''); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
+  setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
   sheet.appendRow(row);
 }
 function nextId_(sheet, headerName, prefix, width) {
@@ -375,3 +224,50 @@ function nextId_(sheet, headerName, prefix, width) {
 }
 function toNumber_(v) { if (typeof v === 'number') return v; const n = Number(String(v || '').replace(/,/g, '').trim()); return Number.isFinite(n) ? n : 0; }
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
+
+// ============================================================
+// ADMIN: Google Account permission + Work Log cancellation
+// ============================================================
+const ADMIN_EMAILS = [
+  'ikarlov.vissarion@gmail.com',
+  'liliasaintscarlett@gmail.com'
+];
+function isAdminEmail_(email) { return ADMIN_EMAILS.indexOf(String(email || '').trim().toLowerCase()) !== -1; }
+function getCurrentUserEmail_() { return String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); }
+function adminStatus_() { const email=getCurrentUserEmail_(); return {ok:true,email:email,isAdmin:isAdminEmail_(email)}; }
+function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
+function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
+function cancelWorkLog_(data) {
+  const email=getCurrentUserEmail_(); if(!isAdminEmail_(email)) throw new Error('บัญชี Google นี้ไม่มีสิทธิ์ผู้ดูแลระบบ');
+  const workId=String(data.workId||'').trim(), reason=String(data.reason||'').trim();
+  if(!workId) throw new Error('ไม่พบ Work ID'); if(!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
+  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const ss=SpreadsheetApp.openById(SPREADSHEET_ID), ws=ss.getSheetByName('WORK LOG'), inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
+    if(!ws||!inv||!il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
+    let headers=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
+    const statusCol=ensureColumn_(ws,headers,'Status'), byCol=ensureColumn_(ws,headers,'Cancelled By'), atCol=ensureColumn_(ws,headers,'Cancelled At'), reasonCol=ensureColumn_(ws,headers,'Cancel Reason');
+    headers=ws.getRange(1,1,1,ws.getLastColumn()).getValues()[0].map(String);
+    const widCol=headers.indexOf('Work ID'), rows=ws.getLastRow()>1?ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues():[];
+    let rowNo=-1,row=null; for(let i=0;i<rows.length;i++){if(String(rows[i][widCol]||'').trim()===workId){rowNo=i+2;row=rows[i];break;}}
+    if(rowNo<0) throw new Error('ไม่พบ WORK ID: '+workId);
+    if(String(row[statusCol-1]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกยกเลิกไปแล้ว');
+    const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String), lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
+    const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[], reverted=[];
+    for(const lr of logs){
+      if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
+      const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim(), id=String(valueByHeader_(lr,lh,'Item ID')||'').trim(), name=String(valueByHeader_(lr,lh,'รายการ')||'').trim(), qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
+      if(!(qty>0))continue; const found=findInventoryItem_(inv,ih,id,name); if(!found)throw new Error('ไม่พบรายการใน INVENTORY: '+name);
+      let newStock=toNumber_(found.quantity), rollback=''; if(type==='เบิก'){newStock+=qty;rollback='ปรับเพิ่ม';} else if(type==='รับเข้า'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);newStock-=qty;rollback='ปรับลด';} else continue;
+      inv.getRange(found.row,found.quantityCol).setValue(newStock);
+      const txId=nextId_(il,'Transaction ID','T',5); appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | '+reason});
+      reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
+    }
+    ws.getRange(rowNo,statusCol).setValue('Cancelled'); ws.getRange(rowNo,byCol).setValue(email); ws.getRange(rowNo,atCol).setValue(new Date()); ws.getRange(rowNo,reasonCol).setValue(reason); SpreadsheetApp.flush();
+    return {ok:true,workId:workId,cancelledBy:email,reverted:reverted};
+  } finally { lock.releaseLock(); }
+}
+
+// Replace the public handlers with handlers that also expose Admin actions.
+function doGet(e) { if(e&&e.parameter&&e.parameter.action==='adminStatus') return json_(adminStatus_()); return json_({ok:true,service:'MYSTICAL BEASTS ALLIANCE WORK LOG API'}); }
+function doPost(e) { try { const p=e&&e.parameter&&e.parameter.payload; if(!p)throw new Error('ไม่พบ payload'); const data=JSON.parse(p); if(data.action==='cancelWork')return json_(cancelWorkLog_(data)); return json_(saveWorkLog_(data)); } catch(err){ return json_({ok:false,error:String(err.message||err)}); } }
