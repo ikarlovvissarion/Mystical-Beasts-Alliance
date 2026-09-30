@@ -399,14 +399,14 @@ async function cancelWorkLog(workId){
  if(!adminUnlocked){openAdmin(); if(!adminUnlocked)return;}
  const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
  if(!row)return;
- const ok=confirm(`ต้องการยกเลิก WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้องกลับให้อัตโนมัติ และจะไม่ลบหลักฐานเดิม`);
+ const ok=confirm(`ต้องการยกเลิก WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้องกลับให้อัตโนมัติ และลบ WORK LOG รายการนี้ออกจากประวัติ`);
  if(!ok)return;
  const reason=prompt('กรุณาระบุเหตุผลการยกเลิก:', 'กรอกข้อมูลผิด / รายการซ้ำ');
  if(!reason || !reason.trim())return;
  try{
    await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
-   alert('ส่งคำขอยกเลิกรายการแล้ว ระบบจะย้อนคลังและอัปเดตสถานะหลังซิงก์');
-   setTimeout(syncData,1500);
+   alert('ลบ WORK LOG สำเร็จแล้ว และย้อนรายการคลังให้เรียบร้อย');
+   await syncData();
  }catch(e){alert('ยกเลิกรายการไม่สำเร็จ: '+e.message);}
 }
 

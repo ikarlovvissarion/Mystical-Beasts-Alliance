@@ -263,7 +263,8 @@ function cancelWorkLog_(data) {
       const txId=nextId_(il,'Transaction ID','T',5); appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | '+reason});
       reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
     }
-    ws.getRange(rowNo,statusCol).setValue('Cancelled'); ws.getRange(rowNo,byCol).setValue(email); ws.getRange(rowNo,atCol).setValue(new Date()); ws.getRange(rowNo,reasonCol).setValue(reason); SpreadsheetApp.flush();
-    return {ok:true,workId:workId,cancelledBy:email,reverted:reverted};
+    // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังเรียบร้อยแล้ว
+    ws.deleteRow(rowNo); SpreadsheetApp.flush();
+    return {ok:true,workId:workId,deleted:true,cancelledBy:email,reverted:reverted};
   } finally { lock.releaseLock(); }
 }
