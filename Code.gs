@@ -24,106 +24,72 @@ const WORK_TYPES = {
 function doGet(e) {
   try {
     const action = e && e.parameter && e.parameter.action;
-    const callback = e && e.parameter && e.parameter.callback;
-    if (action === 'status') {
-      const result = getRequestStatus_(String(e.parameter.requestId || '').trim());
-      return callback ? jsonp_(result, callback) : json_(result);
-    }
-    if (action === 'health') {
-      const result = healthCheck_();
-      return callback ? jsonp_(result, callback) : json_(result);
-    }
-    const result = { ok: true, service: 'MYSTICAL BEASTS ALLIANCE WORK LOG API' };
-    return callback ? jsonp_(result, callback) : json_(result);
+    if (action === 'health') return json_(healthCheck_());
+    return json_({ ok: true, service: 'MYSTICAL BEASTS ALLIANCE WORK LOG API' });
   } catch (err) {
-    const result = { ok:false, error:String(err.message || err) };
-    const callback = e && e.parameter && e.parameter.callback;
-    return callback ? jsonp_(result, callback) : json_(result);
+    return json_({ ok:false, error:String(err.message || err) });
   }
+}
+
+// รันฟังก์ชันนี้ 1 ครั้งจาก Apps Script Editor ด้วยบัญชีเจ้าของระบบ
+// เพื่อบังคับให้ Google ขอสิทธิ์ Sheets + Drive ก่อนใช้งาน Web App
+// ฟังก์ชันนี้จะตรวจทั้ง Spreadsheet และโฟลเดอร์รูป
+function testMBASetup() {
+  return healthCheck_();
+}
+
+function setupMBA() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const folder = DriveApp.getFolderById('1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse');
+  getOrCreateSheet_(ss, 'WORK LOG');
+  getOrCreateSheet_(ss, 'INVENTORY');
+  getOrCreateSheet_(ss, 'INVENTORY LOG');
+  getOrCreateSheet_(ss, 'DELETED WORK LOG');
+  try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+  return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
+}
+
+function healthCheck_() {
+  const result = {ok:true, spreadsheet:false, driveFolder:false, folderName:'', folderId:'1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse'};
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    result.spreadsheet = true;
+    result.spreadsheetName = ss.getName();
+    result.workLog = !!ss.getSheetByName('WORK LOG');
+    result.inventory = !!ss.getSheetByName('INVENTORY');
+  } catch (e) { result.ok=false; result.spreadsheetError=String(e.message||e); }
+  try {
+    const folder = DriveApp.getFolderById(result.folderId);
+    result.driveFolder = true;
+    result.folderName = folder.getName();
+  } catch (e) { result.ok=false; result.driveError=String(e.message||e); }
+  return result;
 }
 
 function doPost(e) {
-  let requestId = '';
   try {
+    // รองรับทั้ง payload แบบ form parameter และ raw JSON body
     let payloadText = e && e.parameter && e.parameter.payload;
-    if (!payloadText && e && e.postData && e.postData.contents) payloadText = e.postData.contents;
+    if (!payloadText && e && e.postData && e.postData.contents) {
+      payloadText = e.postData.contents;
+    }
     if (!payloadText) throw new Error('ไม่พบ payload');
-    const data = typeof payloadText === 'string' ? JSON.parse(payloadText) : payloadText;
-    requestId = String(data.requestId || '').trim();
-    if (requestId) saveRequestStatus_(requestId, 'pending', 'กำลังประมวลผล');
 
+    const data = typeof payloadText === 'string'
+      ? JSON.parse(payloadText)
+      : payloadText;
     if (data.action === 'testPhoto') {
-      const result = {ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID};
-      if (requestId) saveRequestStatus_(requestId, 'success', '', result);
-      return json_(result);
+      return json_({ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID});
     }
     if (data.action === 'cancelWork') {
       const result = cancelWorkLog_(data);
-      if (requestId) saveRequestStatus_(requestId, 'success', '', result);
       return json_(result);
     }
     const result = saveWorkLog_(data);
-    if (requestId) saveRequestStatus_(requestId, 'success', '', result);
     return json_(result);
   } catch (err) {
-    const result = { ok:false, error:String(err.message || err) };
-    if (requestId) {
-      try { saveRequestStatus_(requestId, 'error', result.error, result); } catch (statusErr) {}
-    }
-    return json_(result);
+    return json_({ ok: false, error: String(err.message || err) });
   }
-}
-
-function saveRequestStatus_(requestId, status, error, result) {
-  if (!requestId) return;
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = getOrCreateSheet_(ss, 'API STATUS');
-  const headers = ensureHeaders_(sheet, ['Request ID','Status','Updated At','Error','Work ID','Photo URL']);
-  const idCol = headers.indexOf('Request ID');
-  const rows = sheet.getLastRow() > 1 ? sheet.getRange(2,1,sheet.getLastRow()-1,headers.length).getValues() : [];
-  let rowNo = -1;
-  for(let i=0;i<rows.length;i++) if(String(rows[i][idCol]||'').trim()===requestId){rowNo=i+2;break;}
-  const row = blankRow_(headers.length);
-  setCell_(row,headers,'Request ID',requestId);
-  setCell_(row,headers,'Status',status);
-  setCell_(row,headers,'Updated At',new Date());
-  setCell_(row,headers,'Error',error||'');
-  setCell_(row,headers,'Work ID',result && result.workId || '');
-  setCell_(row,headers,'Photo URL',result && result.photoUrl || '');
-  if(rowNo>0) sheet.getRange(rowNo,1,1,headers.length).setValues([row]); else sheet.appendRow(row);
-  // เก็บสถานะล่าสุดไว้จำนวนจำกัดเพื่อไม่ให้แท็บ API STATUS โตไม่สิ้นสุด
-  const maxRows=301;
-  if(sheet.getLastRow()>maxRows) sheet.deleteRows(2,sheet.getLastRow()-maxRows);
-}
-
-function getRequestStatus_(requestId) {
-  if(!requestId) return {ok:false,status:'error',error:'ไม่พบ Request ID'};
-  try {
-    const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet=ss.getSheetByName('API STATUS');
-    if(!sheet || sheet.getLastRow()<2) return {ok:true,status:'pending',requestId};
-    const headers=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0].map(String);
-    const idCol=headers.indexOf('Request ID');
-    const rows=sheet.getRange(2,1,sheet.getLastRow()-1,sheet.getLastColumn()).getValues();
-    for(let i=rows.length-1;i>=0;i--){
-      if(String(rows[i][idCol]||'').trim()===requestId){
-        const out={ok:true,status:String(rows[i][headers.indexOf('Status')]||'pending'),requestId};
-        const errCol=headers.indexOf('Error'), widCol=headers.indexOf('Work ID'), photoCol=headers.indexOf('Photo URL');
-        if(errCol>=0) out.error=String(rows[i][errCol]||'');
-        if(widCol>=0) out.workId=String(rows[i][widCol]||'');
-        if(photoCol>=0) out.photoUrl=String(rows[i][photoCol]||'');
-        return out;
-      }
-    }
-    return {ok:true,status:'pending',requestId};
-  } catch(e) {
-    return {ok:false,status:'error',requestId,error:String(e.message||e)};
-  }
-}
-
-function jsonp_(obj, callback) {
-  if(!/^[A-Za-z_$][0-9A-Za-z_$]*$/.test(String(callback||''))) return json_({ok:false,error:'Invalid callback'});
-  return ContentService.createTextOutput(String(callback)+'('+JSON.stringify(obj)+');').setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 function saveWorkLog_(data) {
