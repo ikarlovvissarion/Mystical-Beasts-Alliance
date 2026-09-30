@@ -56,30 +56,26 @@
     <div class="section-title">✦ บันทึกการทำงาน ✦</div>
     <form id="workLogForm" onsubmit="submitWorkLog(event)">
       <div class="form-grid">
-        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" required></label>
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
-        <label><span>เวลา (IC)</span><input id="wlTime" type="time" required></label>
-        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือก Category</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
-        <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required><option value="">เลือกประเภทงาน</option></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
+        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
-        <label><span>Target ID</span><select id="wlTargetId" required onchange="updateTargetName()"><option value="">เลือก Target ID</option></select></label>
-        <label><span>Target Name</span><input id="wlTargetName" type="text" readonly></label>
+        <div id="targetFields" class="target-fields form-grid-span-2">
+          <label><span>สัตว์วิเศษ/พืชผัก</span><select id="wlTargetId" onchange="updateTargetName()"><option value="">เลือกสัตว์วิเศษ/พืชผัก</option></select></label>
+          <label><span>ชื่อสัตว์วิเศษ/พืชผัก</span><input id="wlTargetName" type="text" readonly></label>
+        </div>
       </div>
       <div id="withdrawFields" class="conditional-fields" hidden>
-        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ)</small></div>
-        <div class="form-grid">
-          <label><span>รายการ</span><select id="wlWithdrawItem" onchange="updateInventoryUnit('withdraw')"><option value="">ไม่เบิก</option></select></label>
-          <label><span>จำนวนที่เบิก</span><input id="wlWithdrawQty" type="number" min="0" step="any" placeholder="0"></label>
-          <label><span>หน่วย</span><input id="wlWithdrawUnit" type="text" readonly></label>
-        </div>
+        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ • แสดงเฉพาะชื่อรายการ)</small></div>
+        <div id="withdrawRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
       </div>
       <div id="receiveFields" class="conditional-fields" hidden>
-        <div class="field-title">รับผลผลิตเข้าคลัง</div>
-        <div class="form-grid">
-          <label><span>รายการผลผลิต</span><select id="wlReceiveItem" onchange="updateInventoryUnit('receive')"><option value="">เลือกรายการ</option></select></label>
-          <label><span>จำนวนที่ได้รับ</span><input id="wlReceiveQty" type="number" min="0" step="any" placeholder="0"></label>
-          <label><span>หน่วย</span><input id="wlReceiveUnit" type="text" readonly></label>
-        </div>
+        <div class="field-title">รับผลผลิตเข้าคลัง <small>(เพิ่มได้หลายรายการ)</small></div>
+        <div id="receiveRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('receive')">＋ เพิ่มรายการที่รับเข้า</button>
       </div>
       <div id="workLogStatus" class="form-status" role="status"></div>
       <button class="primary-action" type="submit" id="workLogSubmit">บันทึก WORK LOG</button>
@@ -106,7 +102,7 @@
    The app reads each tab through Google Sheets gviz CSV.
    If a tab is unavailable, that section simply shows no data.
    ============================================================ */
-const SHEET_ID="1eph0zMO0iEtgqSsGEVLVOr9txgx9J2bAZyPOuwvmBh8";
+const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
 const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="PASTE_APPS_SCRIPT_WEB_APP_URL_HERE";
@@ -233,7 +229,7 @@ function rebuildWorkLogLookups(){
  });
  const target=document.getElementById('wlTargetId');
  if(target){
-  target.innerHTML='<option value="">เลือก Target ID</option>'+[...targetMap.values()].map(x=>`<option value="${esc(x.id)}">${esc(x.id)}</option>`).join('');
+  target.innerHTML='<option value="">เลือกสัตว์วิเศษ/พืชผัก</option>'+[...targetMap.values()].map(x=>`<option value="${esc(x.id)}">${esc(x.id)}</option>`).join('');
  }
  const rec=document.getElementById('wlRecorder');
  if(rec){
@@ -244,68 +240,131 @@ function rebuildWorkLogLookups(){
  }
  const invOptions=inventory.map((x,i)=>{
   const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}${unit?` (${esc(unit)})`:''}</option>`;
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
  }).join('');
- const w=document.getElementById('wlWithdrawItem'); const r=document.getElementById('wlReceiveItem');
- if(w)w.innerHTML='<option value="">ไม่เบิก</option>'+invOptions;
- if(r)r.innerHTML='<option value="">เลือกรายการ</option>'+invOptions;
+ document.querySelectorAll('.inventory-item-template').forEach(sel=>{
+   sel.innerHTML='<option value="">เลือกรายการ</option>'+invOptions;
+ });
+ resetInventoryRows();
  updateWorkTypeFields();
 }
+
+const WIZARD_DAYS=[
+ 'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
+ 'วันที่ 2 ผู้วิเศษ | 06.00 - 09.59 น.',
+ 'วันที่ 3 ผู้วิเศษ | 10.00 - 13.59 น.',
+ 'วันที่ 4 ผู้วิเศษ | 14.00 - 17.59 น.',
+ 'วันที่ 5 ผู้วิเศษ | 18.00 - 21.59 น.',
+ 'วันที่ 6 ผู้วิเศษ | 22.00 - 01.59 น.'
+];
+
 function updateWorkTypeFields(){
  const cat=document.getElementById('wlCategory')?.value||'';
  const wt=document.getElementById('wlWorkType');
  const options={
-  'งานทั่วไป':['การทำความสะอาด','การให้อาหารสัตว์วิเศษ','การรดน้ำพืชผัก','การตรวจสุขภาพประจำวันสัตว์วิเศษ','การรักษาสัตว์วิเศษในคลินิกสัตว์วิเศษ'],
+  'งานทั่วไป':['การทำความสะอาด','การให้อาหารสัตว์วิเศษ','การรดน้ำพืชผัก'],
   'เก็บผลผลิต':['การเก็บผลผลิตพืชผัก','การรับผลผลิตจากสัตว์วิเศษ']
  };
+ const current=wt?.value||'';
  if(wt)wt.innerHTML='<option value="">เลือกประเภทงาน</option>'+(options[cat]||[]).map(x=>`<option>${esc(x)}</option>`).join('');
+ if(wt && options[cat]?.includes(current))wt.value=current;
+ const cleaning=cat==='งานทั่วไป' && wt?.value==='การทำความสะอาด';
+ const targetWrap=document.getElementById('targetFields');
+ const targetId=document.getElementById('wlTargetId');
+ if(targetWrap)targetWrap.hidden=cleaning;
+ if(targetId)targetId.required=!cleaning;
+ if(cleaning){
+   targetId.value=''; document.getElementById('wlTargetName').value='';
+ }
  document.getElementById('withdrawFields').hidden=cat!=='งานทั่วไป';
  document.getElementById('receiveFields').hidden=cat!=='เก็บผลผลิต';
- if(cat!=='งานทั่วไป'){document.getElementById('wlWithdrawItem').value='';document.getElementById('wlWithdrawQty').value='';document.getElementById('wlWithdrawUnit').value='';}
- if(cat!=='เก็บผลผลิต'){document.getElementById('wlReceiveItem').value='';document.getElementById('wlReceiveQty').value='';document.getElementById('wlReceiveUnit').value='';}
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+ if(cat!=='งานทั่วไป')clearInventoryRows('withdraw');
+ if(cat!=='เก็บผลผลิต')clearInventoryRows('receive');
 }
 function updateTargetName(){
- const id=document.getElementById('wlTargetId').value; document.getElementById('wlTargetName').value=targetMap.get(id)?.name||'';
+ const id=document.getElementById('wlTargetId').value;
+ document.getElementById('wlTargetName').value=targetMap.get(id)?.name||'';
 }
-function updateInventoryUnit(kind){
- const id=kind==='withdraw'?'wlWithdrawItem':'wlReceiveItem';
- const unit=kind==='withdraw'?'wlWithdrawUnit':'wlReceiveUnit';
- const sel=document.getElementById(id); const opt=sel.options[sel.selectedIndex];
- document.getElementById(unit).value=opt?.dataset?.unit||'';
+function localDateISO(d=new Date()){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+}
+function localTime24(d=new Date()){
+ return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function initWorkLogForm(){
- const d=document.getElementById('wlDate'); if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);
- const t=document.getElementById('wlTime'); if(t&&!t.value){const now=new Date();t.value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');}
+ const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
+ const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
- if(md&&!md.options.length){md.innerHTML=['วันจันทร์','วันอังคาร','วันพุธ','วันพฤหัสบดี','วันศุกร์','วันเสาร์','วันอาทิตย์'].map(x=>`<option>${x}</option>`).join('');}
+ if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
+ resetInventoryRows();
 }
-function inventorySelection(kind){
- const sel=document.getElementById(kind==='withdraw'?'wlWithdrawItem':'wlReceiveItem');
- const opt=sel.options[sel.selectedIndex];
- return {id:opt?.value||'',name:opt?.dataset?.name||'',unit:opt?.dataset?.unit||''};
+function inventoryOptionsHTML(){
+ return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
+}
+function addInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(!list)return;
+ const row=document.createElement('div'); row.className='inventory-entry-row';
+ const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
+ row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+ <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+ <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+ <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ list.appendChild(row);
+}
+function ensureInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(list && !list.children.length)addInventoryRow(kind);
+}
+function clearInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows'); if(list)list.innerHTML='';
+}
+function resetInventoryRows(){
+ clearInventoryRows('withdraw'); clearInventoryRows('receive');
+ const cat=document.getElementById('wlCategory')?.value||'';
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+}
+function updateInventoryUnit(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(row)row.querySelector('.inventory-unit').value=selectEl.options[selectEl.selectedIndex]?.dataset?.unit||'';
+}
+function collectInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
+  const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
+ }).filter(x=>x.id||x.qty);
 }
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
  if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
- const cat=document.getElementById('wlCategory').value;
- const wi=inventorySelection('withdraw'), ri=inventorySelection('receive');
+ const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
+ const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
+ const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(cat==='งานทั่วไป'){
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
+ } else if(cat==='เก็บผลผลิต'){
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
+ }
  const payload={
-  category:cat, muggleDate:document.getElementById('wlDate').value,
-  magicalDay:document.getElementById('wlMagicalDay').value, icTime:document.getElementById('wlTime').value,
-  workType:document.getElementById('wlWorkType').value, targetId:document.getElementById('wlTargetId').value,
-  targetName:document.getElementById('wlTargetName').value, recorder:document.getElementById('wlRecorder').value,
-  withdrawItemId:wi.id, withdrawItemName:wi.name, withdrawQty:document.getElementById('wlWithdrawQty').value, withdrawUnit:document.getElementById('wlWithdrawUnit').value,
-  receivedItemId:ri.id, receivedItemName:ri.name, receivedQty:document.getElementById('wlReceiveQty').value, receivedUnit:document.getElementById('wlReceiveUnit').value
+  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
+  workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,
+  withdrawals,receives
  };
- if(cat==='งานทั่วไป' && payload.withdrawItemId && Number(payload.withdrawQty)<=0){status.textContent='กรุณาระบุจำนวนที่เบิกให้มากกว่า 0';status.className='form-status error';return;}
- if(cat==='เก็บผลผลิต' && (!payload.receivedItemId || Number(payload.receivedQty)<=0)){status.textContent='กรุณาเลือกรายการผลผลิตและจำนวนที่ได้รับ';status.className='form-status error';return;}
- btn.disabled=true; status.textContent='กำลังบันทึก…'; status.className='form-status';
+ btn.disabled=true;status.textContent='กำลังบันทึก…';status.className='form-status';
  try{
-  // ใช้ form-urlencoded + no-cors เพื่อให้ GitHub Pages ส่ง POST ไป Apps Script ได้โดยไม่ติด preflight
   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
-  status.textContent='ส่งข้อมูลแล้ว • ระบบจะอัปเดต WORK LOG / INVENTORY ในไม่กี่วินาที'; status.className='form-status success';
-  document.getElementById('workLogForm').reset(); initWorkLogForm(); updateWorkTypeFields();
+  status.textContent='ส่งข้อมูลแล้ว • ระบบจะอัปเดต WORK LOG / INVENTORY';status.className='form-status success';
+  document.getElementById('workLogForm').reset();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,1200);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
  finally{btn.disabled=false;}
