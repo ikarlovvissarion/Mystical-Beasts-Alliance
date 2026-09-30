@@ -220,19 +220,15 @@
 <div class="page-heading"><div><p class="eyebrow">CONTROL ARCHIVE</p><h2>Admin</h2></div><span class="count-badge">✦</span></div>
 <div class="admin-page-card">
   <h3>ผู้ดูแลระบบ</h3>
-  <p>ภาพรวมสถานะ WORK LOG, คลังชมรม และประวัติรายการที่ลบออกจากระบบ</p>
+  <p>ภาพรวม WORK LOG, INVENTORY และประวัติรายการที่ลบออกจากระบบ</p>
   <div class="admin-summary-grid">
     <div class="admin-summary-box"><b id="adminWorkCount">0</b><small>WORK LOG</small></div>
-    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>จำนวนรวมในคลัง</small></div>
+    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>INVENTORY ITEMS</small></div>
     <div class="admin-summary-box"><b id="adminDeletedCount">0</b><small>ลบแล้ว</small></div>
   </div>
   <div class="admin-actions" style="margin-top:18px">
     <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
     <button class="admin-action-btn" type="button" onclick="showPage('inventory')">📦 ดูคลังชมรม</button>
-  </div>
-  <div class="admin-inventory-status">
-    <h4>สถานะจำนวนของในคลัง</h4>
-    <div id="adminInventoryStatus"></div>
   </div>
   <div class="admin-deleted">
     <h4 class="admin-deleted-title">ประวัติรายการที่ลบ</h4>
@@ -317,12 +313,10 @@ function render(){
  const adminWorkCount=document.getElementById('adminWorkCount');
  const adminInventoryCount=document.getElementById('adminInventoryCount');
  const adminDeletedCount=document.getElementById('adminDeletedCount');
- const adminInventoryStatus=document.getElementById('adminInventoryStatus');
  const adminDeletedHistory=document.getElementById('adminDeletedHistory');
  if(adminWorkCount)adminWorkCount.textContent=worklogs.length;
- if(adminInventoryCount)adminInventoryCount.textContent=formatInventoryTotal(inventory);
+ if(adminInventoryCount)adminInventoryCount.textContent=inventory.length;
  if(adminDeletedCount)adminDeletedCount.textContent=deletedWorklogs.length;
- if(adminInventoryStatus)adminInventoryStatus.innerHTML=renderInventoryLarge(inventory);
  if(adminDeletedHistory)adminDeletedHistory.innerHTML=renderDeletedHistory(deletedWorklogs);
  const order=["A","B","C"];
  const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
