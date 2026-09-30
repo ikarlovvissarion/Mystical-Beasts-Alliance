@@ -30,6 +30,10 @@ function doPost(e) {
     const payloadText = e && e.parameter && e.parameter.payload;
     if (!payloadText) throw new Error('ไม่พบ payload');
     const data = JSON.parse(payloadText);
+    if (data.action === 'cancelWork') {
+      const result = cancelWorkLog_(data);
+      return json_(result);
+    }
     const result = saveWorkLog_(data);
     return json_(result);
   } catch (err) {
@@ -228,17 +232,13 @@ function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)
 // ============================================================
 // ADMIN: Google Account permission + Work Log cancellation
 // ============================================================
-const ADMIN_EMAILS = [
-  'ikarlov.vissarion@gmail.com',
-  'liliasaintscarlett@gmail.com'
-];
-function isAdminEmail_(email) { return ADMIN_EMAILS.indexOf(String(email || '').trim().toLowerCase()) !== -1; }
-function getCurrentUserEmail_() { return String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); }
-function adminStatus_() { const email=getCurrentUserEmail_(); return {ok:true,email:email,isAdmin:isAdminEmail_(email)}; }
+const ADMIN_PASSWORD = 'Meduza2014';
+function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
 function cancelWorkLog_(data) {
-  const email=getCurrentUserEmail_(); if(!isAdminEmail_(email)) throw new Error('บัญชี Google นี้ไม่มีสิทธิ์ผู้ดูแลระบบ');
+  if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const email='Password Admin';
   const workId=String(data.workId||'').trim(), reason=String(data.reason||'').trim();
   if(!workId) throw new Error('ไม่พบ Work ID'); if(!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
   const lock=LockService.getScriptLock(); lock.waitLock(30000);
@@ -267,7 +267,3 @@ function cancelWorkLog_(data) {
     return {ok:true,workId:workId,cancelledBy:email,reverted:reverted};
   } finally { lock.releaseLock(); }
 }
-
-// Replace the public handlers with handlers that also expose Admin actions.
-function doGet(e) { if(e&&e.parameter&&e.parameter.action==='adminStatus') return json_(adminStatus_()); return json_({ok:true,service:'MYSTICAL BEASTS ALLIANCE WORK LOG API'}); }
-function doPost(e) { try { const p=e&&e.parameter&&e.parameter.payload; if(!p)throw new Error('ไม่พบ payload'); const data=JSON.parse(p); if(data.action==='cancelWork')return json_(cancelWorkLog_(data)); return json_(saveWorkLog_(data)); } catch(err){ return json_({ok:false,error:String(err.message||err)}); } }

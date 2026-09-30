@@ -142,7 +142,7 @@
 <button onclick="showPage('garden')">GARDEN PLOT</button>
 <button onclick="showPage('worklog')">WORK LOG</button>
 <button onclick="showPage('inventory')">INVENTORY</button>
-<button onclick="showPage('admin')">ADMIN</button>
+<button onclick="openAdmin()">ADMIN</button>
 </nav>
 </header>
 
@@ -221,10 +221,10 @@
 <div class="page-heading"><div><p class="eyebrow">CONTROL ARCHIVE</p><h2>Admin</h2></div><span class="count-badge">✦</span></div>
 <div class="admin-page-card">
   <h3>ผู้ดูแลระบบ</h3>
-  <p>พื้นที่จัดการสำหรับบัญชี Google ที่ได้รับสิทธิ์ Admin เท่านั้น</p>
+  <p>พื้นที่จัดการสำหรับผู้ดูแลระบบ กรุณายืนยันด้วย Password ก่อนใช้งาน</p>
   <div class="admin-account">
-    <div><small>GOOGLE ACCOUNT</small><div id="adminAccountEmail">ยังไม่ได้ตรวจสอบ</div></div>
-    <span id="adminAccountBadge" class="admin-badge">กำลังตรวจสอบ</span>
+    <div><small>ADMIN ACCESS</small><div id="adminAccountEmail">Password Protected</div></div>
+    <span id="adminAccountBadge" class="admin-badge denied">LOCKED</span>
   </div>
   <div class="admin-summary-grid">
     <div class="admin-summary-box"><b id="adminWorkCount">0</b><small>WORK LOG</small></div>
@@ -233,9 +233,9 @@
   </div>
   <div class="admin-actions" style="margin-top:18px">
     <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
-    <button class="admin-action-btn" type="button" onclick="syncData();checkGoogleAdmin();">↻ ตรวจสอบสิทธิ์ / ซิงก์</button>
+    <button class="admin-action-btn" type="button" onclick="openAdmin(true)">🔐 ยืนยัน Password ใหม่</button>
   </div>
-  <p id="adminAccessNote" class="admin-note">หากเป็น Admin ให้ลงชื่อเข้าใช้ Google บัญชีที่ได้รับอนุญาต แล้วเปิดหน้านี้ใหม่</p>
+  <p id="adminAccessNote" class="admin-note">ยังไม่ได้ยืนยัน Password</p>
 </div>
 </section>
 
@@ -261,8 +261,8 @@ const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
-const ADMIN_API_URL="https://script.google.com/macros/s/AKfycbzjuXjvRBQ4ZrQKZUQHP9WG4ZQA3wkdtHeBSM6ZWnWicQKwbJ8kcxxh_1ocgBLNSjE/exec";
-let isGoogleAdmin=false; let adminEmail="";
+const ADMIN_PASSWORD="Meduza2014";
+let isGoogleAdmin=false; let adminUnlocked=false;
 
 const FALLBACK_BEASTS = [
 {"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
@@ -375,41 +375,36 @@ function renderWorkHistory(rows){
  }).join('')}</div></div>`;
 }
 
-async function checkGoogleAdmin(){
- if(!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_ADMIN_WEB_APP_URL')) return;
- try{
-   const res=await fetch(ADMIN_API_URL+'?action=adminStatus&ts='+Date.now(),{credentials:'include',cache:'no-store'});
-   const data=await res.json();
-   isGoogleAdmin=!!data.isAdmin; adminEmail=data.email||'';
-   const emailEl=document.getElementById('adminAccountEmail');
-   const badgeEl=document.getElementById('adminAccountBadge');
-   const noteEl=document.getElementById('adminAccessNote');
-   if(emailEl)emailEl.textContent=adminEmail||'ไม่พบ Google Account';
-   if(badgeEl){badgeEl.textContent=isGoogleAdmin?'ADMIN — อนุญาต':'ACCESS DENIED';badgeEl.classList.toggle('denied',!isGoogleAdmin);}
-   if(noteEl)noteEl.textContent=isGoogleAdmin?'บัญชีนี้ได้รับสิทธิ์ Admin สามารถยกเลิกรายการ WORK LOG ได้':'บัญชีนี้ยังไม่มีสิทธิ์ Admin';
-   render();
- }catch(e){
-   console.warn('Admin permission check:',e);
-   const emailEl=document.getElementById('adminAccountEmail');
-   const badgeEl=document.getElementById('adminAccountBadge');
-   const noteEl=document.getElementById('adminAccessNote');
-   if(emailEl)emailEl.textContent='ต้องลงชื่อเข้าใช้ Google';
-   if(badgeEl){badgeEl.textContent='ตรวจสอบไม่สำเร็จ';badgeEl.classList.add('denied');}
-   if(noteEl)noteEl.textContent='โปรดเปิดหน้า Admin หลังลงชื่อเข้าใช้ Google บัญชีที่ได้รับอนุญาต';
+async function openAdmin(force=false){
+ if(!force && adminUnlocked){showPage('admin');render();return;}
+ const password=prompt('กรุณาใส่ Password สำหรับ ADMIN:');
+ if(password===null)return;
+ if(password!==ADMIN_PASSWORD){
+   adminUnlocked=false; isGoogleAdmin=false;
+   alert('Password ไม่ถูกต้อง');
+   return;
  }
+ adminUnlocked=true; isGoogleAdmin=true;
+ showPage('admin');
+ const emailEl=document.getElementById('adminAccountEmail');
+ const badgeEl=document.getElementById('adminAccountBadge');
+ const noteEl=document.getElementById('adminAccessNote');
+ if(emailEl)emailEl.textContent='Password verified';
+ if(badgeEl){badgeEl.textContent='ADMIN — UNLOCKED';badgeEl.classList.remove('denied');}
+ if(noteEl)noteEl.textContent='ยืนยัน Password แล้ว สามารถจัดการ WORK LOG ได้';
+ render();
 }
 
 async function cancelWorkLog(workId){
- if(!isGoogleAdmin){alert('บัญชี Google นี้ไม่มีสิทธิ์ผู้ดูแลระบบ');return;}
+ if(!adminUnlocked){openAdmin(); if(!adminUnlocked)return;}
  const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
  if(!row)return;
  const ok=confirm(`ต้องการยกเลิก WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้องกลับให้อัตโนมัติ และจะไม่ลบหลักฐานเดิม`);
  if(!ok)return;
  const reason=prompt('กรุณาระบุเหตุผลการยกเลิก:', 'กรอกข้อมูลผิด / รายการซ้ำ');
  if(!reason || !reason.trim())return;
- if(!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_ADMIN_WEB_APP_URL')){alert('ยังไม่ได้ตั้งค่า Admin Web App URL');return;}
  try{
-   await fetch(ADMIN_API_URL,{method:'POST',mode:'no-cors',credentials:'include',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim()})})});
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
    alert('ส่งคำขอยกเลิกรายการแล้ว ระบบจะย้อนคลังและอัปเดตสถานะหลังซิงก์');
    setTimeout(syncData,1500);
  }catch(e){alert('ยกเลิกรายการไม่สำเร็จ: '+e.message);}
@@ -700,7 +695,7 @@ async function syncData(){
   console.warn("Google Sheets sync:",e);
  }
 }
-render(); initWorkLogForm(); syncData(); checkGoogleAdmin(); setInterval(syncData,SYNC_MS);
+render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS);
 </script>
 </body>
 </html>
