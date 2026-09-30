@@ -10,86 +10,194 @@
 <body>
 <header class="topbar">
 <button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>ALLIANCE DATABASE</small></span></button>
-<nav><button onclick="showPage('home')">HOME</button><button onclick="showPage('beasts')">BEASTS</button><button onclick="showPage('greenhouse')">GARDEN PLOT</button></nav>
+<nav>
+<button onclick="showPage('home')">HOME</button>
+<button onclick="showPage('beasts')">BEASTS</button>
+<button onclick="showPage('garden')">GARDEN PLOT</button>
+<button onclick="showPage('worklog')">WORK LOG</button>
+<button onclick="showPage('inventory')">INVENTORY</button>
+</nav>
 </header>
+
 <main>
 <section id="home" class="page active">
-<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p><h1>Mystical Beasts<br><em>Alliance</em></h1><p>ฐานข้อมูลกลางสำหรับสัตว์วิเศษภายในคอกและพืชในแปลงพืชผัก</p></div>
-<div class="summary-grid">
+<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p>
+<h1>Mystical Beasts<br><em>Alliance</em></h1>
+<p>ฐานข้อมูลกลางสำหรับสัตว์วิเศษ พืช งานของชมรม และคลังชมรม</p></div>
+<div class="summary-grid summary-grid-3">
 <button class="summary-card" onclick="showPage('beasts')">🐾<b id="creatureCount">0</b><small>BEASTS</small></button>
-<button class="summary-card" onclick="showPage('greenhouse')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
+<button class="summary-card" onclick="showPage('garden')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
+<button class="summary-card" onclick="showPage('inventory')">📦<b id="inventoryCount">0</b><small>INVENTORY ITEMS</small></button>
 </div>
 <div class="section-title">✦ QUICK ACCESS ✦</div>
-<div class="quick-grid"><button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษภายในคอก</span></button><button onclick="showPage('greenhouse')">🌿 <span>ดูพืชในแปลงพืชผัก</span></button></div>
+<div class="quick-grid quick-grid-4">
+<button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษ</span></button>
+<button onclick="showPage('garden')">🌿 <span>ดูพืชในแปลง</span></button>
+<button onclick="showPage('worklog')">📜 <span>ดู WORK LOG</span></button>
+<button onclick="showPage('inventory')">📦 <span>ดูคลังชมรม</span></button>
+</div>
+<div id="syncInfo" class="sync-info">กำลังเชื่อมต่อฐานข้อมูล…</div>
 </section>
-<section id="beasts" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div><div id="creatureGrid"></div></section>
-<section id="greenhouse" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div><div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแปลงพืชผักในไฟล์ที่เชื่อมต่อ<br><small>เพิ่มแท็บ PLANTS ในขั้นถัดไปได้</small></div></section>
+
+<section id="beasts" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div>
+<div id="creatureGrid"></div>
+</section>
+
+<section id="garden" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div>
+<div id="plantGrid" class="cards"></div>
+</section>
+
+<section id="worklog" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Work Log</h2></div><span id="workTotal" class="count-badge">0</span></div>
+<div id="workLogGrid" class="table-wrap"></div>
+</section>
+
+<section id="inventory" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Inventory</h2></div><span id="inventoryTotal" class="count-badge">0</span></div>
+<div id="inventoryGrid" class="table-wrap"></div>
+</section>
 </main>
-<div id="modal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modal-card"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal-card"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div>
+</div>
+
 <script>
-const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS6ATu1MX6uUYNJg7gZjS8FRMqFLNwc2GZyHsejsJbuzEENQzwD8Tf-ObUy8mp0drVau6S2xLt090Jr/pub?gid=0&single=true&output=csv";
-let beasts=[{"ID": "A001", "Category": "A", "Name": "Lumi", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "12 พฤษภาคม 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A002", "Category": "A", "Name": "Clover", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 7, "Color": "สีฟ้าอมเทา", "Date of Birth": "24 มกราคม 2007", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A003", "Category": "A", "Name": "Bramble", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 8, "Color": "สีฟ้าอมเทา", "Date of Birth": "7 กันยายน 2006", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A004", "Category": "A", "Name": "Mallow", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 2, "Color": "สีฟ้าอมเทา", "Date of Birth": "18 มีนาคม 2012", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A005", "Category": "A", "Name": "Truffle", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 2, "Color": "สีฟ้าอมเทา", "Date of Birth": "29 ตุลาคม 2012", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A006", "Category": "A", "Name": "Mochi", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "5 มิถุนายน 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A007", "Category": "A", "Name": "Pippin", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "21 ธันวาคม 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}];
-const plants=[];
+/* ============================================================
+   MYSTICAL BEASTS ALLIANCE — CURRENT DATA CONFIG
+   Google Sheet ID supplied for the current database.
+   The app reads each tab through Google Sheets gviz CSV.
+   If a tab is unavailable, that section simply shows no data.
+   ============================================================ */
+const SHEET_ID="15HEODMU3gdVnkJfdD8CUzls51zcTyQWs";
+const SYNC_MS=15000;
+
+const FALLBACK_BEASTS = [
+{"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A002","Name":"Clover","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"7","Color":"สีฟ้าอมเทา","Date of Birth":"24 มกราคม 2007","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A003","Name":"Bramble","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"8","Color":"สีฟ้าอมเทา","Date of Birth":"7 กันยายน 2006","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A004","Name":"Mallow","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"18 มีนาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A005","Name":"Truffle","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"29 ตุลาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A006","Name":"Mochi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"5 มิถุนายน 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
+];
+
+let beasts=[], plants=[], worklogs=[], inventory=[];
+
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const img=(src,label,emoji)=>src?`<img src="${esc(src)}" alt="${esc(label)}">`:`<div class="placeholder">${emoji}</div>`;
-function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");scrollTo({top:0,behavior:"smooth"})}
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ scrollTo({top:0,behavior:"smooth"});
+}
+
 function categoryMeta(code){
-const meta={
-A:{th:"สัตว์เลี้ยงลูกด้วยนม",en:"MAMMALS"},
-B:{th:"สัตว์ปีกและแมลง",en:"BIRDS & INSECTS"},
-C:{th:"สัตว์น้ำ สัตว์ครึ่งบกครึ่งน้ำ และสัตว์เลื้อยคลาน",en:"AQUATIC, AMPHIBIANS & REPTILES"}
-};
-return meta[String(code||"").trim().toUpperCase()] || {th:"อื่น ๆ",en:"OTHER BEASTS"};
+ const meta={
+ A:{th:"สัตว์เลี้ยงลูกด้วยนม",en:"MAMMALS"},
+ B:{th:"สัตว์ปีกและแมลง",en:"BIRDS & INSECTS"},
+ C:{th:"สัตว์น้ำ สัตว์ครึ่งบกครึ่งน้ำ และสัตว์เลื้อยคลาน",en:"AQUATIC, AMPHIBIANS & REPTILES"}
+ };
+ return meta[String(code||"").trim().toUpperCase()]||{th:"อื่น ๆ",en:"OTHER BEASTS"};
 }
 function normalizeCategory(value, creature){
-const v=String(value??"").trim().toUpperCase();
-// Accept A/B/C, full category names, or labels such as "A — MAMMALS".
-if(/^(?:A)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์เลี้ยงลูกด้วยนม") || v.includes("MAMMAL")) return "A";
-if(/^(?:B)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์ปีกและแมลง") || v.includes("BIRD") || v.includes("INSECT")) return "B";
-if(/^(?:C)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์น้ำ") || v.includes("สัตว์ครึ่งบกครึ่งน้ำ") || v.includes("สัตว์เลื้อยคลาน") || v.includes("AQUATIC") || v.includes("AMPHIB") || v.includes("REPTIL")) return "C";
-// If Category is blank, retain a useful fallback for known species.
-if(!v && creature){
- const species=String(creature.Species||"").trim().toUpperCase();
- if(["MOONCALF","PUFFSKEIN","NIFFLER","KNEAZLE","BADGER"].some(x=>species.includes(x))) return "A";
- if(["FWOOPER","OWL","FAIRY","PIXIE","ACROMANTULA"].some(x=>species.includes(x))) return species.includes("ACROMANTULA") ? "B" : "B";
+ const v=String(value??"").trim().toUpperCase();
+ if(/^A(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์เลี้ยงลูกด้วยนม")||v.includes("MAMMAL"))return"A";
+ if(/^B(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์ปีกและแมลง")||v.includes("BIRD")||v.includes("INSECT"))return"B";
+ if(/^C(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์น้ำ")||v.includes("สัตว์ครึ่งบกครึ่งน้ำ")||v.includes("สัตว์เลื้อยคลาน")||v.includes("AQUATIC")||v.includes("AMPHIB")||v.includes("REPTIL"))return"C";
+ if(!v&&creature){
+  const s=String(creature.Species||"").toUpperCase();
+  if(["MOONCALF","PUFFSKEIN","NIFFLER","KNEAZLE","BADGER"].some(x=>s.includes(x)))return"A";
+  if(["FWOOPER","OWL","FAIRY","PIXIE"].some(x=>s.includes(x)))return"B";
  }
-return "";
+ return"";
 }
+
 function render(){
-creatureCount.textContent=beasts.length;plantCount.textContent=plants.length;creatureTotal.textContent=beasts.length;plantTotal.textContent=plants.length;
-const order=["A","B","C"];
-const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
-const uncategorized=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
-if(uncategorized.length) groups.push({code:"OTHER",items:uncategorized});
-creatureGrid.innerHTML=groups.map(g=>{
-const m=categoryMeta(g.code);
-return `<section class="category-section"><header class="category-heading"><div class="category-mark"><span>${esc(g.code)}</span></div><div class="category-title"><h3>${esc(m.th)}</h3><p>${esc(m.en)}</p></div><span class="category-count">${g.items.length}</span></header><div class="cards">${g.items.map(({c,i})=>`<button class="creature-card" onclick="openCreature(${i})"><div class="card-image">${img(c.Image,c.Name,"🐾")}</div><div class="card-body"><span class="tag">${esc(c.ID)}</span><h3>${esc(c.Name)}</h3><p>${esc(c.Species)} · ${esc(c.Breed)}</p><span class="status">${esc(c.Classification || "Mystical Beast")}</span></div></button>`).join("")}</div></section>`;
-}).join("");
+ creatureCount.textContent=beasts.length; creatureTotal.textContent=beasts.length;
+ plantCount.textContent=plants.length; plantTotal.textContent=plants.length;
+ inventoryCount.textContent=inventory.length; inventoryTotal.textContent=inventory.length;
+ workTotal.textContent=worklogs.length;
+ const order=["A","B","C"];
+ const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
+ const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
+ if(other.length)groups.push({code:"OTHER",items:other});
+ creatureGrid.innerHTML=groups.map(g=>{
+  const m=categoryMeta(g.code);
+  return `<section class="category-section"><header class="category-heading"><div class="category-mark"><span>${esc(g.code)}</span></div><div class="category-title"><h3>${esc(m.th)}</h3><p>${esc(m.en)}</p></div><span class="category-count">${g.items.length}</span></header><div class="cards">${g.items.map(({c,i})=>`<button class="creature-card" onclick="openCreature(${i})"><div class="card-image">${img(c.Image,c.Name,"🐾")}</div><div class="card-body"><span class="tag">${esc(c.ID)}</span><h3>${esc(c.Name)}</h3><p>${esc(c.Species)} · ${esc(c.Breed)}</p><span class="status">${esc(c.Classification||"Mystical Beast")}</span></div></button>`).join("")}</div></section>`;
+ }).join("") || `<div class="empty">🐾<br><br>ยังไม่มีข้อมูลสัตว์วิเศษ</div>`;
+
+ plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
+
+ workLogGrid.innerHTML=renderTable(worklogs,["Work ID","วันที่ (มักเกิ้ล)","วันผู้วิเศษ","เวลา (IC)","ประเภทการทำงาน","Target ID","Target Name","ผู้ลงบันทึก","เบิกคลังชมรม","จำนวนที่เบิก","จำนวนที่ได้รับ"]);
+ inventoryGrid.innerHTML=renderTable(inventory,["ID","รายการ","จำนวน","หน่วย"]);
 }
-function openCreature(i){const c=beasts[i];modalContent.innerHTML=`<div class="modal-image">${img(c.Image,c.Name,"🐾")}</div><div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(c.ID)}</strong><span class="modal-species">${esc(c.Species)}</span></div><h2>${esc(c.Name)}</h2><div class="detail-grid">
-<div><small>BREED</small><b>${esc(c.Breed)}</b></div><div><small>SEX</small><b>${esc(c.Sex)}</b></div>
-<div><small>AGE</small><b>${esc(c.Age)} years</b></div><div><small>COLOR</small><b>${esc(c.Color)}</b></div>
-<div><small>DATE OF BIRTH</small><b>${esc(c["Date of Birth"])}</b></div><div><small>ORIGIN / HABITAT</small><b>${esc(c["Origin/Native Habitat"])}</b></div>
-<div><small>OWNER</small><b>${esc(c.Owner)}</b></div><div><small>CLASSIFICATION</small><b>${esc(c.Classification)}</b></div>
-</div><p class="description">${esc(c["Other Characteristics"])}</p>`;modal.classList.add("open")}
+
+function renderTable(rows,preferred){
+ if(!rows.length)return `<div class="empty">ยังไม่มีข้อมูลในแท็บนี้</div>`;
+ const keys=preferred.filter(k=>rows.some(r=>Object.prototype.hasOwnProperty.call(r,k)));
+ const cols=keys.length?keys:Object.keys(rows[0]).slice(0,10);
+ return `<div class="table-scroll"><table><thead><tr>${cols.map(k=>`<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(k=>`<td>${esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function openCreature(i){
+ const c=beasts[i];
+ modalContent.innerHTML=`<div class="modal-image">${img(c.Image,c.Name,"🐾")}</div><div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(c.ID)}</strong><span class="modal-species">${esc(c.Species)}</span></div><h2>${esc(c.Name)}</h2><div class="detail-grid">
+ <div><small>CATEGORY</small><b>${esc(categoryMeta(normalizeCategory(c.Category,c)).en)}</b></div>
+ <div><small>BREED</small><b>${esc(c.Breed)}</b></div><div><small>SEX</small><b>${esc(c.Sex)}</b></div>
+ <div><small>AGE</small><b>${esc(c.Age)} years</b></div><div><small>COLOR</small><b>${esc(c.Color)}</b></div>
+ <div><small>DATE OF BIRTH</small><b>${esc(c["Date of Birth"])}</b></div><div><small>ORIGIN / HABITAT</small><b>${esc(c["Origin/Native Habitat"])}</b></div>
+ <div><small>OWNER</small><b>${esc(c.Owner)}</b></div><div><small>CLASSIFICATION</small><b>${esc(c.Classification)}</b></div>
+ </div><p class="description">${esc(c["Other Characteristics"])}</p>`;
+ modal.classList.add("open");
+}
+function openPlant(i){
+ const p=plants[i];
+ modalContent.innerHTML=`<div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(p.ID||"")}</strong></div><h2>${esc(p["พืช/ผัก"]||p.Name||"-")}</h2><div class="detail-grid">${Object.entries(p).filter(([k])=>!["ID","พืช/ผัก","Name","Image"].includes(k)).map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join("")}</div>`;
+ modal.classList.add("open");
+}
 function closeModal(){modal.classList.remove("open")}
+
 function parseCSV(text){
-const lines=[]; let row=[], cell="", quoted=false;
-for(let i=0;i<text.length;i++){const ch=text[i], nx=text[i+1];
-if(ch==='"'){if(quoted && nx==='"'){cell+='"';i++} else quoted=!quoted}
-else if(ch===','&&!quoted){row.push(cell);cell=""}
-else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
-else cell+=ch;}
-if(cell!==""||row.length){row.push(cell);lines.push(row)}
-const headers=lines.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,""):x).trim());
-return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+ const lines=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];
+  if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(ch===','&&!quoted){row.push(cell);cell=""}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
+  else cell+=ch;
+ }
+ if(cell!==""||row.length){row.push(cell);lines.push(row)}
+ if(!lines.length)return[];
+ const headers=lines.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,""):x).trim());
+ return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+
+async function fetchSheet(sheetName){
+ const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&cb=${Date.now()}`;
+ const r=await fetch(url,{cache:"no-store"});
+ if(!r.ok)throw new Error(sheetName+" HTTP "+r.status);
+ return parseCSV(await r.text());
 }
 async function syncData(){
-try{const r=await fetch(CSV_URL+"&cb="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); console.log("Google Sheets auto-sync successful:", new Date().toLocaleTimeString());}
-catch(e){console.warn("Google Sheets auto-sync failed; using current data:", e);}
+ try{
+  const [b,p,w,inv]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY")
+  ]);
+  if(b.length)beasts=b;
+  plants=p;worklogs=w;inventory=inv;
+  render();
+  syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
+ }catch(e){
+  if(!beasts.length)beasts=FALLBACK_BEASTS;
+  render();
+  syncInfo.textContent="ใช้ข้อมูลสำรอง • ไม่สามารถอ่าน Google Sheets ได้ในขณะนี้";
+  console.warn("Google Sheets sync:",e);
+ }
 }
-render();
-// Auto-sync with Google Sheets every 15 seconds
-syncData();
-setInterval(syncData, 15000);
-</script></body></html>
+render(); syncData(); setInterval(syncData,SYNC_MS);
+</script>
+</body>
+</html>
