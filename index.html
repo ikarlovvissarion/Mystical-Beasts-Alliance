@@ -260,7 +260,7 @@ const SYNC_MS=15000;
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
 const ADMIN_PASSWORD="Meduza2014";
-let isGoogleAdmin=true;
+let isGoogleAdmin=false;
 
 const FALLBACK_BEASTS = [
 {"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
@@ -416,6 +416,12 @@ function renderDeletedHistory(rows){
 }
 
 function openAdmin(){
+ if(!isGoogleAdmin){
+   const password=prompt('กรุณาใส่ Password เพื่อเข้าสู่โซน Admin:');
+   if(password===null)return;
+   if(password!==ADMIN_PASSWORD){alert('Password ไม่ถูกต้อง');return;}
+   isGoogleAdmin=true;
+ }
  showPage('admin');
  render();
 }
@@ -427,11 +433,9 @@ async function cancelWorkLog(workId){
  if(!ok)return;
  const reason=prompt('กรุณาระบุเหตุผลการลบ:', 'กรอกข้อมูลผิด / รายการซ้ำ');
  if(!reason || !reason.trim())return;
- const password=prompt('กรุณาใส่ Password เพื่อยืนยันการลบ:');
- if(password===null)return;
- if(password!==ADMIN_PASSWORD){alert('Password ไม่ถูกต้อง');return;}
+ if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
  try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password})})});
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
    alert('ลบ WORK LOG สำเร็จแล้ว และบันทึกประวัติการลบไว้ใน ADMIN');
    await syncData();
  }catch(e){alert('ลบรายการไม่สำเร็จ: '+e.message);}
