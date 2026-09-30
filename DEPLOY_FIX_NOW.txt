@@ -1,0 +1,42 @@
+MYSTICAL BEASTS ALLIANCE — WORK LOG FIX
+
+สาเหตุที่แก้ในรุ่นนี้
+- หน้าเว็บเดิมใช้ fetch POST แบบ no-cors จึงไม่สามารถอ่านผลลัพธ์จาก Apps Script ได้ และอาจขึ้นว่า "บันทึกแล้ว" แม้ Apps Script จะตอบ error
+- รูปการทำงานเดิมไม่ถูกบังคับที่หน้าเว็บ แม้ฝั่ง Apps Script จะบังคับให้มีรูป
+- ระบบใหม่สร้าง Request ID และบันทึกผลลงแท็บ API STATUS เพื่อให้หน้าเว็บตรวจผลจริงผ่าน JSONP
+
+สิ่งที่แก้แล้ว
+1. WORK LOG ต้องแนบรูปก่อนบันทึก
+2. รูปถูกย่อเป็น JPEG ก่อนส่ง เพื่อลดขนาด payload
+3. POST ไป Apps Script ใช้ Request ID
+4. Apps Script สร้าง/ใช้แท็บ API STATUS
+5. หน้าเว็บรอผลจริงจาก API STATUS
+6. ถ้า Apps Script บันทึกไม่สำเร็จ หน้าเว็บจะแสดง Error จริง
+7. ADMIN ลบ WORK LOG ใช้กลไกตรวจผลเดียวกัน
+8. ใช้ WORK LOG Web App URL เดียวกับ ADMIN
+
+WEB APP URL ที่ตั้งไว้
+https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec
+
+การ Deploy
+- Apps Script ใช้ Code.gs นี้แทนของเดิม
+- Deploy > Manage deployments
+- ใช้ Deployment ของ WORK LOG
+- Execute as: Me
+- Who has access: Anyone
+- Deploy / New version
+- ถ้ามีการถามสิทธิ์ ให้อนุญาต Google Sheets และ Google Drive
+- รัน setupMBA() 1 ครั้งจาก Apps Script Editor หากยังไม่เคยอนุญาตสิทธิ์
+- ไม่ต้องใช้ Admin Deployment แยกสำหรับเว็บไซต์
+
+การทดสอบ
+เปิด Web App URL ตรง ๆ ควรได้ JSON ที่มี ok:true
+ตรวจสุขภาพ:
+https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec?action=health
+
+หลัง Deploy ต้องนำไฟล์ index.html และ styles.css ชุดนี้ขึ้น GitHub Pages
+
+หมายเหตุ
+- Spreadsheet ID: 1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0
+- Google Drive WORK PHOTOS Folder ID: 1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse
+- Admin password: Meduza2014
