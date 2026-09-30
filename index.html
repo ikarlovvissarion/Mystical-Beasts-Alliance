@@ -105,7 +105,7 @@
 const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
 const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
-const WORKLOG_API_URL="PASTE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 
 const FALLBACK_BEASTS = [
 {"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
@@ -221,6 +221,10 @@ function getFirstValue(row, keys){
  return '';
 }
 function rebuildWorkLogLookups(){
+ // IMPORTANT: This function may run every 15 seconds. Never rebuild/reset the form.
+ // Preserve every value the user is currently entering and only refresh lookup options.
+ const currentTarget=document.getElementById('wlTargetId')?.value || '';
+ const currentRecorder=document.getElementById('wlRecorder')?.value || '';
  targetMap=new Map();
  [...beasts,...plants].forEach(x=>{
   const id=getFirstValue(x,['ID','Target ID']);
@@ -230,6 +234,8 @@ function rebuildWorkLogLookups(){
  const target=document.getElementById('wlTargetId');
  if(target){
   target.innerHTML='<option value="">เลือกสัตว์วิเศษ/พืชผัก</option>'+[...targetMap.values()].map(x=>`<option value="${esc(x.id)}">${esc(x.id)}</option>`).join('');
+  if(currentTarget && targetMap.has(currentTarget)) target.value=currentTarget;
+  updateTargetName();
  }
  const rec=document.getElementById('wlRecorder');
  if(rec){
@@ -237,16 +243,30 @@ function rebuildWorkLogLookups(){
    const id=getFirstValue(x,['ID','Member ID']); const name=getFirstValue(x,['Name','ชื่อ','Member Name','ชื่อสมาชิก']) || id;
    return `<option value="${esc(name)}" data-id="${esc(id)}">${esc(name)}</option>`;
   }).join('');
+  if(currentRecorder) rec.value=currentRecorder;
  }
- const invOptions=inventory.map((x,i)=>{
+ const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
   const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
   return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
  }).join('');
+ // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
  document.querySelectorAll('.inventory-item-template').forEach(sel=>{
-   sel.innerHTML='<option value="">เลือกรายการ</option>'+invOptions;
+   const current=sel.value;
+   const row=sel.closest('.inventory-entry-row');
+   const qty=row?.querySelector('.inventory-qty')?.value || '';
+   sel.innerHTML=invOptions;
+   if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+   const unitInput=row?.querySelector('.inventory-unit');
+   if(unitInput){
+     const opt=sel.options[sel.selectedIndex];
+     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
+   }
+   const qtyInput=row?.querySelector('.inventory-qty');
+   if(qtyInput) qtyInput.value=qty;
  });
- resetInventoryRows();
- updateWorkTypeFields();
+ // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
+ // Those functions intentionally change the form when the user changes Category/Work Type,
+ // but must never run just because background data synchronization occurred.
 }
 
 const WIZARD_DAYS=[
