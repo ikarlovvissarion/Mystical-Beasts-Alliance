@@ -128,9 +128,9 @@
 }
 
 
-.admin-permission-status{margin:0 0 14px;padding:8px 12px;border:1px solid #c4a66d;background:#fff8e44d;color:#765727;font-size:11px;text-align:right}.admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}
+.admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}.admin-inventory-status{margin-top:22px}.admin-inventory-status h4,.admin-deleted-title{margin:0 0 12px;font-size:16px;font-weight:500}.admin-deleted{margin-top:28px;padding-top:22px;border-top:1px solid #c4a66d}.admin-empty{padding:24px;border:1px solid #c4a66d;background:#fff8e44d;text-align:center;font-size:13px}
 
-.admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-account{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 0;border-top:1px solid #c4a66d;border-bottom:1px solid #c4a66d;margin:16px 0}.admin-badge{display:inline-block;padding:6px 10px;border:1px solid #a17a38;background:#ead7ad;font-size:11px;font-weight:700;letter-spacing:1px}.admin-badge.denied{background:#ead0c8;border-color:#9b4d3e;color:#6a281d}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-note{font-size:11px!important;color:#765727}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
+.admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
 </style>
 </head>
 <body>
@@ -177,7 +177,6 @@
 </section>
 
 <section id="worklog" class="page">
-<div id="adminPermissionStatus" class="admin-permission-status" hidden></div>
 <div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Work Log</h2></div><span id="workTotal" class="count-badge">0</span></div>
 <div class="worklog-layout">
   <div class="worklog-form-card">
@@ -221,21 +220,24 @@
 <div class="page-heading"><div><p class="eyebrow">CONTROL ARCHIVE</p><h2>Admin</h2></div><span class="count-badge">✦</span></div>
 <div class="admin-page-card">
   <h3>ผู้ดูแลระบบ</h3>
-  <p>พื้นที่จัดการสำหรับผู้ดูแลระบบ กรุณายืนยันด้วย Password ก่อนใช้งาน</p>
-  <div class="admin-account">
-    <div><small>ADMIN ACCESS</small><div id="adminAccountEmail">Password Protected</div></div>
-    <span id="adminAccountBadge" class="admin-badge denied">LOCKED</span>
-  </div>
+  <p>ภาพรวมสถานะ WORK LOG, คลังชมรม และประวัติรายการที่ลบออกจากระบบ</p>
   <div class="admin-summary-grid">
     <div class="admin-summary-box"><b id="adminWorkCount">0</b><small>WORK LOG</small></div>
-    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>INVENTORY ITEMS</small></div>
-    <div class="admin-summary-box"><b id="adminCancelledCount">0</b><small>CANCELLED</small></div>
+    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>จำนวนรวมในคลัง</small></div>
+    <div class="admin-summary-box"><b id="adminDeletedCount">0</b><small>ลบแล้ว</small></div>
   </div>
   <div class="admin-actions" style="margin-top:18px">
     <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
-    <button class="admin-action-btn" type="button" onclick="openAdmin(true)">🔐 ยืนยัน Password ใหม่</button>
+    <button class="admin-action-btn" type="button" onclick="showPage('inventory')">📦 ดูคลังชมรม</button>
   </div>
-  <p id="adminAccessNote" class="admin-note">ยังไม่ได้ยืนยัน Password</p>
+  <div class="admin-inventory-status">
+    <h4>สถานะจำนวนของในคลัง</h4>
+    <div id="adminInventoryStatus"></div>
+  </div>
+  <div class="admin-deleted">
+    <h4 class="admin-deleted-title">ประวัติรายการที่ลบ</h4>
+    <div id="adminDeletedHistory"></div>
+  </div>
 </div>
 </section>
 
@@ -262,7 +264,7 @@ const SYNC_MS=15000;
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
 const ADMIN_PASSWORD="Meduza2014";
-let isGoogleAdmin=false; let adminUnlocked=false;
+let isGoogleAdmin=true;
 
 const FALLBACK_BEASTS = [
 {"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
@@ -274,7 +276,7 @@ const FALLBACK_BEASTS = [
 {"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
 ];
 
-let beasts=[], plants=[], worklogs=[], inventory=[], members=[];
+let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[];
 let targetMap=new Map();
 
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -314,10 +316,14 @@ function render(){
  workTotal.textContent=worklogs.length;
  const adminWorkCount=document.getElementById('adminWorkCount');
  const adminInventoryCount=document.getElementById('adminInventoryCount');
- const adminCancelledCount=document.getElementById('adminCancelledCount');
+ const adminDeletedCount=document.getElementById('adminDeletedCount');
+ const adminInventoryStatus=document.getElementById('adminInventoryStatus');
+ const adminDeletedHistory=document.getElementById('adminDeletedHistory');
  if(adminWorkCount)adminWorkCount.textContent=worklogs.length;
- if(adminInventoryCount)adminInventoryCount.textContent=inventory.length;
- if(adminCancelledCount)adminCancelledCount.textContent=worklogs.filter(r=>String(getFirstValue(r,['Status'])||'').toLowerCase()==='cancelled').length;
+ if(adminInventoryCount)adminInventoryCount.textContent=formatInventoryTotal(inventory);
+ if(adminDeletedCount)adminDeletedCount.textContent=deletedWorklogs.length;
+ if(adminInventoryStatus)adminInventoryStatus.innerHTML=renderInventoryLarge(inventory);
+ if(adminDeletedHistory)adminDeletedHistory.innerHTML=renderDeletedHistory(deletedWorklogs);
  const order=["A","B","C"];
  const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
  const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
@@ -333,6 +339,15 @@ function render(){
  inventoryGrid.innerHTML=renderInventoryLarge(inventory);
 }
 
+function formatInventoryTotal(rows){
+ const total=rows.reduce((sum,r)=>sum+toNumberClient(getFirstValue(r,['จำนวน','Quantity'])),0);
+ return Number.isInteger(total)?String(total):total.toLocaleString('th-TH',{maximumFractionDigits:2});
+}
+function toNumberClient(value){
+ const n=Number(String(value??'').replace(/,/g,'').trim());
+ return Number.isFinite(n)?n:0;
+}
+
 function renderInventoryLarge(rows){
  if(!rows.length)return `<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
  return `<div class="inventory-large-list">${rows.map(r=>{
@@ -343,12 +358,26 @@ function renderInventoryLarge(rows){
  }).join('')}</div>`;
 }
 
-function renderWorkHistory(rows){
+function formatWorkDate(value){
+ const raw=String(value||'').trim();
+ if(!raw)return '-';
+ // Google Sheets / gviz อาจส่งวันที่พร้อมเวลา เช่น 30/9/2026, 10:00:00
+ // ประวัติการทำงานต้องแสดงเฉพาะ วัน/เดือน/ปี เท่านั้น
+ const m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+ if(m)return `${Number(m[1])}/${Number(m[2])}/${m[3]}`;
+ const iso=raw.match(/^(\d{4})[\-](\d{1,2})[\-](\d{1,2})/);
+ if(iso)return `${Number(iso[3])}/${Number(iso[2])}/${iso[1]}`;
+ const parsed=new Date(raw);
+ if(!Number.isNaN(parsed.getTime()))return `${parsed.getDate()}/${parsed.getMonth()+1}/${parsed.getFullYear()}`;
+ return raw.split(/[ ,T]/)[0]||'-';
+}
+
+function renderWorkHistory(rows, allowDelete=true){
  if(!rows.length)return `<div class="work-history-empty"><div class="history-icon">✦</div><h3>ยังไม่มีประวัติการทำงาน</h3><p>เมื่อมีการบันทึก WORK LOG รายการจะปรากฏที่นี่โดยอัตโนมัติ</p></div>`;
  const newest=[...rows].reverse();
  return `<div class="work-history"><div class="history-heading"><div><span class="eyebrow">WORK ARCHIVE</span><h3>ประวัติการทำงาน</h3></div><span class="history-count">${newest.length} รายการ</span></div><div class="history-list">${newest.map(r=>{
   const workId=getFirstValue(r,["Work ID"])||"-";
-  const date=getFirstValue(r,["วันที่ (มักเกิ้ล)"])||"-";
+  const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
   const day=getFirstValue(r,["วันผู้วิเศษ"])||"-";
   const time=getFirstValue(r,["เวลา (IC)"])||"-";
   const category=getFirstValue(r,["Category"])||"-";
@@ -370,44 +399,48 @@ function renderWorkHistory(rows){
   if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
   const cancelled=status.toLowerCase()==='cancelled';
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
-  const adminAction=isGoogleAdmin&&!cancelled?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ยกเลิกรายการ</button>`:'';
+  const adminAction=allowDelete&&!cancelled?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ลบรายการ</button>`:'';
   return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
 }
 
-async function openAdmin(force=false){
- if(!force && adminUnlocked){showPage('admin');render();return;}
- const password=prompt('กรุณาใส่ Password สำหรับ ADMIN:');
- if(password===null)return;
- if(password!==ADMIN_PASSWORD){
-   adminUnlocked=false; isGoogleAdmin=false;
-   alert('Password ไม่ถูกต้อง');
-   return;
- }
- adminUnlocked=true; isGoogleAdmin=true;
+function renderDeletedHistory(rows){
+ if(!rows.length)return `<div class="admin-empty">ยังไม่มีประวัติรายการที่ลบ</div>`;
+ const newest=[...rows].reverse();
+ return `<div class="history-list">${newest.map(r=>{
+  const workId=getFirstValue(r,["Work ID"])||"-";
+  const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
+  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
+  const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
+  const deletedAt=getFirstValue(r,["Deleted At","วันที่ลบ"])||"-";
+  const reason=getFirstValue(r,["Delete Reason","Cancel Reason"])||"-";
+  const photo=getFirstValue(r,["รูปการทำงาน","Work Photo","Photo","Image"]);
+  const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
+  return `<article class="work-history-card is-cancelled">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-status-cancelled">ลบแล้ว</span><span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div><div><small>วันที่ลบ</small><b>${esc(deletedAt)}</b></div><div><small>เหตุผล</small><b>${esc(reason)}</b></div></div></div></article>`;
+ }).join('')}</div>`;
+}
+
+function openAdmin(){
  showPage('admin');
- const emailEl=document.getElementById('adminAccountEmail');
- const badgeEl=document.getElementById('adminAccountBadge');
- const noteEl=document.getElementById('adminAccessNote');
- if(emailEl)emailEl.textContent='Password verified';
- if(badgeEl){badgeEl.textContent='ADMIN — UNLOCKED';badgeEl.classList.remove('denied');}
- if(noteEl)noteEl.textContent='ยืนยัน Password แล้ว สามารถจัดการ WORK LOG ได้';
  render();
 }
 
 async function cancelWorkLog(workId){
- if(!adminUnlocked){openAdmin(); if(!adminUnlocked)return;}
  const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
  if(!row)return;
- const ok=confirm(`ต้องการยกเลิก WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้องกลับให้อัตโนมัติ และลบ WORK LOG รายการนี้ออกจากประวัติ`);
+ const ok=confirm(`ต้องการลบ WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้อง และเก็บประวัติรายการที่ลบไว้ใน ADMIN`);
  if(!ok)return;
- const reason=prompt('กรุณาระบุเหตุผลการยกเลิก:', 'กรอกข้อมูลผิด / รายการซ้ำ');
+ const reason=prompt('กรุณาระบุเหตุผลการลบ:', 'กรอกข้อมูลผิด / รายการซ้ำ');
  if(!reason || !reason.trim())return;
+ const password=prompt('กรุณาใส่ Password เพื่อยืนยันการลบ:');
+ if(password===null)return;
+ if(password!==ADMIN_PASSWORD){alert('Password ไม่ถูกต้อง');return;}
  try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
-   alert('ลบ WORK LOG สำเร็จแล้ว และย้อนรายการคลังให้เรียบร้อย');
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password})})});
+   alert('ลบ WORK LOG สำเร็จแล้ว และบันทึกประวัติการลบไว้ใน ADMIN');
    await syncData();
- }catch(e){alert('ยกเลิกรายการไม่สำเร็จ: '+e.message);}
+ }catch(e){alert('ลบรายการไม่สำเร็จ: '+e.message);}
 }
 
 function renderTable(rows,preferred){
@@ -454,6 +487,10 @@ async function fetchSheet(sheetName){
  const r=await fetch(url,{cache:"no-store"});
  if(!r.ok)throw new Error(sheetName+" HTTP "+r.status);
  return parseCSV(await r.text());
+}
+
+async function fetchSheetOptional(sheetName){
+ try{return await fetchSheet(sheetName);}catch(e){return [];}
 }
 
 function getFirstValue(row, keys){
@@ -671,7 +708,7 @@ async function submitWorkLog(ev){
  btn.disabled=true;status.textContent=photo?'กำลังบันทึกข้อมูลและอัปโหลดรูป…':'กำลังบันทึก…';status.className='form-status';
  try{
   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
-  status.textContent='บันทึกแล้ว • ประวัติและรูปจะปรากฏในหน้าเว็บหลังซิงก์';status.className='form-status success';
+  status.textContent=photo?'บันทึกแล้ว • รูปถูกอัปโหลดและจะแสดงในประวัติหลังซิงก์':'บันทึกแล้ว • ประวัติจะอัปเดตหลังซิงก์';status.className='form-status success';
   document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,1500);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
@@ -680,12 +717,13 @@ async function submitWorkLog(ev){
 
 async function syncData(){
  try{
-  const [b,p,w,inv,mem]=await Promise.all([
-   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER")
+  const [b,p,w,inv,mem,del]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG")
   ]);
   if(b.length)beasts=b;
-  plants=p;worklogs=w;inventory=inv;members=mem;
+  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];
   rebuildWorkLogLookups();
+  const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
   render();
   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
  }catch(e){

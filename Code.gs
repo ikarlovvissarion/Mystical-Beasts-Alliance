@@ -55,7 +55,7 @@ function saveWorkLog_(data) {
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
       'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
-      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ'
+      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
@@ -116,6 +116,14 @@ function saveWorkLog_(data) {
       setCell_(workRow, workHeaders, 'จำนวนที่ได้รับ', checkedReceives.map(x => String(x.qty)).join(' | '));
       setCell_(workRow, workHeaders, 'หน่วยที่ได้รับ', checkedReceives.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
+
+    // บันทึกรูปการทำงานลง Google Drive แล้วเก็บลิงก์รูปไว้ใน WORK LOG
+    // ใช้ลิงก์ thumbnail ที่หน้าเว็บสามารถแสดงรูปได้โดยตรง
+    if (data.photo && data.photo.data) {
+      const photoUrl = saveWorkPhoto_(data.photo, workId);
+      setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
+    }
+
     workSheet.appendRow(workRow);
 
     const transactions = [];
@@ -151,6 +159,38 @@ function saveWorkLog_(data) {
   } finally {
     lock.releaseLock();
   }
+}
+
+
+function saveWorkPhoto_(photo, workId) {
+  const base64 = String(photo.data || '').trim();
+  if (!base64) return '';
+
+  const mimeType = String(photo.mimeType || 'image/jpeg').trim() || 'image/jpeg';
+  if (!/^image\/(jpeg|png|webp)$/i.test(mimeType)) {
+    throw new Error('รองรับเฉพาะ JPG, PNG หรือ WEBP');
+  }
+
+  const folderName = 'MYSTICAL BEASTS ALLIANCE - WORK PHOTOS';
+  const folders = DriveApp.getFoldersByName(folderName);
+  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+  const bytes = Utilities.base64Decode(base64);
+  const safeName = String(photo.name || ('WORK-' + workId + '.jpg'))
+    .replace(/[^a-zA-Z0-9._-]+/g, '_')
+    .replace(/^_+|_+$/g, '') || ('WORK-' + workId + '.jpg');
+  const blob = Utilities.newBlob(bytes, mimeType, workId + '-' + safeName);
+  const file = folder.createFile(blob);
+
+  // ทำให้รูปดูได้จากหน้าเว็บ GitHub Pages โดยไม่ต้องล็อกอิน Google
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    throw new Error('อัปโหลดรูปแล้ว แต่ตั้งสิทธิ์ดูรูปสาธารณะไม่สำเร็จ: ' + sharingError.message);
+  }
+
+  const fileId = file.getId();
+  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w1200';
 }
 
 function validate_(data) {
@@ -263,7 +303,17 @@ function cancelWorkLog_(data) {
       const txId=nextId_(il,'Transaction ID','T',5); appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | '+reason});
       reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
     }
-    // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังเรียบร้อยแล้ว
+    // เก็บสำเนาไว้ใน DELETED WORK LOG ก่อนลบจริง เพื่อให้ ADMIN ยังดูประวัติย้อนหลังได้
+    const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
+    const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason']));
+    const deletedRow=blankRow_(deletedHeaders.length);
+    headers.forEach((h,i)=>{ if(i<row.length) deletedRow[i]=row[i]; });
+    setCell_(deletedRow, deletedHeaders, 'Deleted At', new Date());
+    setCell_(deletedRow, deletedHeaders, 'Deleted By', email);
+    setCell_(deletedRow, deletedHeaders, 'Delete Reason', reason);
+    deletedSheet.appendRow(deletedRow);
+
+    // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังและเก็บประวัติแล้ว
     ws.deleteRow(rowNo); SpreadsheetApp.flush();
     return {ok:true,workId:workId,deleted:true,cancelledBy:email,reverted:reverted};
   } finally { lock.releaseLock(); }

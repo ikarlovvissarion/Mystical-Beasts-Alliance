@@ -17,6 +17,6 @@ Google Sheets ID ล่าสุด: `1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-Myrike
 - `WORK LOG ITEMS` เก็บรายการย่อยของแต่ละ Work ID
 ## รูปการทำงาน + ประวัติการทำงาน
 - หน้า WORK LOG รองรับอัปโหลดรูป JPG / PNG / WEBP โดยหน้าเว็บจะย่อรูปก่อนส่งเพื่อให้ส่งข้อมูลได้เร็วขึ้น
-- Apps Script จะบันทึกรูปลง Google Drive ในโฟลเดอร์ `MYSTICAL BEASTS ALLIANCE — WORK LOG PHOTOS` และบันทึกลิงก์รูปไว้ในคอลัมน์ `รูปการทำงาน` ของ `WORK LOG`
+- Apps Script จะบันทึกรูปลง Google Drive ในโฟลเดอร์ `MYSTICAL BEASTS ALLIANCE - WORK PHOTOS` และบันทึกลิงก์รูปไว้ในคอลัมน์ `รูปการทำงาน` ของ `WORK LOG`
 - หน้าเว็บจะแสดงประวัติการทำงานจากแท็บ `WORK LOG` โดยเรียงรายการล่าสุดก่อน และแสดงรูปการทำงานเมื่อมีรูป
 - หลังแก้ `Code.gs` ต้องบันทึกและ Deploy Web App เป็นเวอร์ชันใหม่ แล้วให้หน้าเว็บใช้ URL `/exec` ของ deployment ล่าสุด
