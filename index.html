@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mystical Beasts Alliance — Central Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+<button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>ALLIANCE DATABASE</small></span></button>
+<nav>
+<button onclick="showPage('home')">HOME</button>
+<button onclick="showPage('beasts')">BEASTS</button>
+<button onclick="showPage('garden')">GARDEN PLOT</button>
+<button onclick="showPage('worklog')">WORK LOG</button>
+<button onclick="showPage('inventory')">INVENTORY</button>
+</nav>
+</header>
+
+<main>
+<section id="home" class="page active">
+<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p>
+<h1>Mystical Beasts<br><em>Alliance</em></h1>
+<p>ฐานข้อมูลกลางสำหรับสัตว์วิเศษ พืช งานของชมรม และคลังชมรม</p></div>
+<div class="summary-grid summary-grid-3">
+<button class="summary-card" onclick="showPage('beasts')">🐾<b id="creatureCount">0</b><small>BEASTS</small></button>
+<button class="summary-card" onclick="showPage('garden')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
+<button class="summary-card" onclick="showPage('inventory')">📦<b id="inventoryCount">0</b><small>INVENTORY ITEMS</small></button>
+</div>
+<div class="section-title">✦ QUICK ACCESS ✦</div>
+<div class="quick-grid quick-grid-4">
+<button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษ</span></button>
+<button onclick="showPage('garden')">🌿 <span>ดูพืชในแปลง</span></button>
+<button onclick="showPage('worklog')">📜 <span>บันทึก WORK LOG</span></button>
+<button onclick="showPage('inventory')">📦 <span>ดูคลังชมรม</span></button>
+</div>
+<div id="syncInfo" class="sync-info">กำลังเชื่อมต่อฐานข้อมูล…</div>
+</section>
+
+<section id="beasts" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div>
+<div id="creatureGrid"></div>
+</section>
+
+<section id="garden" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div>
+<div id="plantGrid" class="cards"></div>
+</section>
+
+<section id="worklog" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Work Log</h2></div><span id="workTotal" class="count-badge">0</span></div>
+<div class="worklog-layout">
+  <div class="worklog-form-card">
+    <div class="section-title">✦ บันทึกการทำงาน ✦</div>
+    <form id="workLogForm" onsubmit="submitWorkLog(event)">
+      <div class="form-grid">
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
+        <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
+        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
+        <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
+        <div id="targetFields" class="target-fields form-grid-span-2">
+          <label><span>สัตว์วิเศษ/พืชผัก</span><select id="wlTargetId" onchange="updateTargetName()"><option value="">เลือกสัตว์วิเศษ/พืชผัก</option></select></label>
+          <label><span>ชื่อสัตว์วิเศษ/พืชผัก</span><input id="wlTargetName" type="text" readonly></label>
+        </div>
+      </div>
+      <div id="withdrawFields" class="conditional-fields" hidden>
+        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ • แสดงเฉพาะชื่อรายการ)</small></div>
+        <div id="withdrawRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
+      </div>
+      <div id="receiveFields" class="conditional-fields" hidden>
+        <div class="field-title">รับผลผลิตเข้าคลัง <small>(เพิ่มได้หลายรายการ)</small></div>
+        <div id="receiveRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('receive')">＋ เพิ่มรายการที่รับเข้า</button>
+      </div>
+      <div id="workLogStatus" class="form-status" role="status"></div>
+      <button class="primary-action" type="submit" id="workLogSubmit">บันทึก WORK LOG</button>
+    </form>
+  </div>
+  <div id="workLogGrid" class="table-wrap"></div>
+</div>
+</section>
+
+<section id="inventory" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Inventory</h2></div><span id="inventoryTotal" class="count-badge">0</span></div>
+<div id="inventoryGrid" class="table-wrap"></div>
+</section>
+</main>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal-card"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div>
+</div>
+
+<script>
+/* ============================================================
+   MYSTICAL BEASTS ALLIANCE — CURRENT DATA CONFIG
+   Google Sheet ID supplied for the current database.
+   The app reads each tab through Google Sheets gviz CSV.
+   If a tab is unavailable, that section simply shows no data.
+   ============================================================ */
+const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
+const SYNC_MS=15000;
+// หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
+const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
+
+const FALLBACK_BEASTS = [
+{"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A002","Name":"Clover","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"7","Color":"สีฟ้าอมเทา","Date of Birth":"24 มกราคม 2007","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A003","Name":"Bramble","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"8","Color":"สีฟ้าอมเทา","Date of Birth":"7 กันยายน 2006","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A004","Name":"Mallow","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"18 มีนาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A005","Name":"Truffle","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"29 ตุลาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A006","Name":"Mochi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"5 มิถุนายน 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
+];
+
+let beasts=[], plants=[], worklogs=[], inventory=[], members=[];
+let targetMap=new Map();
+
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const img=(src,label,emoji)=>src?`<img src="${esc(src)}" alt="${esc(label)}">`:`<div class="placeholder">${emoji}</div>`;
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ scrollTo({top:0,behavior:"smooth"});
+}
+
+function categoryMeta(code){
+ const meta={
+ A:{th:"สัตว์เลี้ยงลูกด้วยนม",en:"MAMMALS"},
+ B:{th:"สัตว์ปีกและแมลง",en:"BIRDS & INSECTS"},
+ C:{th:"สัตว์น้ำ สัตว์ครึ่งบกครึ่งน้ำ และสัตว์เลื้อยคลาน",en:"AQUATIC, AMPHIBIANS & REPTILES"}
+ };
+ return meta[String(code||"").trim().toUpperCase()]||{th:"อื่น ๆ",en:"OTHER BEASTS"};
+}
+function normalizeCategory(value, creature){
+ const v=String(value??"").trim().toUpperCase();
+ if(/^A(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์เลี้ยงลูกด้วยนม")||v.includes("MAMMAL"))return"A";
+ if(/^B(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์ปีกและแมลง")||v.includes("BIRD")||v.includes("INSECT"))return"B";
+ if(/^C(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์น้ำ")||v.includes("สัตว์ครึ่งบกครึ่งน้ำ")||v.includes("สัตว์เลื้อยคลาน")||v.includes("AQUATIC")||v.includes("AMPHIB")||v.includes("REPTIL"))return"C";
+ if(!v&&creature){
+  const s=String(creature.Species||"").toUpperCase();
+  if(["MOONCALF","PUFFSKEIN","NIFFLER","KNEAZLE","BADGER"].some(x=>s.includes(x)))return"A";
+  if(["FWOOPER","OWL","FAIRY","PIXIE"].some(x=>s.includes(x)))return"B";
+ }
+ return"";
+}
+
+function render(){
+ creatureCount.textContent=beasts.length; creatureTotal.textContent=beasts.length;
+ plantCount.textContent=plants.length; plantTotal.textContent=plants.length;
+ inventoryCount.textContent=inventory.length; inventoryTotal.textContent=inventory.length;
+ workTotal.textContent=worklogs.length;
+ const order=["A","B","C"];
+ const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
+ const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
+ if(other.length)groups.push({code:"OTHER",items:other});
+ creatureGrid.innerHTML=groups.map(g=>{
+  const m=categoryMeta(g.code);
+  return `<section class="category-section"><header class="category-heading"><div class="category-mark"><span>${esc(g.code)}</span></div><div class="category-title"><h3>${esc(m.th)}</h3><p>${esc(m.en)}</p></div><span class="category-count">${g.items.length}</span></header><div class="cards">${g.items.map(({c,i})=>`<button class="creature-card" onclick="openCreature(${i})"><div class="card-image">${img(c.Image,c.Name,"🐾")}</div><div class="card-body"><span class="tag">${esc(c.ID)}</span><h3>${esc(c.Name)}</h3><p>${esc(c.Species)} · ${esc(c.Breed)}</p><span class="status">${esc(c.Classification||"Mystical Beast")}</span></div></button>`).join("")}</div></section>`;
+ }).join("") || `<div class="empty">🐾<br><br>ยังไม่มีข้อมูลสัตว์วิเศษ</div>`;
+
+ plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
+
+ workLogGrid.innerHTML=renderTable(worklogs,["Work ID","วันที่ (มักเกิ้ล)","วันผู้วิเศษ","เวลา (IC)","ประเภทการทำงาน","Target ID","Target Name","ผู้ลงบันทึก","เบิกคลังชมรม","จำนวนที่เบิก","จำนวนที่ได้รับ"]);
+ inventoryGrid.innerHTML=renderInventoryLarge(inventory);
+}
+
+function renderInventoryLarge(rows){
+ if(!rows.length)return `<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
+ return `<div class="inventory-large-list">${rows.map(r=>{
+  const name=getFirstValue(r,['รายการ','Name','Item'])||'-';
+  const qty=getFirstValue(r,['จำนวน','Quantity'])||'0';
+  const unit=getFirstValue(r,['หน่วย','Unit'])||'';
+  return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
+ }).join('')}</div>`;
+}
+
+function renderTable(rows,preferred){
+ if(!rows.length)return `<div class="empty">ยังไม่มีข้อมูลในแท็บนี้</div>`;
+ const keys=preferred.filter(k=>rows.some(r=>Object.prototype.hasOwnProperty.call(r,k)));
+ const cols=keys.length?keys:Object.keys(rows[0]).slice(0,10);
+ return `<div class="table-scroll"><table><thead><tr>${cols.map(k=>`<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(k=>`<td>${esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function openCreature(i){
+ const c=beasts[i];
+ modalContent.innerHTML=`<div class="modal-image">${img(c.Image,c.Name,"🐾")}</div><div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(c.ID)}</strong><span class="modal-species">${esc(c.Species)}</span></div><h2>${esc(c.Name)}</h2><div class="detail-grid">
+ <div><small>CATEGORY</small><b>${esc(categoryMeta(normalizeCategory(c.Category,c)).en)}</b></div>
+ <div><small>BREED</small><b>${esc(c.Breed)}</b></div><div><small>SEX</small><b>${esc(c.Sex)}</b></div>
+ <div><small>AGE</small><b>${esc(c.Age)} years</b></div><div><small>COLOR</small><b>${esc(c.Color)}</b></div>
+ <div><small>DATE OF BIRTH</small><b>${esc(c["Date of Birth"])}</b></div><div><small>ORIGIN / HABITAT</small><b>${esc(c["Origin/Native Habitat"])}</b></div>
+ <div><small>OWNER</small><b>${esc(c.Owner)}</b></div><div><small>CLASSIFICATION</small><b>${esc(c.Classification)}</b></div>
+ </div><p class="description">${esc(c["Other Characteristics"])}</p>`;
+ modal.classList.add("open");
+}
+function openPlant(i){
+ const p=plants[i];
+ modalContent.innerHTML=`<div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(p.ID||"")}</strong></div><h2>${esc(p["พืช/ผัก"]||p.Name||"-")}</h2><div class="detail-grid">${Object.entries(p).filter(([k])=>!["ID","พืช/ผัก","Name","Image"].includes(k)).map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join("")}</div>`;
+ modal.classList.add("open");
+}
+function closeModal(){modal.classList.remove("open")}
+
+function parseCSV(text){
+ const lines=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];
+  if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(ch===','&&!quoted){row.push(cell);cell=""}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
+  else cell+=ch;
+ }
+ if(cell!==""||row.length){row.push(cell);lines.push(row)}
+ if(!lines.length)return[];
+ const headers=lines.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,""):x).trim());
+ return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+
+async function fetchSheet(sheetName){
+ const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&cb=${Date.now()}`;
+ const r=await fetch(url,{cache:"no-store"});
+ if(!r.ok)throw new Error(sheetName+" HTTP "+r.status);
+ return parseCSV(await r.text());
+}
+
+function getFirstValue(row, keys){
+ for(const k of keys){ if(Object.prototype.hasOwnProperty.call(row,k) && String(row[k]??'').trim()!=='') return String(row[k]).trim(); }
+ return '';
+}
+function rebuildWorkLogLookups(){
+ // IMPORTANT: This function may run every 15 seconds. Never rebuild/reset the form.
+ // Preserve every value the user is currently entering and only refresh lookup options.
+ const currentTarget=document.getElementById('wlTargetId')?.value || '';
+ const currentRecorder=document.getElementById('wlRecorder')?.value || '';
+ targetMap=new Map();
+ [...beasts,...plants].forEach(x=>{
+  const id=getFirstValue(x,['ID','Target ID']);
+  const name=getFirstValue(x,['Name','Target Name','พืช/ผัก','รายการ']);
+  if(id) targetMap.set(id,{id,name});
+ });
+ const target=document.getElementById('wlTargetId');
+ if(target){
+  target.innerHTML='<option value="">เลือกสัตว์วิเศษ/พืชผัก</option>'+[...targetMap.values()].map(x=>`<option value="${esc(x.id)}">${esc(x.id)}</option>`).join('');
+  if(currentTarget && targetMap.has(currentTarget)) target.value=currentTarget;
+  updateTargetName();
+ }
+ const rec=document.getElementById('wlRecorder');
+ if(rec){
+  rec.innerHTML='<option value="">เลือกผู้ลงบันทึก</option>'+members.map(x=>{
+   const id=getFirstValue(x,['ID','Member ID']); const name=getFirstValue(x,['Name','ชื่อ','Member Name','ชื่อสมาชิก']) || id;
+   return `<option value="${esc(name)}" data-id="${esc(id)}">${esc(name)}</option>`;
+  }).join('');
+  if(currentRecorder) rec.value=currentRecorder;
+ }
+ const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
+ // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
+ document.querySelectorAll('.inventory-item-template').forEach(sel=>{
+   const current=sel.value;
+   const row=sel.closest('.inventory-entry-row');
+   const qty=row?.querySelector('.inventory-qty')?.value || '';
+   sel.innerHTML=invOptions;
+   if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+   const unitInput=row?.querySelector('.inventory-unit');
+   if(unitInput){
+     const opt=sel.options[sel.selectedIndex];
+     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
+   }
+   const qtyInput=row?.querySelector('.inventory-qty');
+   if(qtyInput) qtyInput.value=qty;
+ });
+ // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
+ // Those functions intentionally change the form when the user changes Category/Work Type,
+ // but must never run just because background data synchronization occurred.
+}
+
+const WIZARD_DAYS=[
+ 'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
+ 'วันที่ 2 ผู้วิเศษ | 06.00 - 09.59 น.',
+ 'วันที่ 3 ผู้วิเศษ | 10.00 - 13.59 น.',
+ 'วันที่ 4 ผู้วิเศษ | 14.00 - 17.59 น.',
+ 'วันที่ 5 ผู้วิเศษ | 18.00 - 21.59 น.',
+ 'วันที่ 6 ผู้วิเศษ | 22.00 - 01.59 น.'
+];
+
+function updateWorkTypeFields(){
+ const cat=document.getElementById('wlCategory')?.value||'';
+ const wt=document.getElementById('wlWorkType');
+ const options={
+  'งานทั่วไป':['การทำความสะอาด','การให้อาหารสัตว์วิเศษ','การรดน้ำพืชผัก'],
+  'เก็บผลผลิต':['การเก็บผลผลิตพืชผัก','การรับผลผลิตจากสัตว์วิเศษ']
+ };
+ const current=wt?.value||'';
+ if(wt)wt.innerHTML='<option value="">เลือกประเภทงาน</option>'+(options[cat]||[]).map(x=>`<option>${esc(x)}</option>`).join('');
+ if(wt && options[cat]?.includes(current))wt.value=current;
+ const cleaning=cat==='งานทั่วไป' && wt?.value==='การทำความสะอาด';
+ const targetWrap=document.getElementById('targetFields');
+ const targetId=document.getElementById('wlTargetId');
+ if(targetWrap)targetWrap.hidden=cleaning;
+ if(targetId)targetId.required=!cleaning;
+ if(cleaning){
+   targetId.value=''; document.getElementById('wlTargetName').value='';
+ }
+ document.getElementById('withdrawFields').hidden=cat!=='งานทั่วไป';
+ document.getElementById('receiveFields').hidden=cat!=='เก็บผลผลิต';
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+ if(cat!=='งานทั่วไป')clearInventoryRows('withdraw');
+ if(cat!=='เก็บผลผลิต')clearInventoryRows('receive');
+}
+function updateTargetName(){
+ const id=document.getElementById('wlTargetId').value;
+ document.getElementById('wlTargetName').value=targetMap.get(id)?.name||'';
+}
+function localDateISO(d=new Date()){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+}
+function localTime24(d=new Date()){
+ return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function initWorkLogForm(){
+ const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
+ const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
+ const md=document.getElementById('wlMagicalDay');
+ if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
+ resetInventoryRows();
+}
+function inventoryOptionsHTML(){
+ return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
+}
+function addInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(!list)return;
+ const row=document.createElement('div'); row.className='inventory-entry-row';
+ const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
+ row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+ <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+ <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+ <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ list.appendChild(row);
+}
+function ensureInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(list && !list.children.length)addInventoryRow(kind);
+}
+function clearInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows'); if(list)list.innerHTML='';
+}
+function resetInventoryRows(){
+ clearInventoryRows('withdraw'); clearInventoryRows('receive');
+ const cat=document.getElementById('wlCategory')?.value||'';
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+}
+function updateInventoryUnit(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(row)row.querySelector('.inventory-unit').value=selectEl.options[selectEl.selectedIndex]?.dataset?.unit||'';
+}
+function collectInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
+  const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
+ }).filter(x=>x.id||x.qty);
+}
+async function submitWorkLog(ev){
+ ev.preventDefault();
+ const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
+ const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
+ const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
+ const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(cat==='งานทั่วไป'){
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
+ } else if(cat==='เก็บผลผลิต'){
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
+ }
+ const payload={
+  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
+  workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,
+  withdrawals,receives
+ };
+ btn.disabled=true;status.textContent='กำลังบันทึก…';status.className='form-status';
+ try{
+  await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
+  status.textContent='ส่งข้อมูลแล้ว • ระบบจะอัปเดต WORK LOG / INVENTORY';status.className='form-status success';
+  document.getElementById('workLogForm').reset();initWorkLogForm();rebuildWorkLogLookups();
+  setTimeout(syncData,1200);
+ }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
+ finally{btn.disabled=false;}
+}
+
+async function syncData(){
+ try{
+  const [b,p,w,inv,mem]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER")
+  ]);
+  if(b.length)beasts=b;
+  plants=p;worklogs=w;inventory=inv;members=mem;
+  rebuildWorkLogLookups();
+  render();
+  syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
+ }catch(e){
+  if(!beasts.length)beasts=FALLBACK_BEASTS;
+  render();
+  syncInfo.textContent="ใช้ข้อมูลสำรอง • ไม่สามารถอ่าน Google Sheets ได้ในขณะนี้";
+  console.warn("Google Sheets sync:",e);
+ }
+}
+render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS);
+</script>
+</body>
+</html>
