@@ -30,6 +30,9 @@ function doPost(e) {
     const payloadText = e && e.parameter && e.parameter.payload;
     if (!payloadText) throw new Error('ไม่พบ payload');
     const data = JSON.parse(payloadText);
+    if (data.action === 'testPhoto') {
+      return json_({ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID});
+    }
     if (data.action === 'cancelWork') {
       const result = cancelWorkLog_(data);
       return json_(result);
@@ -171,16 +174,16 @@ function saveWorkPhoto_(photo, workId) {
     throw new Error('รองรับเฉพาะ JPG, PNG หรือ WEBP');
   }
 
-  const folderName = 'MYSTICAL BEASTS ALLIANCE - WORK PHOTOS';
-  const folders = DriveApp.getFoldersByName(folderName);
-  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-
-  // ให้โฟลเดอร์และไฟล์รูปอ่านได้ผ่านลิงก์ โดยผู้ใช้เว็บไซต์ไม่ต้องล็อกอิน Google Drive
+  const WORK_PHOTOS_FOLDER_ID = '1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse';
+  let folder;
   try {
-    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  } catch (sharingError) {
-    throw new Error('ไม่สามารถตั้งสิทธิ์โฟลเดอร์รูปให้ดูผ่านลิงก์ได้: ' + sharingError.message);
+    folder = DriveApp.getFolderById(WORK_PHOTOS_FOLDER_ID);
+  } catch (e) {
+    throw new Error('ไม่สามารถเข้าถึงโฟลเดอร์รูปการทำงานใน Google Drive ได้ กรุณาตรวจสอบสิทธิ์ของ Apps Script');
   }
+
+  // ตั้งสิทธิ์โฟลเดอร์ถ้าบัญชี Google อนุญาต; ไม่ให้ขั้นตอนนี้ทำให้การอัปโหลดล้มเหลว
+  try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (sharingError) { console.warn('Folder sharing skipped: ' + sharingError.message); }
 
   const bytes = Utilities.base64Decode(base64);
   const safeName = String(photo.name || ('WORK-' + workId + '.jpg'))
@@ -190,11 +193,7 @@ function saveWorkPhoto_(photo, workId) {
   const file = folder.createFile(blob);
 
   // ทำให้รูปดูได้จากหน้าเว็บ GitHub Pages โดยไม่ต้องล็อกอิน Google
-  try {
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  } catch (sharingError) {
-    throw new Error('อัปโหลดรูปแล้ว แต่ตั้งสิทธิ์ดูรูปสาธารณะไม่สำเร็จ: ' + sharingError.message);
-  }
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (sharingError) { console.warn('File sharing skipped: ' + sharingError.message); }
 
   const fileId = file.getId();
   return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w1200';
