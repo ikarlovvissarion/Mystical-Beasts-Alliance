@@ -9,19 +9,19 @@
 </head>
 <body>
 <header class="topbar">
-<button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>ALLIANCE DATABASE</small></span></button>
+<button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>=ชมรมสัตว์วิเศษแห่งฮอกวอตส์</small></span></button>
 <nav><button onclick="showPage('home')">HOME</button><button onclick="showPage('beasts')">BEASTS</button><button onclick="showPage('greenhouse')">GARDEN PLOT</button></nav>
 </header>
 <main>
 <section id="home" class="page active">
-<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p><h1>Mystical Beasts<br><em>Alliance</em></h1><p>ชมรมสัตว์วิเศษแห่งฮอกวอตส์</p></div>
+<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">ชมรมสัตว์วิเศษแห่งฮอกวอตส์</p><h1>Mystical Beasts<br><em>Alliance</em></h1><p>"พื้นที่ทำงานและฐานข้อมูลสำหรับสมาชิกชมรม"</p></div>
 <div class="summary-grid">
 <button class="summary-card" onclick="showPage('beasts')">🐾<b id="creatureCount">0</b><small>BEASTS</small></button>
 <button class="summary-card" onclick="showPage('greenhouse')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
 </div>
 <div class="section-title">✦ QUICK ACCESS ✦</div>
-<div class="quick-grid"><button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษภายในคอก</span></button><button onclick="showPage('greenhouse')">🌿 <span>ดูพืชในแปลงพืชผัก</span></button></div>
-<div style="text-align:center;margin-top:22px"><button class="quick-grid" style="padding:10px 18px;border:1px solid rgba(128,90,25,.35);border-radius:12px;background:transparent" onclick="syncData()">↻ ซิงก์ข้อมูลจาก Google Sheets</button><p id="syncStatus" style="font-size:12px;opacity:.7;margin-top:8px">ใช้ข้อมูลจากไฟล์ BEASTS.csv ที่แนบมา</p></div>
+<div class="quick-grid"><button onclick="showPage('beasts')">🐾 <span>สัตว์วิเศษภายในคอก</span></button><button onclick="showPage('greenhouse')">🌿 <span>พืชในแปลงพืชผัก</span></button></div>
+<div style="text-align:center;margin-top:22px"><button class="quick-grid" style="padding:10px 18px;border:1px solid rgba(128,90,25,.35);border-radius:12px;background:transparent" onclick="syncData()">↻ อัปเดตข้อมูลล่าสุด</button><p id="syncStatus" style="font-size:12px;opacity:.7;margin-top:8px">ใช้ข้อมูลจากไฟล์ BEASTS.csv ที่แนบมา</p></div>
 </section>
 <section id="beasts" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div><div id="creatureGrid" class="cards"></div></section>
 <section id="greenhouse" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div><div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแปลงพืชผักในไฟล์ที่เชื่อมต่อ<br><small>เพิ่มแท็บ PLANTS ในขั้นถัดไปได้</small></div></section>
@@ -57,9 +57,9 @@ const headers=lines.shift().map(x=>x.trim());
 return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
 }
 async function syncData(){
-const s=document.getElementById("syncStatus"); s.textContent="กำลังซิงก์ข้อมูลจาก Google Sheets…";
-try{const r=await fetch(CSV_URL,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); s.textContent="✓ ซิงก์ข้อมูลล่าสุดจาก Google Sheets แล้ว";}
-catch(e){s.textContent="ไม่สามารถซิงก์ออนไลน์ได้ จึงใช้ข้อมูลในไฟล์นี้แทน"; console.warn(e);}
+const s=document.getElementById("syncStatus"); s.textContent="กำลังอัปเดตข้อมูลล่าสุด…";
+try{const r=await fetch(CSV_URL,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); s.textContent="✓ อัปเดตข้อมูลล่าสุดแล้ว";}
+catch(e){s.textContent="ไม่สามารถอัปเดตข้อมูลล่าสุดได้"; console.warn(e);}
 }
 render();
 </script></body></html>
