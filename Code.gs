@@ -21,8 +21,44 @@ const WORK_TYPES = {
   ]
 };
 
-function doGet() {
-  return json_({ ok: true, service: 'MYSTICAL BEASTS ALLIANCE WORK LOG API' });
+function doGet(e) {
+  try {
+    const action = e && e.parameter && e.parameter.action;
+    if (action === 'health') return json_(healthCheck_());
+    return json_({ ok: true, service: 'MYSTICAL BEASTS ALLIANCE WORK LOG API' });
+  } catch (err) {
+    return json_({ ok:false, error:String(err.message || err) });
+  }
+}
+
+// รันฟังก์ชันนี้ 1 ครั้งจาก Apps Script Editor ด้วยบัญชีเจ้าของระบบ
+// เพื่อบังคับให้ Google ขอสิทธิ์ Sheets + Drive ก่อนใช้งาน Web App
+function setupMBA() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const folder = DriveApp.getFolderById('1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse');
+  getOrCreateSheet_(ss, 'WORK LOG');
+  getOrCreateSheet_(ss, 'INVENTORY');
+  getOrCreateSheet_(ss, 'INVENTORY LOG');
+  getOrCreateSheet_(ss, 'DELETED WORK LOG');
+  try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+  return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
+}
+
+function healthCheck_() {
+  const result = {ok:true, spreadsheet:false, driveFolder:false, folderName:'', folderId:'1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse'};
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    result.spreadsheet = true;
+    result.spreadsheetName = ss.getName();
+    result.workLog = !!ss.getSheetByName('WORK LOG');
+    result.inventory = !!ss.getSheetByName('INVENTORY');
+  } catch (e) { result.ok=false; result.spreadsheetError=String(e.message||e); }
+  try {
+    const folder = DriveApp.getFolderById(result.folderId);
+    result.driveFolder = true;
+    result.folderName = folder.getName();
+  } catch (e) { result.ok=false; result.driveError=String(e.message||e); }
+  return result;
 }
 
 function doPost(e) {
