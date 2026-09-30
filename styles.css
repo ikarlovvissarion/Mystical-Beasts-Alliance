@@ -39,3 +39,75 @@ table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:11px 12p
   #inventoryGrid tbody td:nth-child(1){font-size:16px}
   #inventoryGrid tbody td:nth-child(3){font-size:14px}
 }
+
+/* INVENTORY — large readable presentation */
+#inventoryGrid .table-scroll{
+  width:100%;
+  overflow:hidden;
+  border:1px solid #a17a38;
+  background:#f8edd3b8;
+}
+#inventoryGrid table{
+  width:100%;
+  min-width:0;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+#inventoryGrid th,
+#inventoryGrid td{
+  padding:20px 18px;
+  border-right:1px solid #c4a66d;
+  border-bottom:1px solid #c4a66d;
+  vertical-align:middle;
+}
+#inventoryGrid th{
+  font-size:15px;
+  line-height:1.2;
+  font-weight:700;
+  letter-spacing:.4px;
+  background:#ead7ad;
+  color:#6f4c1b;
+}
+#inventoryGrid td{
+  font-size:22px;
+  line-height:1.35;
+  background:#fff8e452;
+}
+#inventoryGrid th:nth-child(1),
+#inventoryGrid td:nth-child(1){
+  width:64%;
+  text-align:left;
+}
+#inventoryGrid th:nth-child(2),
+#inventoryGrid td:nth-child(2){
+  width:20%;
+  text-align:center;
+}
+#inventoryGrid th:nth-child(3),
+#inventoryGrid td:nth-child(3){
+  width:16%;
+  text-align:center;
+}
+#inventoryGrid tbody td:nth-child(1){
+  font-size:22px;
+  font-weight:500;
+}
+#inventoryGrid tbody td:nth-child(2){
+  font-size:34px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:.2px;
+}
+#inventoryGrid tbody td:nth-child(3){
+  font-size:21px;
+  font-weight:500;
+}
+@media(max-width:700px){
+  #inventoryGrid .table-scroll{overflow-x:auto}
+  #inventoryGrid table{min-width:520px}
+  #inventoryGrid th,#inventoryGrid td{padding:16px 14px}
+  #inventoryGrid th{font-size:13px}
+  #inventoryGrid td,#inventoryGrid tbody td:nth-child(1){font-size:19px}
+  #inventoryGrid tbody td:nth-child(2){font-size:29px}
+  #inventoryGrid tbody td:nth-child(3){font-size:18px}
+}
