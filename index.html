@@ -71,9 +71,8 @@ const headers=lines.shift().map(x=>x.trim());
 return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
 }
 async function syncData(){
-const s=document.getElementById("syncStatus"); s.textContent="กำลังอัปเดตข้อมูลจาก Google Sheets…";
-try{const r=await fetch(CSV_URL,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); s.textContent="✓ ข้อมูลอัปเดตอัตโนมัติจาก Google Sheets แล้ว";}
-catch(e){s.textContent="ไม่สามารถอัปเดตออนไลน์ได้ จึงใช้ข้อมูลในไฟล์นี้แทน"; console.warn(e);}
+try{const r=await fetch(CSV_URL+"&cb="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); console.log("Google Sheets auto-sync successful:", new Date().toLocaleTimeString());}
+catch(e){console.warn("Google Sheets auto-sync failed; using current data:", e);}
 }
 render();
 // Auto-sync with Google Sheets every 15 seconds
