@@ -41,11 +41,25 @@ C:{th:"สัตว์น้ำ สัตว์ครึ่งบกครึ่
 };
 return meta[String(code||"").trim().toUpperCase()] || {th:"อื่น ๆ",en:"OTHER BEASTS"};
 }
+function normalizeCategory(value, creature){
+const v=String(value??"").trim().toUpperCase();
+// Accept A/B/C, full category names, or labels such as "A — MAMMALS".
+if(/^(?:A)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์เลี้ยงลูกด้วยนม") || v.includes("MAMMAL")) return "A";
+if(/^(?:B)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์ปีกและแมลง") || v.includes("BIRD") || v.includes("INSECT")) return "B";
+if(/^(?:C)(?:\s*[-—:.)]|\s*$)/.test(v) || v.includes("สัตว์น้ำ") || v.includes("สัตว์ครึ่งบกครึ่งน้ำ") || v.includes("สัตว์เลื้อยคลาน") || v.includes("AQUATIC") || v.includes("AMPHIB") || v.includes("REPTIL")) return "C";
+// If Category is blank, retain a useful fallback for known species.
+if(!v && creature){
+ const species=String(creature.Species||"").trim().toUpperCase();
+ if(["MOONCALF","PUFFSKEIN","NIFFLER","KNEAZLE","BADGER"].some(x=>species.includes(x))) return "A";
+ if(["FWOOPER","OWL","FAIRY","PIXIE","ACROMANTULA"].some(x=>species.includes(x))) return species.includes("ACROMANTULA") ? "B" : "B";
+ }
+return "";
+}
 function render(){
 creatureCount.textContent=beasts.length;plantCount.textContent=plants.length;creatureTotal.textContent=beasts.length;plantTotal.textContent=plants.length;
 const order=["A","B","C"];
-const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>String(x.c.Category||"").trim().toUpperCase()===code)})).filter(g=>g.items.length);
-const uncategorized=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(String(x.c.Category||"").trim().toUpperCase()));
+const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
+const uncategorized=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
 if(uncategorized.length) groups.push({code:"OTHER",items:uncategorized});
 creatureGrid.innerHTML=groups.map(g=>{
 const m=categoryMeta(g.code);
@@ -67,7 +81,7 @@ else if(ch===','&&!quoted){row.push(cell);cell=""}
 else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
 else cell+=ch;}
 if(cell!==""||row.length){row.push(cell);lines.push(row)}
-const headers=lines.shift().map(x=>x.trim());
+const headers=lines.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,""):x).trim());
 return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
 }
 async function syncData(){
