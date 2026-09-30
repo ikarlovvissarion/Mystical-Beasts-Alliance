@@ -50,13 +50,13 @@ function saveWorkLog_(data) {
 
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
-      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'รูปการทำงาน',
+      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'ผู้ลงบันทึก ID', 'รูปการทำงาน',
       'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
       'Transaction ID', 'วันที่ (มักเกิ้ล)', 'เวลา (IC)', 'ประเภท',
-      'Item ID', 'รายการ', 'จำนวน', 'หน่วย', 'Work ID', 'ผู้ลงบันทึก', 'หมายเหตุ'
+      'Item ID', 'รายการ', 'จำนวน', 'หน่วย', 'Work ID', 'ผู้ลงบันทึก', 'ผู้ลงบันทึก ID', 'หมายเหตุ'
     ]);
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
@@ -101,6 +101,7 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
     setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
+    setCell_(workRow, workHeaders, 'ผู้ลงบันทึก ID', data.recorderId || '');
 
     // อัปโหลดรูปการทำงานเข้า Google Drive แล้วเก็บ URL รูปไว้ใน WORK LOG
     if (data.photo && data.photo.data) {
@@ -129,7 +130,7 @@ function saveWorkLog_(data) {
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
         txId, dateValue, time: data.icTime, type: 'เบิก', itemId: x.found.id,
-        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
+        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder, recorderId: data.recorderId || '',
         note: data.workType
       });
       transactions.push({ id: txId, type: 'เบิก', item: x.found.name, quantity: x.qty, unit });
@@ -142,7 +143,7 @@ function saveWorkLog_(data) {
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
         txId, dateValue, time: data.icTime, type: 'รับเข้า', itemId: x.found.id,
-        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
+        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder, recorderId: data.recorderId || '',
         note: data.workType
       });
       transactions.push({ id: txId, type: 'รับเข้า', item: x.found.name, quantity: x.qty, unit });
@@ -255,7 +256,7 @@ function appendInventoryLog_(sheet, headers, tx) {
   setCell_(row, headers, 'Transaction ID', tx.txId); setCell_(row, headers, 'วันที่ (มักเกิ้ล)', tx.dateValue);
   setCell_(row, headers, 'เวลา (IC)', tx.time); setCell_(row, headers, 'ประเภท', tx.type); setCell_(row, headers, 'Item ID', tx.itemId);
   setCell_(row, headers, 'รายการ', tx.name); setCell_(row, headers, 'จำนวน', tx.qty); setCell_(row, headers, 'หน่วย', tx.unit);
-  setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
+  setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'ผู้ลงบันทึก ID', tx.recorderId || ''); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
   sheet.appendRow(row);
 }
 function nextId_(sheet, headerName, prefix, width) {

@@ -96,7 +96,8 @@
 .form-grid input:focus,.form-grid select:focus,.inventory-entry-row select:focus,.inventory-entry-row input:focus{border-color:#6e4b16;box-shadow:0 0 0 3px #a17a3820}
 .form-grid input[readonly]{background:#efe1bf}
 .form-grid-span-2{grid-column:1/-1}
-.target-fields{display:grid!important;grid-template-columns:1fr 1fr;gap:18px 20px}
+.target-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+[hidden]{display:none!important}
 .conditional-fields{margin-top:22px;padding:18px;border:1px dashed #a17a38;background:#fff8e44d}
 .field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
 .field-title small{font-size:11px;font-weight:400;color:#85672f}
@@ -401,7 +402,7 @@ function rebuildWorkLogLookups(){
  const rec=document.getElementById('wlRecorder');
  if(rec){
   rec.innerHTML='<option value="">เลือกผู้ลงบันทึก</option>'+members.map(x=>{
-   const id=getFirstValue(x,['ID','Member ID']); const name=getFirstValue(x,['Name','ชื่อ','Member Name','ชื่อสมาชิก']) || id;
+   const id=getFirstValue(x,['ID','Member ID','รหัสสมาชิก']); const name=getFirstValue(x,['ชื่อ - นามสกุล']) || id;
    return `<option value="${esc(name)}" data-id="${esc(id)}">${esc(name)}</option>`;
   }).join('');
   if(currentRecorder) rec.value=currentRecorder;
@@ -586,7 +587,7 @@ async function submitWorkLog(ev){
  }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
  const payload={
   category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
-  workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,
+  workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
  btn.disabled=true;status.textContent=photo?'กำลังบันทึกข้อมูลและอัปโหลดรูป…':'กำลังบันทึก…';status.className='form-status';
