@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mystical Beasts Alliance — Central Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+<button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>ALLIANCE DATABASE</small></span></button>
+<nav><button onclick="showPage('home')">HOME</button><button onclick="showPage('beasts')">BEASTS</button><button onclick="showPage('greenhouse')">GARDEN PLOT</button></nav>
+</header>
+<main>
+<section id="home" class="page active">
+<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p><h1>Mystical Beasts<br><em>Alliance</em></h1><p>ฐานข้อมูลกลางสำหรับสัตว์วิเศษภายในคอกและพืชในแปลงพืชผัก</p></div>
+<div class="summary-grid">
+<button class="summary-card" onclick="showPage('beasts')">🐾<b id="creatureCount">0</b><small>BEASTS</small></button>
+<button class="summary-card" onclick="showPage('greenhouse')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
+</div>
+<div class="section-title">✦ QUICK ACCESS ✦</div>
+<div class="quick-grid"><button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษภายในคอก</span></button><button onclick="showPage('greenhouse')">🌿 <span>ดูพืชในแปลงพืชผัก</span></button></div>
+<div style="text-align:center;margin-top:22px"><button class="quick-grid" style="padding:10px 18px;border:1px solid rgba(128,90,25,.35);border-radius:12px;background:transparent" onclick="syncData()">↻ ซิงก์ข้อมูลจาก Google Sheets</button><p id="syncStatus" style="font-size:12px;opacity:.7;margin-top:8px">ใช้ข้อมูลจากไฟล์ BEASTS.csv ที่แนบมา</p></div>
+</section>
+<section id="beasts" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div><div id="creatureGrid" class="cards"></div></section>
+<section id="greenhouse" class="page"><div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div><div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแปลงพืชผักในไฟล์ที่เชื่อมต่อ<br><small>เพิ่มแท็บ PLANTS ในขั้นถัดไปได้</small></div></section>
+</main>
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()"><div class="modal-card"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
+<script>
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS6ATu1MX6uUYNJg7gZjS8FRMqFLNwc2GZyHsejsJbuzEENQzwD8Tf-ObUy8mp0drVau6S2xLt090Jr/pub?gid=0&single=true&output=csv";
+let beasts=[{"ID": "A001", "Name": "Lumi", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "12 พฤษภาคม 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A002", "Name": "Clover", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 7, "Color": "สีฟ้าอมเทา", "Date of Birth": "24 มกราคม 2007", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A003", "Name": "Bramble", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 8, "Color": "สีฟ้าอมเทา", "Date of Birth": "7 กันยายน 2006", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A004", "Name": "Mallow", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 2, "Color": "สีฟ้าอมเทา", "Date of Birth": "18 มีนาคม 2012", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A005", "Name": "Truffle", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 2, "Color": "สีฟ้าอมเทา", "Date of Birth": "29 ตุลาคม 2012", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A006", "Name": "Mochi", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Female", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "5 มิถุนายน 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}, {"ID": "A007", "Name": "Pippin", "Species": "Mooncalf", "Breed": "Daylight Mooncalf", "Classification": "XX", "Sex": "Male", "Age": 3, "Color": "สีฟ้าอมเทา", "Date of Birth": "21 ธันวาคม 2011", "Origin/Native Habitat": "ฝรั่งเศส", "Other Characteristics": "-", "Owner": "Prof. Meduza Rose SaintRosaria", "Image": ""}];
+const plants=[];
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const img=(src,label,emoji)=>src?`<img src="${esc(src)}" alt="${esc(label)}">`:`<div class="placeholder">${emoji}</div>`;
+function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");scrollTo({top:0,behavior:"smooth"})}
+function render(){
+creatureCount.textContent=beasts.length;plantCount.textContent=plants.length;creatureTotal.textContent=beasts.length;plantTotal.textContent=plants.length;
+creatureGrid.innerHTML=beasts.map((c,i)=>`<button class="creature-card" onclick="openCreature(${i})"><div class="card-image">${img(c.Image,c.Name,"🐾")}</div><div class="card-body"><span class="tag">${esc(c.ID)}</span><h3>${esc(c.Name)}</h3><p>${esc(c.Species)} · ${esc(c.Breed)}</p><span class="status">${esc(c.Classification || "Mystical Beast")}</span></div></button>`).join("");
+}
+function openCreature(i){const c=beasts[i];modalContent.innerHTML=`<div class="modal-image">${img(c.Image,c.Name,"🐾")}</div><p class="eyebrow">${esc(c.ID)} · ${esc(c.Species)}</p><h2>${esc(c.Name)}</h2><div class="detail-grid">
+<div><small>BREED</small><b>${esc(c.Breed)}</b></div><div><small>SEX</small><b>${esc(c.Sex)}</b></div>
+<div><small>AGE</small><b>${esc(c.Age)} years</b></div><div><small>COLOR</small><b>${esc(c.Color)}</b></div>
+<div><small>DATE OF BIRTH</small><b>${esc(c["Date of Birth"])}</b></div><div><small>ORIGIN / HABITAT</small><b>${esc(c["Origin/Native Habitat"])}</b></div>
+<div><small>OWNER</small><b>${esc(c.Owner)}</b></div><div><small>CLASSIFICATION</small><b>${esc(c.Classification)}</b></div>
+</div><p class="description">${esc(c["Other Characteristics"])}</p>`;modal.classList.add("open")}
+function closeModal(){modal.classList.remove("open")}
+function parseCSV(text){
+const lines=[]; let row=[], cell="", quoted=false;
+for(let i=0;i<text.length;i++){const ch=text[i], nx=text[i+1];
+if(ch==='"'){if(quoted && nx==='"'){cell+='"';i++} else quoted=!quoted}
+else if(ch===','&&!quoted){row.push(cell);cell=""}
+else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
+else cell+=ch;}
+if(cell!==""||row.length){row.push(cell);lines.push(row)}
+const headers=lines.shift().map(x=>x.trim());
+return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+async function syncData(){
+const s=document.getElementById("syncStatus"); s.textContent="กำลังซิงก์ข้อมูลจาก Google Sheets…";
+try{const r=await fetch(CSV_URL,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t=await r.text(); const data=parseCSV(t); if(!data.length) throw new Error("ไม่มีข้อมูล"); beasts=data; render(); s.textContent="✓ ซิงก์ข้อมูลล่าสุดจาก Google Sheets แล้ว";}
+catch(e){s.textContent="ไม่สามารถซิงก์ออนไลน์ได้ จึงใช้ข้อมูลในไฟล์นี้แทน"; console.warn(e);}
+}
+render();
+</script></body></html>
