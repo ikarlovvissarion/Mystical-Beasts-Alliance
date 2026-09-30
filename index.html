@@ -133,7 +133,7 @@ function render(){
  plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
 
  workLogGrid.innerHTML=renderTable(worklogs,["Work ID","วันที่ (มักเกิ้ล)","วันผู้วิเศษ","เวลา (IC)","ประเภทการทำงาน","Target ID","Target Name","ผู้ลงบันทึก","เบิกคลังชมรม","จำนวนที่เบิก","จำนวนที่ได้รับ"]);
- inventoryGrid.innerHTML=renderTable(inventory,["ID","รายการ","จำนวน","หน่วย"]);
+ inventoryGrid.innerHTML=renderTable(inventory,["รายการ","จำนวน","หน่วย"]);
 }
 
 function renderTable(rows,preferred){

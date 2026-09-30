@@ -11,3 +11,31 @@ table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:11px 12p
 .empty{border:1px solid #a17a38;background:#f8edd3a8;padding:55px 20px;text-align:center;color:#7c5c2d;line-height:1.6}
 @media(max-width:800px){.summary-grid-3,.quick-grid-4{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.summary-grid-3,.quick-grid-4{grid-template-columns:1fr}.sync-info{font-size:9px}}
+
+
+/* Inventory UI refinement
+   - Hide inventory ID by rendering only item, quantity and unit.
+   - Increase typography for readability.
+   - Make quantity the visual focus.
+*/
+#inventoryGrid .table-scroll{border-width:1px}
+#inventoryGrid table{min-width:0;width:100%;table-layout:fixed}
+#inventoryGrid th,
+#inventoryGrid td{font-size:16px;padding:17px 16px}
+#inventoryGrid th{font-size:13px;font-weight:700;letter-spacing:.8px}
+#inventoryGrid th:nth-child(1),#inventoryGrid td:nth-child(1){width:62%}
+#inventoryGrid th:nth-child(2),#inventoryGrid td:nth-child(2){width:20%;text-align:center}
+#inventoryGrid th:nth-child(3),#inventoryGrid td:nth-child(3){width:18%;text-align:center}
+#inventoryGrid tbody td:nth-child(2){
+  font-size:25px;
+  font-weight:800;
+  line-height:1.1;
+}
+#inventoryGrid tbody td:nth-child(1){font-size:18px;font-weight:500}
+#inventoryGrid tbody td:nth-child(3){font-size:16px;font-weight:500}
+@media(max-width:600px){
+  #inventoryGrid th,#inventoryGrid td{font-size:14px;padding:14px 12px}
+  #inventoryGrid tbody td:nth-child(2){font-size:21px}
+  #inventoryGrid tbody td:nth-child(1){font-size:16px}
+  #inventoryGrid tbody td:nth-child(3){font-size:14px}
+}
