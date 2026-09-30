@@ -117,13 +117,13 @@ function saveWorkLog_(data) {
       setCell_(workRow, workHeaders, 'หน่วยที่ได้รับ', checkedReceives.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
 
-    // บันทึกรูปการทำงานลง Google Drive แล้วเก็บลิงก์รูปไว้ใน WORK LOG
-    // ใช้ลิงก์ thumbnail ที่หน้าเว็บสามารถแสดงรูปได้โดยตรง
-    if (data.photo && data.photo.data) {
-      const photoUrl = saveWorkPhoto_(data.photo, workId);
-      setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
-    }
+    // ต้องอัปโหลดรูปให้สำเร็จก่อน จึงจะบันทึก WORK LOG
+    // เพื่อให้ทุก WORK LOG ที่เกิดขึ้นมีรูปและหน้าเว็บสามารถแสดงรูปได้แน่นอน
+    const photoUrl = saveWorkPhoto_(data.photo, workId);
+    if (!photoUrl) throw new Error('อัปโหลดรูปการทำงานไม่สำเร็จ');
+    setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
 
+    // บันทึก WORK LOG หลังจากรูปพร้อมแล้ว
     workSheet.appendRow(workRow);
 
     const transactions = [];
@@ -155,7 +155,7 @@ function saveWorkLog_(data) {
     }
 
     SpreadsheetApp.flush();
-    return { ok: true, workId, transactions };
+    return { ok: true, workId, transactions, photoUrl };
   } finally {
     lock.releaseLock();
   }
@@ -174,6 +174,13 @@ function saveWorkPhoto_(photo, workId) {
   const folderName = 'MYSTICAL BEASTS ALLIANCE - WORK PHOTOS';
   const folders = DriveApp.getFoldersByName(folderName);
   const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+  // ให้โฟลเดอร์และไฟล์รูปอ่านได้ผ่านลิงก์ โดยผู้ใช้เว็บไซต์ไม่ต้องล็อกอิน Google Drive
+  try {
+    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    throw new Error('ไม่สามารถตั้งสิทธิ์โฟลเดอร์รูปให้ดูผ่านลิงก์ได้: ' + sharingError.message);
+  }
 
   const bytes = Utilities.base64Decode(base64);
   const safeName = String(photo.name || ('WORK-' + workId + '.jpg'))
@@ -201,6 +208,7 @@ function validate_(data) {
   }
   if (data.category === 'เก็บผลผลิต' && (!data.targetId || !data.targetName)) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผัก');
   if (!data.recorder) throw new Error('กรุณาเลือกผู้ลงบันทึก');
+  if (!data.photo || !data.photo.data) throw new Error('กรุณาแนบรูปการทำงาน');
   if (!data.muggleDate) throw new Error('กรุณาเลือกวันที่');
   if (!WIZARD_DAYS.includes(data.magicalDay)) throw new Error('วันผู้วิเศษไม่ถูกต้อง');
   if (!data.icTime) throw new Error('กรุณาเลือกเวลา IC');

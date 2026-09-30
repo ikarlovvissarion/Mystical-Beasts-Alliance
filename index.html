@@ -194,7 +194,7 @@
           <label><span>ชื่อสัตว์วิเศษ/พืชผัก</span><input id="wlTargetName" type="text" readonly></label>
         </div>
         <div class="work-photo-field form-grid-span-2">
-          <label><span>รูปการทำงาน <small>(ไม่บังคับ • JPG / PNG / WEBP)</small></span><input id="wlPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewWorkPhoto(event)"></label>
+          <label><span>รูปการทำงาน <small>(จำเป็น • JPG / PNG / WEBP)</small></span><input id="wlPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewWorkPhoto(event)" required></label>
           <div id="workPhotoPreview" class="work-photo-preview" hidden></div>
         </div>
       </div>
@@ -692,21 +692,21 @@ async function submitWorkLog(ev){
  let photo=null;
  try{
   const file=document.getElementById('wlPhoto')?.files?.[0];
-  if(file){
-   if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
-   status.textContent='กำลังเตรียมรูป…';
-   photo=await prepareWorkPhoto(file);
-  }
+  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';return;}
+  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
+  status.textContent='กำลังเตรียมรูป…';
+  photo=await prepareWorkPhoto(file);
+  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
  }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
  const payload={
   category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
   workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
- btn.disabled=true;status.textContent=photo?'กำลังบันทึกข้อมูลและอัปโหลดรูป…':'กำลังบันทึก…';status.className='form-status';
+ btn.disabled=true;status.textContent='กำลังบันทึก WORK LOG และอัปโหลดรูป…';status.className='form-status';
  try{
   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
-  status.textContent=photo?'บันทึกแล้ว • รูปถูกอัปโหลดและจะแสดงในประวัติหลังซิงก์':'บันทึกแล้ว • ประวัติจะอัปเดตหลังซิงก์';status.className='form-status success';
+  status.textContent='บันทึก WORK LOG แล้ว • ประวัติจะอัปเดตหลังซิงก์';status.className='form-status success';
   document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,1500);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
