@@ -127,6 +127,8 @@
  .form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{font-size:13px;min-height:44px}
 }
 
+
+.admin-permission-status{margin:0 0 14px;padding:8px 12px;border:1px solid #c4a66d;background:#fff8e44d;color:#765727;font-size:11px;text-align:right}.admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}
 </style>
 </head>
 <body>
@@ -172,6 +174,7 @@
 </section>
 
 <section id="worklog" class="page">
+<div id="adminPermissionStatus" class="admin-permission-status" hidden></div>
 <div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Work Log</h2></div><span id="workTotal" class="count-badge">0</span></div>
 <div class="worklog-layout">
   <div class="worklog-form-card">
@@ -232,6 +235,9 @@ const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
 const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
+// Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
+const ADMIN_API_URL="PASTE_ADMIN_WEB_APP_URL_HERE";
+let isGoogleAdmin=false; let adminEmail="";
 
 const FALLBACK_BEASTS = [
 {"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
@@ -320,6 +326,9 @@ function renderWorkHistory(rows){
   const targetName=getFirstValue(r,["Target Name"])||"";
   const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
   const photo=getFirstValue(r,["รูปการทำงาน","Work Photo","Photo","Image"]);
+  const status=getFirstValue(r,["Status"])||"";
+  const cancelBy=getFirstValue(r,["Cancel By"]);
+  const cancelReason=getFirstValue(r,["Cancel Reason"]);
   const withdrawal=getFirstValue(r,["เบิกคลังชมรม"]);
   const withdrawQty=getFirstValue(r,["จำนวนที่เบิก"]);
   const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
@@ -328,8 +337,37 @@ function renderWorkHistory(rows){
   const stock=[];
   if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
   if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
-  return `<article class="work-history-card">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span><span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}</div></article>`;
+  const cancelled=status.toLowerCase()==='cancelled';
+  const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
+  const adminAction=isGoogleAdmin&&!cancelled?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ยกเลิกรายการ</button>`:'';
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
+}
+
+async function checkGoogleAdmin(){
+ if(!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_ADMIN_WEB_APP_URL')) return;
+ try{
+   const res=await fetch(ADMIN_API_URL+'?action=adminStatus&ts='+Date.now(),{credentials:'include',cache:'no-store'});
+   const data=await res.json();
+   isGoogleAdmin=!!data.isAdmin; adminEmail=data.email||'';
+   render();
+ }catch(e){ console.warn('Admin permission check:',e); }
+}
+
+async function cancelWorkLog(workId){
+ if(!isGoogleAdmin){alert('บัญชี Google นี้ไม่มีสิทธิ์ผู้ดูแลระบบ');return;}
+ const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
+ if(!row)return;
+ const ok=confirm(`ต้องการยกเลิก WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้องกลับให้อัตโนมัติ และจะไม่ลบหลักฐานเดิม`);
+ if(!ok)return;
+ const reason=prompt('กรุณาระบุเหตุผลการยกเลิก:', 'กรอกข้อมูลผิด / รายการซ้ำ');
+ if(!reason || !reason.trim())return;
+ if(!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_ADMIN_WEB_APP_URL')){alert('ยังไม่ได้ตั้งค่า Admin Web App URL');return;}
+ try{
+   await fetch(ADMIN_API_URL,{method:'POST',mode:'no-cors',credentials:'include',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim()})})});
+   alert('ส่งคำขอยกเลิกรายการแล้ว ระบบจะย้อนคลังและอัปเดตสถานะหลังซิงก์');
+   setTimeout(syncData,1500);
+ }catch(e){alert('ยกเลิกรายการไม่สำเร็จ: '+e.message);}
 }
 
 function renderTable(rows,preferred){
@@ -617,7 +655,7 @@ async function syncData(){
   console.warn("Google Sheets sync:",e);
  }
 }
-render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS);
+render(); initWorkLogForm(); syncData(); checkGoogleAdmin(); setInterval(syncData,SYNC_MS);
 </script>
 </body>
 </html>
