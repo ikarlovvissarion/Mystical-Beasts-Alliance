@@ -1,8 +1,8 @@
-﻿ID,Name,Species,Breed,Classification,Sex,Age,Color,Date of Birth,Origin/Native Habitat,Other Characteristics,Owner,Image
-A001,Lumi,Mooncalf,Daylight Mooncalf,XX,Male,3,สีฟ้าอมเทา,12 พฤษภาคม 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A002,Clover,Mooncalf,Daylight Mooncalf,XX,Female,7,สีฟ้าอมเทา,24 มกราคม 2007,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A003,Bramble,Mooncalf,Daylight Mooncalf,XX,Male,8,สีฟ้าอมเทา,7 กันยายน 2006,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A004,Mallow,Mooncalf,Daylight Mooncalf,XX,Female,2,สีฟ้าอมเทา,18 มีนาคม 2012,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A005,Truffle,Mooncalf,Daylight Mooncalf,XX,Male,2,สีฟ้าอมเทา,29 ตุลาคม 2012,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A006,Mochi,Mooncalf,Daylight Mooncalf,XX,Female,3,สีฟ้าอมเทา,5 มิถุนายน 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
-A007,Pippin,Mooncalf,Daylight Mooncalf,XX,Male,3,สีฟ้าอมเทา,21 ธันวาคม 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+﻿ID,Name,Species,Category,Breed,Classification,Sex,Age,Color,Date of Birth,Origin/Native Habitat,Other Characteristics,Owner,Image
+A001,Lumi,Mooncalf,A,Daylight Mooncalf,XX,Male,3,สีฟ้าอมเทา,12 พฤษภาคม 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A002,Clover,Mooncalf,A,Daylight Mooncalf,XX,Female,7,สีฟ้าอมเทา,24 มกราคม 2007,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A003,Bramble,Mooncalf,A,Daylight Mooncalf,XX,Male,8,สีฟ้าอมเทา,7 กันยายน 2006,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A004,Mallow,Mooncalf,A,Daylight Mooncalf,XX,Female,2,สีฟ้าอมเทา,18 มีนาคม 2012,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A005,Truffle,Mooncalf,A,Daylight Mooncalf,XX,Male,2,สีฟ้าอมเทา,29 ตุลาคม 2012,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A006,Mochi,Mooncalf,A,Daylight Mooncalf,XX,Female,3,สีฟ้าอมเทา,5 มิถุนายน 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,
+A007,Pippin,Mooncalf,A,Daylight Mooncalf,XX,Male,3,สีฟ้าอมเทา,21 ธันวาคม 2011,ฝรั่งเศส,-,Prof. Meduza Rose SaintRosaria,

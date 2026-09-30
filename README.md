@@ -1,19 +1,11 @@
-# Mystical Beasts Alliance — Google Sheets Connected
+# Mystical Beasts Alliance — Google Sheets Web App
 
-This version is configured with the user's published Google Sheets CSV URL.
+Static web app for the Mystical Beasts Alliance central archive.
 
-Google Sheets CSV:
-https://docs.google.com/spreadsheets/d/e/2PACX-1vS6ATu1MX6uUYNJg7gZjS8FRMqFLNwc2GZyHsejsJbuzEENQzwD8Tf-ObUy8mp0drVau6S2xLt090Jr/pub?gid=0&single=true&output=csv
+## BEASTS categories
+Add a `Category` column to the CREATURES sheet, after `Species`, using:
+- `A` — สัตว์เลี้ยงลูกด้วยนม / MAMMALS
+- `B` — สัตว์ปีกและแมลง / BIRDS & INSECTS
+- `C` — สัตว์น้ำ สัตว์ครึ่งบกครึ่งน้ำ และสัตว์เลื้อยคลาน / AQUATIC, AMPHIBIANS & REPTILES
 
-How it works:
-1. Open the web app.
-2. The app attempts to fetch the latest BEASTS data from Google Sheets.
-3. Press “↻ ซิงก์ข้อมูลจาก Google Sheets” to refresh manually.
-4. If Google Sheets cannot be reached, the app falls back to BEASTS.csv bundled with the site.
-
-For GitHub Pages:
-- Upload the files in this folder to the repository root.
-- Enable Settings > Pages > Deploy from branch > main > /(root).
-- Open the generated Pages URL.
-
-Note: The remote Google Sheets connection can only be verified after the site is served over HTTP/HTTPS. Opening index.html directly from a file:// URL may be blocked by browser CORS rules.
+The website automatically groups beasts under large category headings. New rows only need a Category value; no HTML changes are required.
