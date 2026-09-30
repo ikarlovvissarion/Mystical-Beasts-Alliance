@@ -129,6 +129,8 @@
 
 
 .admin-permission-status{margin:0 0 14px;padding:8px 12px;border:1px solid #c4a66d;background:#fff8e44d;color:#765727;font-size:11px;text-align:right}.admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}
+
+.admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-account{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 0;border-top:1px solid #c4a66d;border-bottom:1px solid #c4a66d;margin:16px 0}.admin-badge{display:inline-block;padding:6px 10px;border:1px solid #a17a38;background:#ead7ad;font-size:11px;font-weight:700;letter-spacing:1px}.admin-badge.denied{background:#ead0c8;border-color:#9b4d3e;color:#6a281d}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-note{font-size:11px!important;color:#765727}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
 </style>
 </head>
 <body>
@@ -140,6 +142,7 @@
 <button onclick="showPage('garden')">GARDEN PLOT</button>
 <button onclick="showPage('worklog')">WORK LOG</button>
 <button onclick="showPage('inventory')">INVENTORY</button>
+<button onclick="showPage('admin')">ADMIN</button>
 </nav>
 </header>
 
@@ -211,6 +214,28 @@
     </form>
   </div>
   <div id="workLogGrid" class="table-wrap"></div>
+</div>
+</section>
+
+<section id="admin" class="page">
+<div class="page-heading"><div><p class="eyebrow">CONTROL ARCHIVE</p><h2>Admin</h2></div><span class="count-badge">✦</span></div>
+<div class="admin-page-card">
+  <h3>ผู้ดูแลระบบ</h3>
+  <p>พื้นที่จัดการสำหรับบัญชี Google ที่ได้รับสิทธิ์ Admin เท่านั้น</p>
+  <div class="admin-account">
+    <div><small>GOOGLE ACCOUNT</small><div id="adminAccountEmail">ยังไม่ได้ตรวจสอบ</div></div>
+    <span id="adminAccountBadge" class="admin-badge">กำลังตรวจสอบ</span>
+  </div>
+  <div class="admin-summary-grid">
+    <div class="admin-summary-box"><b id="adminWorkCount">0</b><small>WORK LOG</small></div>
+    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>INVENTORY ITEMS</small></div>
+    <div class="admin-summary-box"><b id="adminCancelledCount">0</b><small>CANCELLED</small></div>
+  </div>
+  <div class="admin-actions" style="margin-top:18px">
+    <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
+    <button class="admin-action-btn" type="button" onclick="syncData();checkGoogleAdmin();">↻ ตรวจสอบสิทธิ์ / ซิงก์</button>
+  </div>
+  <p id="adminAccessNote" class="admin-note">หากเป็น Admin ให้ลงชื่อเข้าใช้ Google บัญชีที่ได้รับอนุญาต แล้วเปิดหน้านี้ใหม่</p>
 </div>
 </section>
 
@@ -287,6 +312,12 @@ function render(){
  plantCount.textContent=plants.length; plantTotal.textContent=plants.length;
  inventoryCount.textContent=inventory.length; inventoryTotal.textContent=inventory.length;
  workTotal.textContent=worklogs.length;
+ const adminWorkCount=document.getElementById('adminWorkCount');
+ const adminInventoryCount=document.getElementById('adminInventoryCount');
+ const adminCancelledCount=document.getElementById('adminCancelledCount');
+ if(adminWorkCount)adminWorkCount.textContent=worklogs.length;
+ if(adminInventoryCount)adminInventoryCount.textContent=inventory.length;
+ if(adminCancelledCount)adminCancelledCount.textContent=worklogs.filter(r=>String(getFirstValue(r,['Status'])||'').toLowerCase()==='cancelled').length;
  const order=["A","B","C"];
  const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
  const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
@@ -350,8 +381,22 @@ async function checkGoogleAdmin(){
    const res=await fetch(ADMIN_API_URL+'?action=adminStatus&ts='+Date.now(),{credentials:'include',cache:'no-store'});
    const data=await res.json();
    isGoogleAdmin=!!data.isAdmin; adminEmail=data.email||'';
+   const emailEl=document.getElementById('adminAccountEmail');
+   const badgeEl=document.getElementById('adminAccountBadge');
+   const noteEl=document.getElementById('adminAccessNote');
+   if(emailEl)emailEl.textContent=adminEmail||'ไม่พบ Google Account';
+   if(badgeEl){badgeEl.textContent=isGoogleAdmin?'ADMIN — อนุญาต':'ACCESS DENIED';badgeEl.classList.toggle('denied',!isGoogleAdmin);}
+   if(noteEl)noteEl.textContent=isGoogleAdmin?'บัญชีนี้ได้รับสิทธิ์ Admin สามารถยกเลิกรายการ WORK LOG ได้':'บัญชีนี้ยังไม่มีสิทธิ์ Admin';
    render();
- }catch(e){ console.warn('Admin permission check:',e); }
+ }catch(e){
+   console.warn('Admin permission check:',e);
+   const emailEl=document.getElementById('adminAccountEmail');
+   const badgeEl=document.getElementById('adminAccountBadge');
+   const noteEl=document.getElementById('adminAccessNote');
+   if(emailEl)emailEl.textContent='ต้องลงชื่อเข้าใช้ Google';
+   if(badgeEl){badgeEl.textContent='ตรวจสอบไม่สำเร็จ';badgeEl.classList.add('denied');}
+   if(noteEl)noteEl.textContent='โปรดเปิดหน้า Admin หลังลงชื่อเข้าใช้ Google บัญชีที่ได้รับอนุญาต';
+ }
 }
 
 async function cancelWorkLog(workId){
