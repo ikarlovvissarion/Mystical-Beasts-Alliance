@@ -167,7 +167,17 @@ function render(){
  plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
 
  workLogGrid.innerHTML=renderTable(worklogs,["Work ID","วันที่ (มักเกิ้ล)","วันผู้วิเศษ","เวลา (IC)","ประเภทการทำงาน","Target ID","Target Name","ผู้ลงบันทึก","เบิกคลังชมรม","จำนวนที่เบิก","จำนวนที่ได้รับ"]);
- inventoryGrid.innerHTML=renderTable(inventory,["รายการ","จำนวน","หน่วย"]);
+ inventoryGrid.innerHTML=renderInventoryLarge(inventory);
+}
+
+function renderInventoryLarge(rows){
+ if(!rows.length)return `<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
+ return `<div class="inventory-large-list">${rows.map(r=>{
+  const name=getFirstValue(r,['รายการ','Name','Item'])||'-';
+  const qty=getFirstValue(r,['จำนวน','Quantity'])||'0';
+  const unit=getFirstValue(r,['หน่วย','Unit'])||'';
+  return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
+ }).join('')}</div>`;
 }
 
 function renderTable(rows,preferred){
