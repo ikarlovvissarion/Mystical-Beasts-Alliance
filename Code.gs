@@ -33,6 +33,11 @@ function doGet(e) {
 
 // รันฟังก์ชันนี้ 1 ครั้งจาก Apps Script Editor ด้วยบัญชีเจ้าของระบบ
 // เพื่อบังคับให้ Google ขอสิทธิ์ Sheets + Drive ก่อนใช้งาน Web App
+// ฟังก์ชันนี้จะตรวจทั้ง Spreadsheet และโฟลเดอร์รูป
+function testMBASetup() {
+  return healthCheck_();
+}
+
 function setupMBA() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const folder = DriveApp.getFolderById('1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse');
@@ -63,9 +68,16 @@ function healthCheck_() {
 
 function doPost(e) {
   try {
-    const payloadText = e && e.parameter && e.parameter.payload;
+    // รองรับทั้ง payload แบบ form parameter และ raw JSON body
+    let payloadText = e && e.parameter && e.parameter.payload;
+    if (!payloadText && e && e.postData && e.postData.contents) {
+      payloadText = e.postData.contents;
+    }
     if (!payloadText) throw new Error('ไม่พบ payload');
-    const data = JSON.parse(payloadText);
+
+    const data = typeof payloadText === 'string'
+      ? JSON.parse(payloadText)
+      : payloadText;
     if (data.action === 'testPhoto') {
       return json_({ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID});
     }
@@ -202,37 +214,94 @@ function saveWorkLog_(data) {
 
 
 function saveWorkPhoto_(photo, workId) {
-  const base64 = String(photo.data || '').trim();
+  photo = photo || {};
+
+  // รองรับทั้ง {data: "..."} และ {base64: "..."} จากหน้าเว็บ
+  let base64 = String(photo.data || photo.base64 || '').trim();
   if (!base64) return '';
 
-  const mimeType = String(photo.mimeType || 'image/jpeg').trim() || 'image/jpeg';
-  if (!/^image\/(jpeg|png|webp)$/i.test(mimeType)) {
+  const mimeType = String(photo.mimeType || photo.type || 'image/jpeg').trim() || 'image/jpeg';
+  if (!/^image\/(jpeg|jpg|png|webp)$/i.test(mimeType)) {
     throw new Error('รองรับเฉพาะ JPG, PNG หรือ WEBP');
   }
 
+  // รองรับ Data URL เช่น data:image/jpeg;base64,xxxx
+  if (base64.indexOf(',') >= 0 && /^data:/i.test(base64)) {
+    base64 = base64.substring(base64.indexOf(',') + 1);
+  }
+  base64 = base64.replace(/\s/g, '');
+
+  if (base64.length < 100) {
+    throw new Error('ข้อมูลรูปภาพไม่สมบูรณ์');
+  }
+  if (base64.length > 12 * 1024 * 1024) {
+    throw new Error('รูปภาพมีขนาดใหญ่เกินไป กรุณาเลือกรูปที่เล็กลง');
+  }
+
   const WORK_PHOTOS_FOLDER_ID = '1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse';
+
   let folder;
   try {
     folder = DriveApp.getFolderById(WORK_PHOTOS_FOLDER_ID);
   } catch (e) {
-    throw new Error('ไม่สามารถเข้าถึงโฟลเดอร์รูปการทำงานใน Google Drive ได้ กรุณาตรวจสอบสิทธิ์ของ Apps Script');
+    throw new Error(
+      'Apps Script เข้าถึงโฟลเดอร์ Google Drive ไม่ได้: ' +
+      String(e.message || e)
+    );
   }
 
-  // ตั้งสิทธิ์โฟลเดอร์ถ้าบัญชี Google อนุญาต; ไม่ให้ขั้นตอนนี้ทำให้การอัปโหลดล้มเหลว
-  try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (sharingError) { console.warn('Folder sharing skipped: ' + sharingError.message); }
+  try {
+    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    console.warn('Folder sharing skipped: ' + sharingError.message);
+  }
 
-  const bytes = Utilities.base64Decode(base64);
-  const safeName = String(photo.name || ('WORK-' + workId + '.jpg'))
+  let bytes;
+  try {
+    bytes = Utilities.base64Decode(base64);
+  } catch (e) {
+    throw new Error('ถอดรหัสรูปภาพไม่สำเร็จ กรุณาลองเลือกรูปใหม่');
+  }
+
+  const extension =
+    /png/i.test(mimeType) ? 'png' :
+    /webp/i.test(mimeType) ? 'webp' : 'jpg';
+
+  const originalName = String(
+    photo.name || ('WORK-' + workId + '.' + extension)
+  ).trim();
+
+  const safeName = originalName
     .replace(/[^a-zA-Z0-9._-]+/g, '_')
-    .replace(/^_+|_+$/g, '') || ('WORK-' + workId + '.jpg');
-  const blob = Utilities.newBlob(bytes, mimeType, workId + '-' + safeName);
-  const file = folder.createFile(blob);
+    .replace(/^_+|_+$/g, '') ||
+    ('WORK-' + workId + '.' + extension);
 
-  // ทำให้รูปดูได้จากหน้าเว็บ GitHub Pages โดยไม่ต้องล็อกอิน Google
-  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (sharingError) { console.warn('File sharing skipped: ' + sharingError.message); }
+  const blob = Utilities.newBlob(
+    bytes,
+    mimeType === 'image/jpg' ? 'image/jpeg' : mimeType,
+    workId + '-' + safeName
+  );
+
+  let file;
+  try {
+    file = folder.createFile(blob);
+  } catch (e) {
+    throw new Error(
+      'สร้างไฟล์รูปใน Google Drive ไม่สำเร็จ: ' +
+      String(e.message || e)
+    );
+  }
+
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    console.warn('File sharing skipped: ' + sharingError.message);
+  }
 
   const fileId = file.getId();
-  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w1200';
+
+  return 'https://drive.google.com/thumbnail?id=' +
+    encodeURIComponent(fileId) + '&sz=w1200';
 }
 
 function validate_(data) {
@@ -313,7 +382,7 @@ function toNumber_(v) { if (typeof v === 'number') return v; const n = Number(St
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 
 // ============================================================
-// ADMIN: Google Account permission + Work Log cancellation
+// ADMIN: Password permission + Work Log cancellation
 // ============================================================
 const ADMIN_PASSWORD = 'Meduza2014';
 function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }

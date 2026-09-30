@@ -1,18 +1,4 @@
-# MYSTICAL BEASTS ALLIANCE — Admin / Inventory / Deleted History
 
-## เวอร์ชันนี้แก้ไข
-- ลบแถบสถานะ ADMIN / Password verification ที่ซ้ำซ้อนออกจากหน้า Admin
-- หน้า Admin เปิดดูสถานะได้ทันที
-- การลบ WORK LOG ยังคงถาม Password เฉพาะตอนกดลบจริง เพื่อไม่ให้การยืนยันซ้ำซ้อน
-- Admin แสดงจำนวนรวมในคลังจากคอลัมน์ `จำนวน` และแสดงรายการคลังพร้อมหน่วยแบบเรียลไทม์
-- เมื่อสั่งลบ WORK LOG ระบบจะย้อนรายการ INVENTORY ที่เกี่ยวข้องก่อน
-- ก่อนลบ WORK LOG จริง ระบบจะคัดลอกข้อมูลไปยังแท็บ `DELETED WORK LOG`
-- หน้า Admin แสดงประวัติรายการที่ลบแล้ว พร้อมวันที่ลบ เหตุผล และรูปเดิมถ้ามี
-- ซิงก์ `DELETED WORK LOG` ทุก 15 วินาทีเช่นเดียวกับข้อมูลหลัก
 
-## สำคัญ
-ต้องนำ `Code.gs` เวอร์ชันนี้ไป Deploy เป็น Web App เวอร์ชันใหม่ หลังแก้ Apps Script แล้วจึง Deploy/อัปเดต Web App ให้ใช้เวอร์ชันใหม่
-
-ระบบจะสร้างแท็บ `DELETED WORK LOG` อัตโนมัติเมื่อมีการลบ WORK LOG ครั้งแรก
-
-รายการที่ถูกลบด้วยระบบเวอร์ชันเก่าก่อนมี `DELETED WORK LOG` จะไม่สามารถสร้างข้อมูลย้อนหลังแบบครบถ้วนได้โดยอัตโนมัติ เพราะข้อมูลต้นฉบับถูกลบไปแล้ว
+## ADMIN
+The ADMIN tab is protected by a password. Current password: `Meduza2014`. Change `ADMIN_PASSWORD` in Code.gs and `ADMIN_PASSWORD` in index.html together if you want a different password.
