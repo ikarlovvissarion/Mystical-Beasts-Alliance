@@ -1,25 +1,13 @@
-MYSTICAL BEASTS ALLIANCE — UPDATE
+MYSTICAL BEASTS ALLIANCE — SAFE ROLLBACK FIX
 
-เพิ่มระบบคำขอลบ WORK LOG
+ฐานข้อมูลหลักยังชี้ไปที่ Spreadsheet ID เดิม:
+1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0
 
-1. ผู้กรอก
-- ในประวัติ WORK LOG จะมีปุ่ม “ขอให้ Admin ลบรายการ”
-- ผู้กรอกต้องระบุเหตุผลก่อนส่งคำขอ
-- ระบบสร้างแท็บ DELETION REQUESTS อัตโนมัติ
-- WORK LOG จะยังไม่ถูกลบทันที
-- หากส่งคำขอซ้ำรายการเดิม ระบบจะแจ้งว่ามีคำขอรออนุมัติแล้ว
-
-2. ADMIN
-- โซน Admin แสดงจำนวนคำขอลบที่รออนุมัติ
-- แสดง Request ID, Work ID, ผู้ขอลบ, เหตุผล และเวลาที่ขอ
-- มีปุ่ม “อนุมัติและลบรายการ”
-- เมื่อ Admin อนุมัติ ระบบจะลบ WORK LOG ออกจากประวัติจริง
-- ระบบย้อนรายการ INVENTORY ที่เกี่ยวข้องให้เหมือนการลบเดิม
-- เก็บสำเนาไว้ใน DELETED WORK LOG เพื่อเป็นหลักฐานย้อนหลัง
-- คำขอจะเปลี่ยนสถานะเป็น APPROVED
-
-3. Google Apps Script
-- ใช้ Spreadsheet ID เดิม
-- ใช้ Drive Folder ID เดิมสำหรับรูป WORK LOG
-- ต้อง Deploy Web App เวอร์ชันใหม่หลังนำ Code.gs นี้ไปวาง
-- ใช้ Execute as Me และ Anyone ตามการตั้งค่าที่ใช้งานอยู่
+แก้เฉพาะระบบย้อนคลังเมื่อ Admin อนุมัติลบ/ยกเลิก WORK LOG:
+- คืนของจากรายการ "เบิก" ตามจำนวนที่เบิกจริงเท่านั้น
+- หักของจากรายการ "รับเข้า" ตามจำนวนที่รับเข้าจริงเท่านั้น
+- ไม่วนเอา "ปรับเพิ่ม/ปรับลด" ที่เกิดจากการ rollback มาคืนซ้ำ
+- รองรับ rollback เก่าที่มีอยู่แล้ว เพื่อไม่ให้คืนซ้ำ
+- ใช้ Script Lock ป้องกันการประมวลผลซ้อนกัน
+- ไม่ลบ/สร้างใหม่/แทนที่ BEASTS, INVENTORY, PLANTS, MEMBER หรือข้อมูลเดิมใน Google Sheets
+- ระบบคำขอลบ DELETION REQUESTS และ password Admin Meduza2014 ยังคงอยู่
