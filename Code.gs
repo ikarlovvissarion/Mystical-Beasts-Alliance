@@ -109,7 +109,7 @@ function saveWorkLog_(data) {
 
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
-      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
+      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'Client Request ID',
       'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
@@ -119,6 +119,16 @@ function saveWorkLog_(data) {
     ]);
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
+    const clientRequestId = String(data.clientRequestId || '').trim();
+    if (clientRequestId) {
+      const reqCol = workHeaders.indexOf('Client Request ID');
+      if (reqCol >= 0 && workSheet.getLastRow() > 1) {
+        const reqValues = workSheet.getRange(2, reqCol + 1, workSheet.getLastRow() - 1, 1).getValues().flat();
+        if (reqValues.some(v => String(v || '').trim() === clientRequestId)) {
+          throw new Error('รายการนี้ถูกบันทึกไปแล้ว ระบบป้องกันการบันทึกซ้ำ');
+        }
+      }
+    }
     const dateValue = formatMuggleDateForSheet_(data.muggleDate);
     if (!dateValue) throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง');
     const withdrawals = normalizeItems_(data.withdrawals);
@@ -154,13 +164,20 @@ function saveWorkLog_(data) {
     const checkedReceives = [];
     if (data.category === 'เก็บผลผลิต') {
       if (!receives.length) throw new Error('กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ');
+
+      const receiveMap = {};
       for (const item of receives) {
         const found = findInventoryItem_(inventorySheet, inventoryHeaders, item.id, item.name);
         if (!found) throw new Error('ไม่พบรายการผลผลิตใน INVENTORY: ' + (item.name || item.id));
         const qty = Number(item.qty);
         if (!(qty > 0)) throw new Error('จำนวนที่รับเข้าต้องมากกว่า 0');
-        checkedReceives.push({ item, found, qty });
+
+        const key = String(found.id || item.id || found.name || item.name).trim();
+        if (!receiveMap[key]) receiveMap[key] = { item, found, qty: 0 };
+        receiveMap[key].qty += qty;
       }
+
+      Object.keys(receiveMap).forEach(k => checkedReceives.push(receiveMap[k]));
     }
 
     const workRow = blankRow_(workHeaders.length);
@@ -173,6 +190,7 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
     setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
+    setCell_(workRow, workHeaders, 'Client Request ID', clientRequestId);
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
     if (checkedWithdrawals.length) {
@@ -241,7 +259,7 @@ function saveWorkLog_(data) {
     }
 
     SpreadsheetApp.flush();
-    return { ok: true, workId, transactions, photoUrl };
+    return { ok: true, workId, transactions, photoUrl, receiveTotal: checkedReceives.reduce((s,x)=>s+toNumber_(x.qty),0) };
   } finally {
     lock.releaseLock();
   }

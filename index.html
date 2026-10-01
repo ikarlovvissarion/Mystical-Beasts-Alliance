@@ -746,7 +746,9 @@ function prepareWorkPhoto(file,maxSide=1280,quality=.74){
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
- if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
+ if(btn.dataset.submitting==='1') return;
+ btn.dataset.submitting='1'; btn.disabled=true;
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
  const muggleDate=document.getElementById('wlDate').value;
  const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
@@ -774,22 +776,25 @@ async function submitWorkLog(ev){
  }
  document.getElementById('wlTime').value=icTime;
  if(cat==='งานทั่วไป'){
-   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
  } else if(cat==='เก็บผลผลิต'){
-   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
-   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
  }
  let photo=null;
  try{
   const file=document.getElementById('wlPhoto')?.files?.[0];
-  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';return;}
-  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
+  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
   status.textContent='กำลังเตรียมรูป…';
   photo=await prepareWorkPhoto(file);
-  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
- }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
+  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+ }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+ const clientRequestId = (window.crypto && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : ('REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2));
  const payload={
-  category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
+  clientRequestId,category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
   workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
@@ -800,7 +805,7 @@ async function submitWorkLog(ev){
   document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,4000);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
- finally{btn.disabled=false;}
+ finally{btn.dataset.submitting='0';btn.disabled=false;}
 }
 
 async function syncData(){
