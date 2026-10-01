@@ -183,10 +183,10 @@
     <div class="section-title">✦ บันทึกการทำงาน ✦</div>
     <form id="workLogForm" onsubmit="submitWorkLog(event)">
       <div class="form-grid">
-        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
         <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
-        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>หมวดหมู่การทำงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">โปรดเลือกรายการนี้ก่อนประเภทการทำงาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
         <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
         <div id="targetFields" class="target-fields form-grid-span-2">
@@ -630,7 +630,7 @@ function localTime24(d=new Date()){
  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function initWorkLogForm(){
- const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
+ const d=document.getElementById('wlDate'); if(d){d.value=''; d.readOnly=false;}
  const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
@@ -762,7 +762,6 @@ async function syncData(){
   if(b.length)beasts=b;
   plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];
   rebuildWorkLogLookups();
-  const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
   render();
   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
  }catch(e){
