@@ -47,6 +47,7 @@ function setupMBA() {
   getOrCreateSheet_(ss, 'INVENTORY LOG');
   getOrCreateSheet_(ss, 'DELETED WORK LOG');
   getOrCreateSheet_(ss, 'DELETE REQUESTS');
+  getOrCreateSheet_(ss, 'DELETED INVENTORY HISTORY');
   try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
   return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
 }
@@ -113,7 +114,7 @@ function saveWorkLog_(data) {
 
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
-      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
+      'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก', 'Client Request ID',
       'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'รายการที่ได้รับ', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
@@ -180,6 +181,9 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'Target ID', '');
     setCell_(workRow, workHeaders, 'Target Name', targetSelection.names.join(' | '));
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
+    // ใช้ ID จากหน้าเว็บเพื่อจับคู่รายการที่เพิ่งบันทึกแบบแม่นยำ
+    // ช่วยลดปัญหารอประวัตินานจากการเทียบวันที่/เวลาที่ Google Sheets อาจแปลงรูปแบบ
+    setCell_(workRow, workHeaders, 'Client Request ID', String(data.clientRequestId || '').trim());
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
     if (checkedWithdrawals.length) {

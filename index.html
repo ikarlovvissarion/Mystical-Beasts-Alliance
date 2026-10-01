@@ -1383,29 +1383,37 @@ function hideUploadProcessing(){
 }
 
 async function waitForSubmittedWorkLogVisible(expected){
- const maxAttempts=30;
- const delayMs=1500;
+ // เดิมใช้การเทียบ Category + ประเภทงาน + ผู้ลงบันทึก + วันที่ + เวลา
+ // ซึ่งมีโอกาสไม่ตรงเพราะ Google Sheets แปลงวันที่/เวลา ทำให้รอครบหลายรอบ
+ // ตอนนี้ส่ง Client Request ID ไปกับ WORK LOG และใช้ ID เดียวกันตรวจรายการที่เพิ่งบันทึก
+ const maxAttempts=12;
+ const delayMs=1000;
  for(let attempt=1;attempt<=maxAttempts;attempt++){
   try{
    const rows=await fetchSheet("WORK LOG");
    worklogs=rows;
    render();
 
-   const found=rows.length>Number(expected.previousCount||0) && rows.some(r=>{
-    const rowCategory=getFirstValue(r,["Category"]).trim();
-    const rowType=getFirstValue(r,["ประเภทการทำงาน"]).trim();
-    const rowRecorder=getFirstValue(r,["ผู้ลงบันทึก"]).trim();
-    const rowDate=getFirstValue(r,["วันที่ (มักเกิ้ล)"]).trim();
-    const rowTime=normalizeICTimeValue(getFirstValue(r,["เวลา (IC)"]));
-    return rowCategory===String(expected.category||"").trim()
-      && rowType===String(expected.workType||"").trim()
-      && rowRecorder===String(expected.recorder||"").trim()
-      && formatWorkDate(rowDate)===formatWorkDate(expected.muggleDate)
-      && rowTime===normalizeICTimeValue(expected.icTime);
-   });
+   const requestId=String(expected.clientRequestId||"").trim();
+   let found=false;
+   if(requestId){
+    found=rows.some(r=>String(getFirstValue(r,["Client Request ID"])||"").trim()===requestId);
+   }
+   // fallback สำหรับ WORK LOG เก่าที่ไม่มี Client Request ID
+   if(!found){
+    found=rows.length>Number(expected.previousCount||0) && rows.some(r=>{
+     const rowCategory=getFirstValue(r,["Category"]).trim();
+     const rowType=getFirstValue(r,["ประเภทการทำงาน"]).trim();
+     const rowRecorder=getFirstValue(r,["ผู้ลงบันทึก"]).trim();
+     return rowCategory===String(expected.category||"").trim()
+       && rowType===String(expected.workType||"").trim()
+       && rowRecorder===String(expected.recorder||"").trim();
+    });
+   }
 
    if(found){
-    // render() ด้านบนแสดงประวัติใหม่ลง DOM แล้ว
+    // render() ด้านบนใช้ WORK LOG ชุดเดียวกับ Inventory History
+    // ดังนั้นเมื่อรายการนี้ปรากฏใน worklogs แล้ว ประวัติ Inventory ก็พร้อมแสดงทันที
     return true;
    }
   }catch(e){
@@ -1496,7 +1504,8 @@ async function submitWorkLog(ev){
     workType:wt,
     muggleDate,
     icTime,
-    recorder
+    recorder,
+    clientRequestId
   });
 
   if(historyReady){
