@@ -91,7 +91,7 @@
 }
 
 /* ===== WORK LOG — MEMBER / TARGET PICKERS / MULTI PHOTO ===== */
-.member-search-wrap{position:relative}.member-search-wrap input{width:100%}.member-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100;max-height:220px;overflow:auto;border:1px solid #a17a38;background:#fff9e9;box-shadow:0 10px 24px #4b35192b}.member-suggestion{display:block;width:100%;padding:10px 12px;text-align:left;border:0;border-bottom:1px solid #ead7ad;background:#fff9e9;color:#4f381c;cursor:pointer;font:inherit}.member-suggestion:hover,.member-suggestion.active{background:#ead7ad}.member-search-field{display:flex;flex-direction:column;gap:8px}.target-picker-field{display:flex;flex-direction:column;gap:7px;min-width:0}.target-picker-field>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e}.target-picker-button{min-height:46px;padding:9px 12px;border:1px solid #a17a38;background:#fff9e9;text-align:left;border-radius:3px}.target-picker-button:hover{background:#f1dfb9}.target-selected-summary{font-size:12px;color:#765727;line-height:1.5;min-height:20px}.target-picker-modal{z-index:30}.target-picker-card{width:min(1100px,96vw);height:min(90vh,820px);max-height:90vh}.target-picker-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:0 0 16px;border-bottom:1px solid #c4a66d;margin-bottom:16px}.target-picker-head h2{font-size:28px;margin:0}.target-category-group{min-width:0;border:1px solid #c4a66d;background:#fff9e9}
+.member-search-wrap{position:relative;width:100%}.member-search-wrap input{width:100%;min-height:46px;padding:9px 12px;border:1px solid #a17a38;background:#fff9e9;color:#4b3519;border-radius:3px;font:inherit;font-size:14px;line-height:1.45;outline:none}.member-search-field{display:flex;flex-direction:column;gap:7px;min-width:0}.member-search-field>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e;line-height:1.4}.member-search-wrap input:focus{border-color:#6e4b16;box-shadow:0 0 0 3px #a17a3820}.member-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100;max-height:220px;overflow:auto;border:1px solid #a17a38;background:#fff9e9;box-shadow:0 10px 24px #4b35192b}.member-suggestion{display:block;width:100%;padding:10px 12px;text-align:left;border:0;border-bottom:1px solid #ead7ad;background:#fff9e9;color:#4f381c;cursor:pointer;font:inherit}.member-suggestion:hover,.member-suggestion.active{background:#ead7ad}.member-search-field{display:flex;flex-direction:column;gap:8px}.target-picker-field{display:flex;flex-direction:column;gap:7px;min-width:0}.target-picker-field>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e}.target-picker-button{min-height:46px;padding:9px 12px;border:1px solid #a17a38;background:#fff9e9;text-align:left;border-radius:3px}.target-picker-button:hover{background:#f1dfb9}.target-selected-summary{font-size:12px;color:#765727;line-height:1.5;min-height:20px}.target-picker-modal{z-index:30}.target-picker-card{width:min(1100px,96vw);height:min(90vh,820px);max-height:90vh}.target-picker-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:0 0 16px;border-bottom:1px solid #c4a66d;margin-bottom:16px}.target-picker-head h2{font-size:28px;margin:0}.target-category-group{min-width:0;border:1px solid #c4a66d;background:#fff9e9}
 .target-category-heading{display:flex;align-items:baseline;gap:8px;padding:10px 14px;margin:0;border-bottom:1px solid #c4a66d;background:#ead7ad;color:#5d421e;flex-wrap:wrap}
 .target-category-heading span:first-child{font-size:14px;font-weight:700;white-space:normal;overflow-wrap:anywhere;line-height:1.45;flex:1 1 auto;min-width:0}
 .target-category-heading span:last-child{font-size:12px;font-weight:500;white-space:nowrap;margin-left:0;flex:0 0 auto}
@@ -290,7 +290,7 @@
     <button type="button" class="close" onclick="closeTargetPicker()">×</button>
     <div class="target-picker-head"><div><p class="eyebrow">TARGET SELECTION</p><h2>เลือกสัตว์วิเศษ/พืชผัก</h2></div><span id="targetSelectedCount" class="count-badge">0</span></div>
     <div class="target-picker-list" id="targetPickerList"></div>
-    <div class="target-picker-actions"><button type="button" class="add-item-btn" onclick="closeTargetPicker()">ยกเลิก</button><button type="button" class="primary-action target-confirm-btn" onclick="confirmTargetPicker()">ยืนยันรายการที่เลือก</button></div>
+    <div class="target-picker-actions"><button type="button" class="add-item-btn" onclick="closeTargetPicker()">ยกเลิก</button><button type="button" id="confirmTargetPickerButton" class="primary-action target-confirm-btn">ยืนยันรายการที่เลือก</button></div>
   </div>
 </div>
 
@@ -675,6 +675,7 @@ function initRecorderSearch(){
 function rebuildWorkLogLookups(){
  rebuildTargetMap();
  renderTargetPicker();
+ initTargetPickerEvents();
  initRecorderSearch();
  document.querySelectorAll('.inventory-item-template').forEach(sel=>{
   const row=sel.closest('.inventory-entry-row');
@@ -698,7 +699,7 @@ function rebuildTargetMap(){
  targetMap=new Map();
  [...beasts,...plants].forEach(x=>{
    const id=getFirstValue(x,['ID','Target ID']);
-   const name=getFirstValue(x,['Name','Target Name','พืช/ผัก','รายการ']);
+   const name=getFirstValue(x,['Target Name','Name','พืช/ผัก','รายการ']);
    const image=getFirstValue(x,['Image','รูป','รูปภาพ','Photo']);
    const category=getTargetCategory(x);
    if(id&&name)targetMap.set(id,{id,name,image,category});
@@ -706,6 +707,11 @@ function rebuildTargetMap(){
  for(const id of [...targetSelection])if(!targetMap.has(id))targetSelection.delete(id);
  for(const id of [...targetDraftSelection])if(!targetMap.has(id))targetDraftSelection.delete(id);
 }
+function updateTargetDraftCount(){
+ const count=document.getElementById('targetSelectedCount');
+ if(count)count.textContent=String(targetDraftSelection.size);
+}
+
 function renderTargetPicker(){
  const list=document.getElementById('targetPickerList');
  if(!list)return;
@@ -717,97 +723,185 @@ function renderTargetPicker(){
  });
  const groupHtml=[...groups.entries()].map(([category,items])=>{
    items.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+   const optionHtml=items.map(x=>{
+     const id=String(x.id);
+     const checked=targetDraftSelection.has(id);
+     const visual=x.image
+       ?`<img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy">`
+       :'<div class="target-option-placeholder">✦</div>';
+     return `<div class="target-option ${checked?'is-selected':''}" data-target-id="${esc(id)}" role="checkbox" aria-checked="${checked?'true':'false'}" tabindex="0">
+       <input class="target-option-checkbox" type="checkbox" ${checked?'checked':''} aria-label="เลือก ${esc(x.name)}" data-target-id="${esc(id)}">
+       <span>${visual}</span><strong class="target-option-name">${esc(x.name)}</strong>
+     </div>`;
+   }).join('');
    return `<section class="target-category-group">
      <div class="target-category-heading"><span>${esc(targetCategoryTitle(category))}</span><span>${items.length} รายการ</span></div>
-     <div class="target-category-items">
-       ${items.map(x=>{
-         const checked=targetDraftSelection.has(x.id);
-         const visual=x.image?`<img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy">`:'<div class="target-option-placeholder">✦</div>';
-         return `<div class="target-option ${checked?'is-selected':''}" data-id="${esc(x.id)}" role="button" tabindex="0" onclick="toggleTargetDraft(${JSON.stringify(x.id)},!targetDraftSelection.has(${JSON.stringify(x.id)}))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTargetDraft(${JSON.stringify(x.id)},!targetDraftSelection.has(${JSON.stringify(x.id)}))}">
-           <input type="checkbox" ${checked?'checked':''} onclick="event.stopPropagation()" onchange="toggleTargetDraft(${JSON.stringify(x.id)},this.checked)">
-           <span>${visual}</span><strong class="target-option-name">${esc(x.name)}</strong>
-         </div>`;
-       }).join('')}
-     </div>
+     <div class="target-category-items">${optionHtml}</div>
    </section>`;
  }).join('');
  list.innerHTML=groupHtml||'<div class="work-history-empty" style="grid-column:1/-1">ไม่พบข้อมูลสัตว์วิเศษหรือพืชผัก</div>';
- updateTargetSelectionSummary();
+ updateTargetDraftCount();
 }
+
 function renderSelectedTargetPreview(){
  const grid=document.getElementById('wlTargetSelectedGrid');
  const count=document.getElementById('targetSelectedPanelCount');
  if(!grid)return;
- const selected=[...targetSelection].map(id=>targetMap.get(id)).filter(Boolean);
+ const selected=[...targetSelection]
+   .map(id=>targetMap.get(String(id)))
+   .filter(Boolean);
  if(count)count.textContent=String(selected.length);
  grid.innerHTML=selected.length
    ? selected.map(x=>{
-       const visual=x.image?`<img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy">`:'<div class="target-selected-placeholder">✦</div>';
-       return `<div class="target-selected-card" title="${esc(x.name)}">
+       const visual=x.image
+         ?`<img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy">`
+         :'<div class="target-selected-placeholder">✦</div>';
+       return `<div class="target-selected-card" data-target-id="${esc(x.id)}" title="${esc(x.name)}">
          ${visual}
          <span class="target-selected-card-name">${esc(x.name)}</span>
-         <button type="button" class="target-selected-remove" aria-label="ลบ ${esc(x.name)}" onclick="removeTargetSelection(${JSON.stringify(x.id)})">×</button>
+         <button type="button" class="target-selected-remove" data-remove-target-id="${esc(x.id)}" aria-label="ลบ ${esc(x.name)}">×</button>
        </div>`;
      }).join('')
    : '<div class="target-selected-empty">ยังไม่ได้เลือกสัตว์วิเศษหรือพืชผัก</div>';
 }
-function toggleTargetDraft(id,checked){
- const key=String(id);
- if(checked)targetDraftSelection.add(key);else targetDraftSelection.delete(key);
- const card=[...document.querySelectorAll('.target-option')].find(x=>x.dataset.id===key);
- if(card){
-   card.classList.toggle('is-selected',checked);
-   const checkbox=card.querySelector('input[type="checkbox"]');
-   if(checkbox)checkbox.checked=checked;
- }
- const count=document.getElementById('targetSelectedCount');
- if(count)count.textContent=String(targetDraftSelection.size);
-}
-function removeTargetSelection(id){
- const key=String(id);
- targetSelection.delete(key);
- targetDraftSelection.delete(key);
- updateTargetSelectionSummary();
- renderTargetPicker();
-}
-function updateTargetSelectionSummary(){
- const selected=[...targetSelection].map(id=>targetMap.get(id)?.name).filter(Boolean);
+
+function syncTargetSelectionFields(){
+ const ids=[...targetSelection].map(String).filter(id=>targetMap.has(id));
+ const names=ids.map(id=>targetMap.get(id)?.name).filter(Boolean);
  const hiddenId=document.getElementById('wlTargetId');
  const hiddenName=document.getElementById('wlTargetName');
- if(hiddenId)hiddenId.value=[...targetSelection].join(' | ');
- if(hiddenName)hiddenName.value=selected.join(' | ');
+ if(hiddenId)hiddenId.value=ids.join(' | ');
+ if(hiddenName)hiddenName.value=names.join(' | ');
  const summary=document.getElementById('wlTargetSelected');
- if(summary)summary.textContent=selected.length?selected.join(' • '):'ยังไม่ได้เลือก';
- const count=document.getElementById('targetSelectedCount');
- if(count)count.textContent=String(selected.length);
+ if(summary)summary.textContent=names.length?names.join(' • '):'ยังไม่ได้เลือก';
  const button=document.getElementById('wlTargetPickerButton');
- if(button)button.textContent=selected.length?`เลือกแล้ว ${selected.length} รายการ`:'เลือกสัตว์วิเศษ/พืชผัก';
+ if(button)button.textContent=names.length?`เลือกแล้ว ${names.length} รายการ`:'เลือกสัตว์วิเศษ/พืชผัก';
  renderSelectedTargetPreview();
 }
+
+function updateTargetSelectionSummary(){
+ syncTargetSelectionFields();
+}
+
+function setTargetDraft(id,checked){
+ const key=String(id||'');
+ if(!key || !targetMap.has(key))return;
+ if(checked)targetDraftSelection.add(key);
+ else targetDraftSelection.delete(key);
+ const card=[...document.querySelectorAll('.target-option')].find(el=>String(el.dataset.targetId)===key);
+ if(card){
+   card.classList.toggle('is-selected',checked);
+   card.setAttribute('aria-checked',checked?'true':'false');
+   const checkbox=card.querySelector('.target-option-checkbox');
+   if(checkbox)checkbox.checked=checked;
+ }
+ updateTargetDraftCount();
+}
+
+function toggleTargetDraft(id,checked){
+ setTargetDraft(id,checked);
+}
+
+function removeTargetSelection(id){
+ const key=String(id||'');
+ targetSelection.delete(key);
+ targetDraftSelection.delete(key);
+ syncTargetSelectionFields();
+ renderTargetPicker();
+}
+
 function openTargetPicker(){
- targetDraftSelection=new Set(targetSelection);
+ targetDraftSelection=new Set([...targetSelection].map(String).filter(id=>targetMap.has(id)));
  renderTargetPicker();
  const modal=document.getElementById('targetPickerModal');
  if(modal)modal.classList.add('open');
 }
+
 function closeTargetPicker(){
- targetDraftSelection=new Set(targetSelection);
+ targetDraftSelection=new Set([...targetSelection].map(String));
+ updateTargetDraftCount();
  const modal=document.getElementById('targetPickerModal');
  if(modal)modal.classList.remove('open');
 }
+
 function confirmTargetPicker(){
- targetSelection=new Set(targetDraftSelection);
- updateTargetSelectionSummary();
+ // บันทึก draft -> selection โดยแก้ Set เดิมโดยตรง เพื่อไม่ให้ reference ใด ๆ หลุด
+ const confirmed=[...new Set([...targetDraftSelection].map(String))].filter(id=>targetMap.has(id));
+ targetSelection.clear();
+ confirmed.forEach(id=>targetSelection.add(id));
+ targetDraftSelection.clear();
+ confirmed.forEach(id=>targetDraftSelection.add(id));
+ syncTargetSelectionFields();
+ updateTargetDraftCount();
  const modal=document.getElementById('targetPickerModal');
  if(modal)modal.classList.remove('open');
 }
+
 function clearTargetSelection(){
  targetSelection.clear();
  targetDraftSelection.clear();
- updateTargetSelectionSummary();
+ syncTargetSelectionFields();
  renderTargetPicker();
+ updateTargetDraftCount();
 }
-function updateTargetName(){updateTargetSelectionSummary();}
+
+function updateTargetName(){syncTargetSelectionFields();}
+
+function initTargetPickerEvents(){
+ const list=document.getElementById('targetPickerList');
+ if(list && list.dataset.bound!=='1'){
+   list.dataset.bound='1';
+   list.addEventListener('click',ev=>{
+     const removeBtn=ev.target.closest('[data-remove-target-id]');
+     if(removeBtn){
+       ev.preventDefault();
+       ev.stopPropagation();
+       removeTargetSelection(removeBtn.dataset.removeTargetId);
+       return;
+     }
+     const checkbox=ev.target.closest('.target-option-checkbox');
+     if(checkbox){
+       const key=String(checkbox.dataset.targetId||'');
+       setTargetDraft(key,checkbox.checked);
+       return;
+     }
+     const card=ev.target.closest('.target-option[data-target-id]');
+     if(card){
+       const key=String(card.dataset.targetId||'');
+       setTargetDraft(key,!targetDraftSelection.has(key));
+     }
+   });
+   list.addEventListener('keydown',ev=>{
+     if((ev.key==='Enter'||ev.key===' ') && ev.target.closest('.target-option[data-target-id]')){
+       ev.preventDefault();
+       const card=ev.target.closest('.target-option[data-target-id]');
+       const key=String(card.dataset.targetId||'');
+       setTargetDraft(key,!targetDraftSelection.has(key));
+     }
+   });
+ }
+ const selectedGrid=document.getElementById('wlTargetSelectedGrid');
+ if(selectedGrid && selectedGrid.dataset.bound!=='1'){
+   selectedGrid.dataset.bound='1';
+   selectedGrid.addEventListener('click',ev=>{
+     const removeBtn=ev.target.closest('[data-remove-target-id]');
+     if(removeBtn){
+       ev.preventDefault();
+       ev.stopPropagation();
+       removeTargetSelection(removeBtn.dataset.removeTargetId);
+     }
+   });
+ }
+ const confirmBtn=document.getElementById('confirmTargetPickerButton');
+ if(confirmBtn && confirmBtn.dataset.bound!=='1'){
+   confirmBtn.dataset.bound='1';
+   confirmBtn.addEventListener('click',ev=>{
+     ev.preventDefault();
+     ev.stopPropagation();
+     confirmTargetPicker();
+   });
+ }
+}
 
 const WIZARD_DAYS=[
  'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
@@ -832,7 +926,7 @@ function updateWorkTypeFields(){
  const targetWrap=document.getElementById('targetFields');
  const targetId=document.getElementById('wlTargetId');
  if(targetWrap)targetWrap.hidden=cleaning;
- if(targetId)targetId.required=!cleaning;
+ if(targetId)targetId.required=false;
  if(cleaning){
    clearTargetSelection();
  }
@@ -887,6 +981,7 @@ function formatICTime(value){
  return /^\d{2}:\d{2}$/.test(t)?t+' น.':(String(value||'-').trim()||'-');
 }
 function initWorkLogForm(){
+ initTargetPickerEvents();
  const d=document.getElementById('wlDate'); if(d && !d.value)d.value=localDateISO();
  const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
@@ -1063,12 +1158,12 @@ async function submitWorkLog(ev){
  if(!cat){
    status.textContent='กรุณาเลือกหมวดหมู่การทำงานก่อนประเภทการทำงาน';
    status.className='form-status error';
-   return;
+   btn.dataset.submitting='0'; btn.disabled=false; return;
  }
  if(!wt){
    status.textContent='กรุณาเลือกประเภทการทำงาน';
    status.className='form-status error';
-   return;
+   btn.dataset.submitting='0'; btn.disabled=false; return;
  }
  if(!recorder){
    status.textContent='กรุณาเลือกผู้ลงบันทึกจากรายการสมาชิก';
@@ -1078,12 +1173,12 @@ async function submitWorkLog(ev){
  if(!muggleDate){
    status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
    status.className='form-status error';
-   return;
+   btn.dataset.submitting='0'; btn.disabled=false; return;
  }
  if(!/^\d{2}:\d{2}$/.test(icTime)){
    status.textContent='กรุณาระบุเวลา (IC) แบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
    status.className='form-status error';
-   return;
+   btn.dataset.submitting='0'; btn.disabled=false; return;
  }
  document.getElementById('wlTime').value=icTime;
  if(cat==='งานทั่วไป'){
