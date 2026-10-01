@@ -1,5 +1,4 @@
 const SPREADSHEET_ID = '1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0';
-const MUGGLE_TIME_ZONE = 'Asia/Bangkok';
 
 const WIZARD_DAYS = [
   'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
@@ -18,7 +17,8 @@ const WORK_TYPES = {
   ],
   'เก็บผลผลิต': [
     'การเก็บผลผลิตพืชผัก',
-    'การรับผลผลิตจากสัตว์วิเศษ'
+    'การรับผลผลิตจากสัตว์วิเศษ',
+    'การแปรงขนสัตว์วิเศษ'
   ]
 };
 
@@ -87,6 +87,9 @@ function doPost(e) {
       const result = cancelWorkLog_(data);
       return json_(result);
     }
+    if (data.action === 'deleteInventoryHistory') {
+      return json_(deleteInventoryHistory_(data));
+    }
     if (data.action === 'requestDelete') return json_(requestDeleteWork_(data));
     if (data.action === 'approveDeleteRequest') return json_(approveDeleteRequest_(data));
     if (data.action === 'rejectDeleteRequest') return json_(rejectDeleteRequest_(data));
@@ -111,7 +114,7 @@ function saveWorkLog_(data) {
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
       'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
-      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
+      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'รายการที่ได้รับ', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
@@ -119,14 +122,14 @@ function saveWorkLog_(data) {
       'Item ID', 'รายการ', 'จำนวน', 'หน่วย', 'Work ID', 'ผู้ลงบันทึก', 'หมายเหตุ'
     ]);
 
-    const workId = nextId_(workSheet, 'Work ID', 'W', 4);
-    // วันที่มักเกิ้ลเป็น "วันตามปฏิทิน" ไม่ใช่ timestamp
-    // เก็บเป็นข้อความ ISO (YYYY-MM-DD) เพื่อไม่ให้ Google Sheets / gviz
-    // แปลงเขตเวลาแล้วทำให้วันที่ถอยไป 1 วัน
-    const dateValue = normalizeMuggleDateText_(data.muggleDate);
+    const workId = nextWorkId_(ss, workSheet);
+    // ใช้วันที่ (มักเกิ้ล) ที่ผู้ใช้เลือกจากหน้าเว็บโดยตรง
+    // รูปแบบที่ส่งมาจาก <input type="date"> คือ YYYY-MM-DD
+    const dateValue = parseMuggleDate_(data.muggleDate);
     const withdrawals = normalizeItems_(data.withdrawals);
     const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
+    const targetSelection = normalizeTargets_(data);
 
     // ตรวจสอบรายการคลังทั้งหมดก่อนเขียน เพื่อไม่ให้เกิดรายการบางส่วนเมื่อมีข้อผิดพลาด
     const checkedWithdrawals = [];
@@ -173,8 +176,9 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'วันผู้วิเศษ', data.magicalDay);
     setCell_(workRow, workHeaders, 'เวลา (IC)', data.icTime);
     setCell_(workRow, workHeaders, 'ประเภทการทำงาน', data.workType);
-    setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
-    setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
+    // รองรับการเลือกสัตว์วิเศษ/พืชผักได้หลายรายการ โดยยังเก็บ Target ID ไว้ในฐานข้อมูลเพื่อความถูกต้องของข้อมูลเดิม
+    setCell_(workRow, workHeaders, 'Target ID', '');
+    setCell_(workRow, workHeaders, 'Target Name', targetSelection.names.join(' | '));
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
@@ -189,14 +193,17 @@ function saveWorkLog_(data) {
       setCell_(workRow, workHeaders, 'หน่วยที่คืน', checkedReturns.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
     if (checkedReceives.length) {
+      // ดึงชื่อรายการจาก INVENTORY คอลัมน์ 'รายการ' (Column C) ผ่าน findInventoryItem_
+      setCell_(workRow, workHeaders, 'รายการที่ได้รับ', checkedReceives.map(x => x.found.name).join(' | '));
       setCell_(workRow, workHeaders, 'จำนวนที่ได้รับ', checkedReceives.map(x => String(x.qty)).join(' | '));
       setCell_(workRow, workHeaders, 'หน่วยที่ได้รับ', checkedReceives.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
 
     // ต้องอัปโหลดรูปให้สำเร็จก่อน จึงจะบันทึก WORK LOG
     // เพื่อให้ทุก WORK LOG ที่เกิดขึ้นมีรูปและหน้าเว็บสามารถแสดงรูปได้แน่นอน
-    const photoUrl = saveWorkPhoto_(data.photo, workId);
-    if (!photoUrl) throw new Error('อัปโหลดรูปการทำงานไม่สำเร็จ');
+    const photoUrls = saveWorkPhotos_(data.photos || (data.photo ? [data.photo] : []), workId);
+    if (!photoUrls.length) throw new Error('อัปโหลดรูปการทำงานไม่สำเร็จ');
+    const photoUrl = photoUrls.join(' | ');
     setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
 
     // บันทึก WORK LOG หลังจากรูปพร้อมแล้ว
@@ -244,12 +251,35 @@ function saveWorkLog_(data) {
     }
 
     SpreadsheetApp.flush();
-    return { ok: true, workId, transactions, photoUrl };
+    return { ok: true, workId, transactions, photoUrl, photoUrls };
   } finally {
     lock.releaseLock();
   }
 }
 
+
+function normalizeTargets_(data) {
+  const ids = Array.isArray(data && data.targetIds)
+    ? data.targetIds.map(x => String(x || '').trim()).filter(Boolean)
+    : (data && data.targetId ? String(data.targetId).split('|').map(x => x.trim()).filter(Boolean) : []);
+  const names = Array.isArray(data && data.targetNames)
+    ? data.targetNames.map(x => String(x || '').trim()).filter(Boolean)
+    : (data && data.targetName ? String(data.targetName).split('|').map(x => x.trim()).filter(Boolean) : []);
+  return { ids, names };
+}
+
+function saveWorkPhotos_(photos, workId) {
+  if (!Array.isArray(photos)) photos = photos ? [photos] : [];
+  photos = photos.filter(Boolean);
+  if (photos.length > 5) throw new Error('รูปการทำงานเลือกได้สูงสุด 5 รูป');
+  const urls = [];
+  photos.forEach((photo, index) => {
+    const url = saveWorkPhoto_(photo, workId + '-' + (index + 1));
+    if (!url) throw new Error('อัปโหลดรูปการทำงานรูปที่ ' + (index + 1) + ' ไม่สำเร็จ');
+    urls.push(url);
+  });
+  return urls;
+}
 
 function saveWorkPhoto_(photo, workId) {
   photo = photo || {};
@@ -342,66 +372,41 @@ function saveWorkPhoto_(photo, workId) {
     encodeURIComponent(fileId) + '&sz=w1200';
 }
 
-function normalizeMuggleDateText_(value) {
-  const raw = String(value || '').trim();
-  const m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (!m) throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
-
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  const check = new Date(Date.UTC(year, month - 1, day));
-  if (check.getUTCFullYear() !== year ||
-      check.getUTCMonth() !== month - 1 ||
-      check.getUTCDate() !== day) {
-    throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
-  }
-  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-}
-
-// ใช้เฉพาะกรณีที่ระบบอื่นต้องการ Date จริง โดยกำหนด Time Zone ไทยชัดเจน
 function parseMuggleDate_(value) {
-  const raw = normalizeMuggleDateText_(value);
-  return Utilities.parseDate(raw, MUGGLE_TIME_ZONE, 'yyyy-MM-dd');
-}
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    throw new Error('รูปแบบวันที่ไม่ถูกต้อง กรุณาเลือกวันที่จากช่องวันที่');
+  }
 
-// เรียกฟังก์ชันนี้ 1 ครั้งหลังอัปเดตโค้ด เพื่อแปลงวันที่ WORK LOG เดิม
-// จาก Date ที่อาจถูก gviz เลื่อนวัน ให้เป็นข้อความตามวันที่ที่แสดงใน Google Sheets จริง
-function repairExistingMuggleDates_() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName('WORK LOG');
-  if (!sheet) throw new Error('ไม่พบแท็บ WORK LOG');
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
 
-  const headers = sheet.getRange(1,1,1,Math.max(sheet.getLastColumn(),1)).getDisplayValues()[0].map(v => String(v || '').trim());
-  const col = headers.indexOf('วันที่ (มักเกิ้ล)');
-  if (col < 0) throw new Error('ไม่พบคอลัมน์ วันที่ (มักเกิ้ล)');
-  if (sheet.getLastRow() < 2) return {ok:true,updated:0};
+  // ป้องกันวันที่ไม่มีอยู่จริง เช่น 2026-02-31
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    throw new Error('วันที่ไม่ถูกต้อง');
+  }
 
-  // ใช้ค่าที่ Google Sheets แสดงจริง ไม่ใช้ getValues() ที่เป็น Date object
-  const display = sheet.getRange(2,col+1,sheet.getLastRow()-1,1).getDisplayValues();
-  const out = display.map(([v]) => {
-    const raw = String(v || '').trim();
-    const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-    if (!m) return [raw];
-    return [`${m[3]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[1])).padStart(2,'0')}`];
-  });
-
-  const range = sheet.getRange(2,col+1,out.length,1);
-  range.setNumberFormat('@');
-  range.setValues(out);
-  SpreadsheetApp.flush();
-  return {ok:true,updated:out.length};
+  return date;
 }
 
 function validate_(data) {
   if (!data.category || !['งานทั่วไป', 'เก็บผลผลิต'].includes(data.category)) throw new Error('หมวดหมู่งานไม่ถูกต้อง');
   if (!data.workType || !WORK_TYPES[data.category].includes(data.workType)) throw new Error('ประเภทการทำงานไม่ถูกต้อง');
-  if (data.category === 'งานทั่วไป' && data.workType !== 'การทำความสะอาด') {
-    if (!data.targetId || !data.targetName) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผัก');
-  }
-  if (data.category === 'เก็บผลผลิต' && (!data.targetId || !data.targetName)) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผัก');
+  const targets = normalizeTargets_(data);
+  if (data.category === 'งานทั่วไป' && data.workType !== 'การทำความสะอาด' && !targets.names.length) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผักอย่างน้อย 1 รายการ');
+  if (data.category === 'เก็บผลผลิต' && !targets.names.length) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผักอย่างน้อย 1 รายการ');
   if (!data.recorder) throw new Error('กรุณาเลือกผู้ลงบันทึก');
-  if (!data.photo || !data.photo.data) throw new Error('กรุณาแนบรูปการทำงาน');
+  const photos = Array.isArray(data.photos) ? data.photos : (data.photo ? [data.photo] : []);
+  if (!photos.length) throw new Error('กรุณาแนบรูปการทำงาน');
+  if (photos.length > 5) throw new Error('รูปการทำงานเลือกได้สูงสุด 5 รูป');
+  photos.forEach((photo, i) => { if (!photo || !photo.data) throw new Error('รูปการทำงานรูปที่ ' + (i + 1) + ' ไม่สมบูรณ์'); });
   if (!data.muggleDate) throw new Error('กรุณาเลือกวันที่');
   if (!WIZARD_DAYS.includes(data.magicalDay)) throw new Error('วันผู้วิเศษไม่ถูกต้อง');
   if (!data.icTime) throw new Error('กรุณาเลือกเวลา IC');
@@ -508,6 +513,24 @@ function appendInventoryLog_(sheet, headers, tx) {
   setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
   sheet.appendRow(row);
 }
+function nextWorkId_(ss, workSheet) {
+  const values = [];
+  const collect = (sheet) => {
+    if (!sheet || sheet.getLastRow() < 2) return;
+    const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0].map(String);
+    const col = headers.indexOf('Work ID');
+    if (col < 0) return;
+    const rows = sheet.getRange(2, col + 1, sheet.getLastRow() - 1, 1).getValues().flat();
+    rows.forEach(v => {
+      const m = String(v || '').match(/(\d+)$/);
+      if (m) values.push(Number(m[1]));
+    });
+  };
+  collect(workSheet);
+  collect(ss.getSheetByName('DELETED WORK LOG'));
+  return 'W' + String((values.length ? Math.max.apply(null, values) : 0) + 1).padStart(4, '0');
+}
+
 function nextId_(sheet, headerName, prefix, width) {
   const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0].map(String);
   const col = headers.indexOf(headerName);
@@ -526,6 +549,60 @@ const ADMIN_PASSWORD = 'Meduza2014';
 function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
+function deleteInventoryHistory_(data) {
+  if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const workId = String(data.workId || '').trim();
+  const reason = String(data.reason || '').trim();
+  if (!workId) throw new Error('ไม่พบ Work ID');
+  if (!reason) throw new Error('กรุณาระบุเหตุผลการลบประวัติ');
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ws = ss.getSheetByName('WORK LOG');
+    if (!ws) throw new Error('ไม่พบแท็บ WORK LOG');
+
+    const wh = ws.getRange(1, 1, 1, Math.max(ws.getLastColumn(), 1)).getValues()[0].map(String);
+    const rows = ws.getLastRow() > 1
+      ? ws.getRange(2, 1, ws.getLastRow() - 1, ws.getLastColumn()).getValues()
+      : [];
+    const widCol = wh.indexOf('Work ID');
+    const row = rows.find(r => String(r[widCol] || '').trim() === workId);
+    if (!row) throw new Error('ไม่พบ WORK ID: ' + workId);
+
+    const category = String(valueByHeader_(row, wh, 'Category') || '').trim();
+    const action = category === 'งานทั่วไป' ? 'เบิก' : category === 'เก็บผลผลิต' ? 'รับ' : '';
+    if (!action) throw new Error('WORK LOG นี้ไม่มีประวัติการเบิก/รับที่สามารถลบได้');
+
+    const ds = getOrCreateSheet_(ss, 'DELETED INVENTORY HISTORY');
+    const dh = ensureHeaders_(ds, [
+      'History ID', 'Deleted At', 'Deleted By', 'Work ID', 'ประเภท', 'เหตุผล'
+    ]);
+    const existing = ds.getLastRow() > 1
+      ? ds.getRange(2, 1, ds.getLastRow() - 1, ds.getLastColumn()).getValues()
+      : [];
+    const existingRow = existing.find(r => String(valueByHeader_(r, dh, 'Work ID') || '').trim() === workId);
+    if (existingRow) throw new Error('ประวัติรายการนี้ถูกลบออกจากหน้า Inventory ไปแล้ว');
+
+    const out = blankRow_(dh.length);
+    setCell_(out, dh, 'History ID', nextId_(ds, 'History ID', 'IH', 5));
+    setCell_(out, dh, 'Deleted At', new Date());
+    setCell_(out, dh, 'Deleted By', 'Password Admin');
+    setCell_(out, dh, 'Work ID', workId);
+    setCell_(out, dh, 'ประเภท', action);
+    setCell_(out, dh, 'เหตุผล', reason);
+    ds.appendRow(out);
+    SpreadsheetApp.flush();
+
+    // สำคัญ: การลบประวัติ Inventory ครั้งนี้เป็นการลบ "การแสดงประวัติ" เท่านั้น
+    // ไม่แก้จำนวนใน INVENTORY และไม่แก้/ลบ WORK LOG
+    return { ok: true, workId, action, deleted: true, stockChanged: false };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function requestDeleteWork_(data) {
   const workId=String(data.workId||'').trim(), requester=String(data.requester||'').trim(), reason=String(data.reason||'').trim();
   if(!workId) throw new Error('ไม่พบ Work ID');

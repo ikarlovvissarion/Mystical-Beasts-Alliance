@@ -13,6 +13,7 @@
 
 /* ===== INVENTORY — LARGE ARCHIVE VIEW ===== */
 #inventory .page-heading{align-items:center}
+.inventory-title-th{font-size:.58em;font-weight:400;margin-left:7px;color:#765727}
 #inventoryGrid{width:100%}
 #inventoryGrid .inventory-large-list{display:flex;flex-direction:column;gap:14px;width:100%}
 #inventoryGrid .inventory-large-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) minmax(90px,140px);align-items:center;min-height:92px;padding:18px 24px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;position:relative}
@@ -21,6 +22,42 @@
 #inventoryGrid .inventory-large-qty{font-size:38px;font-weight:800;line-height:1;text-align:center;letter-spacing:.3px}
 #inventoryGrid .inventory-large-unit{font-size:22px;font-weight:500;text-align:center;line-height:1.2}
 #inventoryGrid .inventory-large-empty{text-align:center;padding:44px 20px;border:1px solid #a17a38;background:#f8edd3b8;font-size:17px}
+#inventoryGrid .inventory-category-section{margin:0 0 34px}
+#inventoryGrid .inventory-category-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;margin:0 0 12px;border-top:1px solid #a17a38;border-bottom:1px solid #a17a38;background:#ead7ad}
+#inventoryGrid .inventory-category-heading .inventory-category-name{font-size:21px;font-weight:600}
+#inventoryGrid .inventory-category-heading .inventory-category-count{font-size:11px;color:#765727;letter-spacing:.6px}
+.inventory-history-section{margin-top:58px;padding-top:28px;border-top:1px solid #a17a38}
+.inventory-history-heading{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:18px}
+.inventory-history-heading h3{margin:0;font-size:27px;font-weight:500}
+.inventory-history-heading .history-count{font-size:11px;color:#765727}
+.inventory-history-empty{padding:42px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8;color:#765727}
+.inventory-history-list{display:flex;flex-direction:column;gap:14px}
+.inventory-history-card{border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;padding:18px 20px}
+.inventory-history-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid #c4a66d}
+.inventory-history-badge{padding:4px 9px;border:1px solid #a17a38;background:#ead7ad;font-size:11px;font-weight:700}
+.inventory-history-date{font-size:12px;color:#765727;margin-left:auto}
+.inventory-history-purpose{margin:12px 0 10px;font-size:17px;font-weight:600}
+.inventory-history-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-bottom:12px}
+.inventory-history-meta>div{padding-top:8px;border-top:1px solid #c4a66d}
+.inventory-history-meta small{display:block;font-size:10px;color:#806333;margin-bottom:3px}
+.inventory-history-meta b{font-size:13px;font-weight:500}
+.inventory-history-items{display:flex;flex-direction:column;gap:6px}
+.inventory-history-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid #c4a66d;background:#ead7ad;font-size:12px}
+.inventory-history-item-name{min-width:0;font-weight:500}
+.inventory-history-item-qty{font-weight:700;white-space:nowrap}
+.inventory-history-item-unit{color:#765727;white-space:nowrap}
+.inventory-history-actions{display:flex;justify-content:flex-end;margin-top:13px}
+.inventory-history-delete-btn{min-height:34px;padding:6px 11px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600;cursor:pointer}
+.inventory-history-delete-btn:hover{background:#e0c0b6}
+.inventory-history-section .inventory-history-empty + *{display:none}
+@media(max-width:700px){
+ #inventoryGrid .inventory-category-heading .inventory-category-name{font-size:18px}
+ .inventory-history-heading h3{font-size:22px}
+ .inventory-history-meta{grid-template-columns:1fr}
+ .inventory-history-date{margin-left:0;width:100%}
+ .inventory-history-item{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+ .inventory-history-item-unit{grid-column:2}
+}
 
 /* ===== LAST UPDATED — CENTERED ===== */
 .sync-info{display:block;width:100%;text-align:center;font-style:normal;font-size:13px;line-height:1.5;letter-spacing:.15px;color:#795b2b;margin:22px auto 0;padding:8px 12px}
@@ -330,7 +367,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 </section>
 
 <section id="inventory" class="page">
-<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Inventory</h2></div><span id="inventoryTotal" class="count-badge">0</span></div>
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Inventory <span class="inventory-title-th">คลังชมรม</span></h2></div><span id="inventoryTotal" class="count-badge">0</span></div>
 <div id="inventoryGrid" class="table-wrap"></div>
 </section>
 </main>
@@ -387,7 +424,7 @@ const FALLBACK_BEASTS = [
 {"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
 ];
 
-let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[];
+let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[], deletedInventoryHistory=[];
 let targetMap=new Map();
 let targetSelection=new Set();
 let targetDraftSelection=new Set();
@@ -451,7 +488,7 @@ function render(){
  plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
 
  workLogGrid.innerHTML=renderWorkHistory(worklogs);
- inventoryGrid.innerHTML=renderInventoryLarge(inventory);
+ inventoryGrid.innerHTML=renderInventoryLarge(inventory, deletedInventoryHistory);
 }
 
 function formatInventoryTotal(rows){
@@ -463,14 +500,59 @@ function toNumberClient(value){
  return Number.isFinite(n)?n:0;
 }
 
-function renderInventoryLarge(rows){
- if(!rows.length)return `<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
- return `<div class="inventory-large-list">${rows.map(r=>{
-  const name=getFirstValue(r,['รายการ','Name','Item'])||'-';
-  const qty=getFirstValue(r,['จำนวน','Quantity'])||'0';
-  const unit=getFirstValue(r,['หน่วย','Unit'])||'';
-  return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
- }).join('')}</div>`;
+function renderInventoryLarge(rows, deletedHistory=[]){
+ const deletedIds=new Set((deletedHistory||[]).map(r=>String(getFirstValue(r,['Work ID'])||'').trim()).filter(Boolean));
+ const groups=[];
+ const groupMap=new Map();
+ (rows||[]).forEach(r=>{
+  const raw=String(getFirstValue(r,['Category','หมวดหมู่','ประเภท'])||'').trim();
+  const category=raw||'ไม่ระบุหมวดหมู่';
+  if(!groupMap.has(category)){const g={category,items:[]};groupMap.set(category,g);groups.push(g);}
+  groupMap.get(category).items.push(r);
+ });
+ const inventoryHtml=groups.length?groups.map(g=>`<section class="inventory-category-section"><header class="inventory-category-heading"><span class="inventory-category-name">${esc(g.category)}</span><span class="inventory-category-count">${g.items.length} รายการ</span></header><div class="inventory-large-list">${g.items.map(r=>{
+   const name=getFirstValue(r,['รายการ','Name','Item'])||'-';
+   const qty=getFirstValue(r,['จำนวน','Quantity'])||'0';
+   const unit=getFirstValue(r,['หน่วย','Unit'])||'';
+   return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
+ }).join('')}</div></section>`).join(''):`<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
+ return `${inventoryHtml}${renderInventoryHistory(worklogs,deletedIds)}`;
+}
+
+function splitPipeValues(value){
+ return String(value??'').split('|').map(v=>v.trim());
+}
+function renderInventoryHistory(rows, deletedIds=new Set()){
+ const history=(rows||[]).map(r=>{
+   const workId=String(getFirstValue(r,['Work ID'])||'').trim();
+   const category=String(getFirstValue(r,['Category'])||'').trim();
+   if(!workId || deletedIds.has(workId))return null;
+   let action='', names=[], qtys=[], units=[];
+   if(category==='งานทั่วไป'){
+     action='เบิก';
+     names=splitPipeValues(getFirstValue(r,['เบิกคลังชมรม'])||'').filter(Boolean);
+     qtys=splitPipeValues(getFirstValue(r,['จำนวนที่เบิก'])||'');
+     units=splitPipeValues(getFirstValue(r,['หน่วยที่เบิก'])||'');
+   }else if(category==='เก็บผลผลิต'){
+     action='รับ';
+     names=splitPipeValues(getFirstValue(r,['รายการที่ได้รับ','รายการรับเข้า','รายการที่รับเข้า'])||'').filter(Boolean);
+     qtys=splitPipeValues(getFirstValue(r,['จำนวนที่ได้รับ'])||'');
+     units=splitPipeValues(getFirstValue(r,['หน่วยที่ได้รับ'])||'');
+   }else return null;
+   if(!names.length)return null;
+   const date=formatWorkDate(getFirstValue(r,['วันที่ (มักเกิ้ล)']));
+   const time=formatICTime(getFirstValue(r,['เวลา (IC)']));
+   const person=getFirstValue(r,['ผู้ลงบันทึก'])||'-';
+   const purpose=getFirstValue(r,['ประเภทการทำงาน'])||'-';
+   return {workId,action,date,time,person,purpose,names,qtys,units};
+ }).filter(Boolean).reverse();
+ const body=history.length?`<div class="inventory-history-list">${history.map(h=>{
+   const personLabel=h.action==='เบิก'?'ผู้เบิก':'ผู้รับ';
+   const items=h.names.map((name,i)=>`<div class="inventory-history-item"><span class="inventory-history-item-name">${esc(name)}</span><span class="inventory-history-item-qty">${esc(h.qtys[i]||'-')}</span><span class="inventory-history-item-unit">${esc(h.units[i]||'')}</span></div>`).join('');
+   const admin=isGoogleAdmin?`<div class="inventory-history-actions"><button class="inventory-history-delete-btn" type="button" onclick="deleteInventoryHistory('${esc(h.workId)}')">🗑 ลบประวัตินี้โดย Admin</button></div>`:'';
+   return `<article class="inventory-history-card"><div class="inventory-history-top"><span class="inventory-history-badge">${esc(h.action)}</span><span class="inventory-history-date">${esc(h.date)} · ${esc(h.time)}</span></div><div class="inventory-history-purpose">${esc(h.purpose)}</div><div class="inventory-history-meta"><div><small>${personLabel}</small><b>${esc(h.person)}</b></div><div><small>Work ID</small><b>${esc(h.workId)}</b></div></div><div class="inventory-history-items">${items}</div>${admin}</article>`;
+ }).join('')}</div>`:`<div class="inventory-history-empty">ยังไม่มีประวัติการเบิกหรือรับ</div>`;
+ return `<section class="inventory-history-section"><div class="inventory-history-heading"><div><span class="eyebrow">INVENTORY ARCHIVE</span><h3>ประวัติการเบิกและรับ</h3></div><span class="history-count">${history.length} รายการ</span></div>${body}</section>`;
 }
 
 function formatWorkDate(value){
@@ -608,6 +690,24 @@ function openAdmin(){
  }
  showPage('admin');
  render();
+}
+
+async function deleteInventoryHistory(workId){
+ const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
+ if(!row)return;
+ if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
+ const category=String(getFirstValue(row,['Category'])||'').trim();
+ const action=category==='งานทั่วไป'?'เบิก':category==='เก็บผลผลิต'?'รับ':'';
+ if(!action)return;
+ const ok=confirm(`ต้องการลบประวัติ${action}ของ WORK ID ${workId} จากหน้า Inventory ใช่หรือไม่?\n\nการลบนี้จะไม่เปลี่ยนจำนวนในคลัง และจะไม่ลบ WORK LOG`);
+ if(!ok)return;
+ const reason=prompt('กรุณาระบุเหตุผลการลบประวัติ:', 'ลบประวัติการแสดงผล');
+ if(!reason || !reason.trim())return;
+ try{
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'deleteInventoryHistory',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
+   alert('ลบประวัติการเบิก/รับจากหน้า Inventory แล้ว โดยไม่เปลี่ยนจำนวนในคลัง');
+   await syncData();
+ }catch(e){alert('ลบประวัติไม่สำเร็จ: '+e.message);}
 }
 
 async function cancelWorkLog(workId){
@@ -1419,11 +1519,11 @@ async function submitWorkLog(ev){
 
 async function syncData(){
  try{
-  const [b,p,w,inv,mem,del,reqs]=await Promise.all([
-   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG"),fetchSheetOptional("DELETE REQUESTS")
+  const [b,p,w,inv,mem,del,reqs,delInv]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG"),fetchSheetOptional("DELETE REQUESTS"),fetchSheetOptional("DELETED INVENTORY HISTORY")
   ]);
   if(b.length)beasts=b;
-  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];
+  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];deletedInventoryHistory=delInv||[];
   rebuildWorkLogLookups();
   render();
   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
