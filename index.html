@@ -72,11 +72,11 @@
 .work-history-meta small{display:block;margin-bottom:4px;font-size:10px;letter-spacing:.8px;color:#806333}
 .work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
 .work-history-stock{display:flex;flex-direction:column;gap:7px;margin-top:12px;padding:10px 12px;border:1px solid #c4a66d;background:#f4e4bf}
-.work-history-stock-label{font-size:11px;font-weight:700;letter-spacing:.5px;color:#765727;margin-bottom:1px}
-.work-history-stock-list{display:flex;flex-direction:column;gap:5px}
-.work-history-stock-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 9px;background:#ead7ad;border:1px solid #c4a66d;font-size:12px;color:#5d421e}
+.work-history-stock-label{font-size:11px;font-weight:700;letter-spacing:.4px;color:#765727;margin-bottom:1px}
+.work-history-stock-list{display:flex;flex-direction:column;gap:0}
+.work-history-stock-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 9px;background:#ead7ad;border:0;font-size:12px;color:#5d421e}
 .work-history-stock-item .stock-item-name{font-weight:600;min-width:0;overflow-wrap:anywhere}
-.work-history-stock-item .stock-item-qty{font-weight:700;white-space:nowrap}
+.work-history-stock-item .stock-item-qty{font-weight:700;white-space:nowrap;margin-left:auto}
 .work-history-stock-receive{margin-top:3px}
 .work-history-stock-receive .work-history-stock-item{background:#efe2c5}
 .work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
@@ -197,10 +197,10 @@
     <div class="section-title">✦ บันทึกการทำงาน ✦</div>
     <form id="workLogForm" onsubmit="submitWorkLog(event)">
       <div class="form-grid">
-        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" required></label>
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
-        <label><span>เวลา (IC)</span><input id="wlTime" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="00:00" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeICTimeInput(this)" required></label>
-        <label><span>หมวดหมู่การทำงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">โปรดเลือกรายการนี้ก่อนประเภทการทำงาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
+        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
         <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
         <div id="targetFields" class="target-fields form-grid-span-2">
@@ -394,7 +394,7 @@ function renderWorkHistory(rows, allowDelete=true){
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
   const day=getFirstValue(r,["วันผู้วิเศษ"])||"-";
-  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
+  const time=getFirstValue(r,["เวลา (IC)"])||"-";
   const category=getFirstValue(r,["Category"])||"-";
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const targetId=getFirstValue(r,["Target ID"])||"";
@@ -415,13 +415,11 @@ function renderWorkHistory(rows, allowDelete=true){
    const qtys=String(withdrawQty||'').split('\|').map(v=>v.trim());
    const items=names.map((name,idx)=>{
     const qty=qtys[idx]!==undefined && qtys[idx]!=='' ? qtys[idx] : '';
-    return `<div class="work-history-stock-item"><span class="stock-item-name">${esc(name)}</span><span class="stock-item-qty">${qty?`เบิก ${esc(qty)} รายการ`:''}</span></div>`;
+    return `<div class="work-history-stock-item"><span class="stock-item-name">${esc(name)}</span><span class="stock-item-qty">${qty?`เบิก ${esc(qty)}`:'ไม่ระบุจำนวน'}</span></div>`;
    }).join('');
    stock.push(`<div class="work-history-stock"><div class="work-history-stock-label">รายการที่เบิก</div><div class="work-history-stock-list">${items}</div></div>`);
   }
-  if(receiveQty){
-   stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list"><div class="work-history-stock-item"><span class="stock-item-name">${esc(receiveQty)}</span></div></div></div>`);
-  }
+  if(receiveQty)stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list"><div class="work-history-stock-item"><span class="stock-item-name">${esc(receiveQty)}</span></div></div></div>`);
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
@@ -429,7 +427,7 @@ function renderWorkHistory(rows, allowDelete=true){
     ?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ลบรายการโดย Admin</button>`
     :(pendingDelete?`<button class="admin-cancel-btn delete-request-pending" type="button" disabled>⏳ รอ Admin อนุมัติการลบ</button>`:`<button class="admin-cancel-btn" type="button" onclick="requestDeleteWork('${esc(workId)}')">✉ ขอลบรายการ</button>`)
   ):'';
-  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?stock.join(''):''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
 }
 
@@ -439,7 +437,7 @@ function renderDeletedHistory(rows){
  return `<div class="history-list">${newest.map(r=>{
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
-  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
+  const time=getFirstValue(r,["เวลา (IC)"])||"-";
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
   const deletedAt=getFirstValue(r,["Deleted At","วันที่ลบ"])||"-";
@@ -584,34 +582,25 @@ function rebuildWorkLogLookups(){
   }).join('');
   if(currentRecorder) rec.value=currentRecorder;
  }
+ const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
  // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
  document.querySelectorAll('.inventory-item-template').forEach(sel=>{
+   const current=sel.value;
    const row=sel.closest('.inventory-entry-row');
-   if(row?.querySelector('.inventory-category')){
-     // Withdrawal rows are filtered by the selected Category from INVENTORY.
-     const current=sel.value;
-     const category=row.querySelector('.inventory-category')?.value || '';
-     sel.innerHTML=inventoryOptionsHTML(category,true);
-     if(current && [...sel.options].some(o=>o.value===current)){
-       sel.value=current;
-     }
-     updateInventoryUnit(sel);
-   }else{
-     // Receive rows keep the existing all-item selector.
-     const current=sel.value;
-     const qty=row?.querySelector('.inventory-qty')?.value || '';
-     sel.innerHTML=inventoryOptionsHTML('');
-     if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
-     const unitInput=row?.querySelector('.inventory-unit');
-     if(unitInput){
-       const opt=sel.options[sel.selectedIndex];
-       unitInput.value=opt?.dataset?.unit || unitInput.value || '';
-     }
-     const qtyInput=row?.querySelector('.inventory-qty');
-     if(qtyInput) qtyInput.value=qty;
+   const qty=row?.querySelector('.inventory-qty')?.value || '';
+   sel.innerHTML=invOptions;
+   if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+   const unitInput=row?.querySelector('.inventory-unit');
+   if(unitInput){
+     const opt=sel.options[sel.selectedIndex];
+     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
    }
+   const qtyInput=row?.querySelector('.inventory-qty');
+   if(qtyInput) qtyInput.value=qty;
  });
- refreshInventoryRowOptions();
  // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
  // Those functions intentionally change the form when the user changes Category/Work Type,
  // but must never run just because background data synchronization occurred.
@@ -662,34 +651,8 @@ function localDateISO(d=new Date()){
 function localTime24(d=new Date()){
  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-function normalizeICTimeInput(input){
- const raw=String(input.value||'').replace(/[^0-9]/g,'').slice(0,4);
- input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
-}
-function normalizeICTimeValue(value){
- const raw=String(value||'').trim();
- let m=raw.match(/^(\d{1,2}):(\d{2})$/);
- if(m){
-   const h=Number(m[1]),min=Number(m[2]);
-   if(h>=0&&h<=23&&min>=0&&min<=59)return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
- }
- m=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
- if(m){
-   let h=Number(m[1]),min=Number(m[2]);
-   if(h>=1&&h<=12&&min>=0&&min<=59){
-     if(m[3].toUpperCase()==='AM'&&h===12)h=0;
-     if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;
-     return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
-   }
- }
- return '';
-}
-function formatICTime(value){
- const t=normalizeICTimeValue(value);
- return /^\d{2}:\d{2}$/.test(t)?t+' น.':(String(value||'-').trim()||'-');
-}
 function initWorkLogForm(){
- const d=document.getElementById('wlDate'); if(d && !d.value)d.value=localDateISO();
+ const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
  const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
@@ -714,12 +677,9 @@ function inventoryCategoryOptionsHTML(selected=''){
   return `<option value="${esc(c)}" ${String(c)===String(selected)?'selected':''}>${esc(label)}</option>`;
  }).join('');
 }
-function inventoryOptionsHTML(category='', filterByCategory=false){
- const filtered=filterByCategory
-  ? inventory.filter(x=>getInventoryCategory(x)===String(category))
-  : inventory;
- const placeholder=filterByCategory ? (category?'เลือกรายการ':'เลือกหมวดหมู่ก่อน') : 'เลือกรายการ';
- return '<option value="">'+placeholder+'</option>'+filtered.map(x=>{
+function inventoryOptionsHTML(category=''){
+ const filtered=inventory.filter(x=>getInventoryCategory(x)===String(category||''));
+ return '<option value="">'+(category?'เลือกรายการ':'เลือกหมวดหมู่ก่อน')+'</option>'+filtered.map(x=>{
   const id=getFirstValue(x,['ID','Item ID']);
   const name=getFirstValue(x,['รายการ','Name','Item']);
   const unit=getFirstValue(x,['หน่วย','Unit']);
@@ -732,21 +692,13 @@ function addInventoryRow(kind){
  if(!list)return;
  const row=document.createElement('div'); row.className='inventory-entry-row';
  const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
- if(kind==='withdraw'){
-  row.innerHTML=`
-   <label class="inventory-field"><span>หมวดหมู่</span><select class="inventory-category" data-kind="${kind}" onchange="updateInventoryCategory(this)">${inventoryCategoryOptionsHTML()}</select></label>
-   <label class="inventory-field"><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)" disabled>${inventoryOptionsHTML('',true)}</select></label>
-   <div class="inventory-field"><span>คงเหลือ</span><div class="inventory-stock"><span class="stock-number">—</span><span class="stock-unit"></span></div></div>
-   <label class="inventory-field"><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
-   <label class="inventory-field"><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
-   <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
- }else{
-  row.innerHTML=`
-   <label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
-   <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
-   <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
-   <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
- }
+ row.innerHTML=`
+  <label class="inventory-field"><span>หมวดหมู่</span><select class="inventory-category" data-kind="${kind}" onchange="updateInventoryCategory(this)">${inventoryCategoryOptionsHTML()}</select></label>
+  <label class="inventory-field"><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)" disabled>${inventoryOptionsHTML()}</select></label>
+  <div class="inventory-field"><span>คงเหลือ</span><div class="inventory-stock"><span class="stock-number">—</span><span class="stock-unit"></span></div></div>
+  <label class="inventory-field"><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+  <label class="inventory-field"><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+  <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
  list.appendChild(row);
 }
 function updateInventoryCategory(selectEl){
@@ -755,16 +707,12 @@ function updateInventoryCategory(selectEl){
  const itemSelect=row.querySelector('.inventory-item-template');
  if(!itemSelect)return;
  const category=selectEl.value||'';
- itemSelect.innerHTML=inventoryOptionsHTML(category,true);
+ itemSelect.innerHTML=inventoryOptionsHTML(category);
  itemSelect.disabled=!category;
  const unit=row.querySelector('.inventory-unit');
  if(unit)unit.value='';
  const stock=row.querySelector('.inventory-stock');
- if(stock){
-  stock.classList.remove('stock-low','stock-empty');
-  stock.querySelector('.stock-number').textContent='—';
-  stock.querySelector('.stock-unit').textContent='';
- }
+ if(stock){stock.classList.remove('stock-low','stock-empty');stock.querySelector('.stock-number').textContent='—';stock.querySelector('.stock-unit').textContent='';}
 }
 function updateInventoryUnit(selectEl){
  const row=selectEl.closest('.inventory-entry-row');
@@ -785,7 +733,7 @@ function updateInventoryUnit(selectEl){
  }
 }
 function refreshInventoryRowOptions(){
- document.querySelectorAll('#withdrawRows .inventory-entry-row').forEach(row=>{
+ document.querySelectorAll('.inventory-entry-row').forEach(row=>{
   const cat=row.querySelector('.inventory-category');
   const item=row.querySelector('.inventory-item-template');
   if(!cat||!item)return;
@@ -874,55 +822,27 @@ function prepareWorkPhoto(file,maxSide=1280,quality=.74){
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
- if(btn.dataset.submitting==='1') return;
- btn.dataset.submitting='1'; btn.disabled=true;
- if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
- const muggleDate=document.getElementById('wlDate').value;
- const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
  const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
  const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
- if(!cat){
-   status.textContent='กรุณาเลือกหมวดหมู่การทำงานก่อนประเภทการทำงาน';
-   status.className='form-status error';
-   return;
- }
- if(!wt){
-   status.textContent='กรุณาเลือกประเภทการทำงาน';
-   status.className='form-status error';
-   return;
- }
- if(!muggleDate){
-   status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
-   status.className='form-status error';
-   return;
- }
- if(!/^\d{2}:\d{2}$/.test(icTime)){
-   status.textContent='กรุณาระบุเวลา (IC) แบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
-   status.className='form-status error';
-   return;
- }
- document.getElementById('wlTime').value=icTime;
  if(cat==='งานทั่วไป'){
-   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
  } else if(cat==='เก็บผลผลิต'){
-   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
-   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
  }
  let photo=null;
  try{
   const file=document.getElementById('wlPhoto')?.files?.[0];
-  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
-  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';return;}
+  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
   status.textContent='กำลังเตรียมรูป…';
   photo=await prepareWorkPhoto(file);
-  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
- }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
- const clientRequestId = (window.crypto && crypto.randomUUID)
-  ? crypto.randomUUID()
-  : ('REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
+ }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
  const payload={
-  clientRequestId,category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
+  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
   workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
@@ -933,7 +853,7 @@ async function submitWorkLog(ev){
   document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,4000);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
- finally{btn.dataset.submitting='0';btn.disabled=false;}
+ finally{btn.disabled=false;}
 }
 
 async function syncData(){
@@ -943,7 +863,9 @@ async function syncData(){
   ]);
   if(b.length)beasts=b;
   plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];
+  refreshInventoryRowOptions();
   rebuildWorkLogLookups();
+  const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
   render();
   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
  }catch(e){
