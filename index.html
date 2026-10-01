@@ -185,8 +185,8 @@
       <div class="form-grid">
         <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
-        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
-        <label><span>หมวดหมู่การทำงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">โปรดเลือกรายการนี้ก่อนประเภทการทำงาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="00:00" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeICTimeInput(this)" required></label>
+        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
         <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
         <div id="targetFields" class="target-fields form-grid-span-2">
@@ -380,7 +380,7 @@ function renderWorkHistory(rows, allowDelete=true){
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
   const day=getFirstValue(r,["วันผู้วิเศษ"])||"-";
-  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
   const category=getFirstValue(r,["Category"])||"-";
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const targetId=getFirstValue(r,["Target ID"])||"";
@@ -415,7 +415,7 @@ function renderDeletedHistory(rows){
  return `<div class="history-list">${newest.map(r=>{
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
-  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
   const deletedAt=getFirstValue(r,["Deleted At","วันที่ลบ"])||"-";
@@ -629,8 +629,40 @@ function localDateISO(d=new Date()){
 function localTime24(d=new Date()){
  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+function normalizeICTimeInput(input){
+ const raw=String(input.value||'').replace(/[^0-9]/g,'').slice(0,4);
+ if(raw.length<=2){
+   input.value=raw;
+   return;
+ }
+ input.value=raw.slice(0,2)+':'+raw.slice(2,4);
+}
+function normalizeICTimeValue(value){
+ const raw=String(value||'').trim();
+ const m24=raw.match(/^(\d{1,2}):(\d{2})$/);
+ if(m24){
+   const h=Number(m24[1]),m=Number(m24[2]);
+   if(h>=0&&h<=23&&m>=0&&m<=59)return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+ }
+ const mampm=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+ if(mampm){
+   let h=Number(mampm[1]),m=Number(mampm[2]);
+   if(h>=1&&h<=12&&m>=0&&m<=59){
+     const ap=mampm[3].toUpperCase();
+     if(ap==='AM'&&h===12)h=0;
+     if(ap==='PM'&&h!==12)h+=12;
+     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+   }
+ }
+ return raw;
+}
+function formatICTime(value){
+ const normalized=normalizeICTimeValue(value);
+ if(/^\d{2}:\d{2}$/.test(normalized))return normalized+' น.';
+ return String(value||'-').trim()||'-';
+}
 function initWorkLogForm(){
- const d=document.getElementById('wlDate'); if(d){d.value=''; d.readOnly=false;}
+ const d=document.getElementById('wlDate'); if(d && !d.value)d.value=localDateISO();
  const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
@@ -722,8 +754,21 @@ async function submitWorkLog(ev){
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
  if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
+ const muggleDate=document.getElementById('wlDate').value;
+ const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
  const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
  const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(!muggleDate){
+   status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
+   status.className='form-status error';
+   return;
+ }
+ if(!/^\d{2}:\d{2}$/.test(icTime)){
+   status.textContent='กรุณาระบุเวลา (IC) เป็นรูปแบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
+   status.className='form-status error';
+   return;
+ }
+ document.getElementById('wlTime').value=icTime;
  if(cat==='งานทั่วไป'){
    for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
  } else if(cat==='เก็บผลผลิต'){
@@ -740,7 +785,7 @@ async function submitWorkLog(ev){
   if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
  }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
  const payload={
-  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
+  category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
   workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
