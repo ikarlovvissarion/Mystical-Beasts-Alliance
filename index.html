@@ -406,6 +406,7 @@ function renderWorkHistory(rows, allowDelete=true){
   const cancelReason=getFirstValue(r,["Cancel Reason"]);
   const withdrawal=getFirstValue(r,["เบิกคลังชมรม"]);
   const withdrawQty=getFirstValue(r,["จำนวนที่เบิก"]);
+  const receiveNames=getFirstValue(r,["รายการที่ได้รับ","รายการรับเข้า","รายการที่รับเข้า"]);
   const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
   const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
   const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
@@ -419,7 +420,17 @@ function renderWorkHistory(rows, allowDelete=true){
    }).join('');
    stock.push(`<div class="work-history-stock"><div class="work-history-stock-label">รายการที่เบิก</div><div class="work-history-stock-list">${items}</div></div>`);
   }
-  if(receiveQty)stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list"><div class="work-history-stock-item"><span class="stock-item-name">${esc(receiveQty)}</span></div></div></div>`);
+  if(receiveQty || receiveNames){
+   const names=String(receiveNames||'').split('\|').map(v=>v.trim()).filter(Boolean);
+   const qtys=String(receiveQty||'').split('\|').map(v=>v.trim());
+   const count=Math.max(names.length,qtys.length);
+   const items=Array.from({length:count},(_,idx)=>{
+    const name=names[idx] || (names.length ? '' : 'รายการผลผลิต');
+    const qty=qtys[idx]!==undefined && qtys[idx]!=='' ? qtys[idx] : '';
+    return `<div class="work-history-stock-item"><span class="stock-item-name">${esc(name || 'รายการผลผลิต')}</span><span class="stock-item-qty">${qty?`รับ ${esc(qty)}`:'ไม่ระบุจำนวน'}</span></div>`;
+   }).join('');
+   stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list">${items}</div></div>`);
+  }
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
