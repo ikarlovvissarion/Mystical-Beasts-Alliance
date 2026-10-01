@@ -45,6 +45,7 @@ function setupMBA() {
   getOrCreateSheet_(ss, 'INVENTORY');
   getOrCreateSheet_(ss, 'INVENTORY LOG');
   getOrCreateSheet_(ss, 'DELETED WORK LOG');
+  getOrCreateSheet_(ss, 'DELETE REQUESTS');
   try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
   return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
 }
@@ -85,6 +86,9 @@ function doPost(e) {
       const result = cancelWorkLog_(data);
       return json_(result);
     }
+    if (data.action === 'requestDelete') return json_(requestDeleteWork_(data));
+    if (data.action === 'approveDeleteRequest') return json_(approveDeleteRequest_(data));
+    if (data.action === 'rejectDeleteRequest') return json_(rejectDeleteRequest_(data));
     const result = saveWorkLog_(data);
     return json_(result);
   } catch (err) {
@@ -106,7 +110,7 @@ function saveWorkLog_(data) {
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
       'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
-      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
+      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
@@ -119,6 +123,7 @@ function saveWorkLog_(data) {
     // ยึดวันที่มักเกิ้ลจากวันที่ปัจจุบัน ณ เวลาที่บันทึกจริง ไม่ใช้วันที่เก่าจากหน้าเว็บ
     const dateValue = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const withdrawals = normalizeItems_(data.withdrawals);
+    const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
 
     // ตรวจสอบรายการคลังทั้งหมดก่อนเขียน เพื่อไม่ให้เกิดรายการบางส่วนเมื่อมีข้อผิดพลาด
@@ -131,6 +136,19 @@ function saveWorkLog_(data) {
         if (!(qty > 0)) throw new Error('จำนวนที่เบิกต้องมากกว่า 0');
         if (toNumber_(found.quantity) < qty) throw new Error('จำนวนในคลังไม่เพียงพอ: ' + found.name);
         checkedWithdrawals.push({ item, found, qty });
+      }
+    }
+
+    const checkedReturns = [];
+    if (returns.length) {
+      for (const item of returns) {
+        const found = findInventoryItem_(inventorySheet, inventoryHeaders, item.id, item.name);
+        if (!found) throw new Error('ไม่พบรายการที่ต้องการคืนใน INVENTORY: ' + (item.name || item.id));
+        const qty = Number(item.qty);
+        if (!(qty > 0)) throw new Error('จำนวนที่คืนต้องมากกว่า 0');
+        const returnable = getOutstandingWithdrawn_(inventoryLogSheet, inventoryLogHeaders, found.id, found.name);
+        if (qty > returnable) throw new Error('คืนเกินจำนวนที่เคยเบิก: ' + found.name + ' (คืนได้สูงสุด ' + returnable + ' ' + (found.unit || item.unit || '') + ')');
+        checkedReturns.push({ item, found, qty });
       }
     }
 
@@ -163,6 +181,11 @@ function saveWorkLog_(data) {
       setCell_(workRow, workHeaders, 'จำนวนที่เบิก', checkedWithdrawals.map(x => String(x.qty)).join(' | '));
       setCell_(workRow, workHeaders, 'หน่วยที่เบิก', checkedWithdrawals.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
+    if (checkedReturns.length) {
+      setCell_(workRow, workHeaders, 'คืนคลังชมรม', checkedReturns.map(x => x.found.name).join(' | '));
+      setCell_(workRow, workHeaders, 'จำนวนที่คืน', checkedReturns.map(x => String(x.qty)).join(' | '));
+      setCell_(workRow, workHeaders, 'หน่วยที่คืน', checkedReturns.map(x => x.found.unit || x.item.unit || '').join(' | '));
+    }
     if (checkedReceives.length) {
       setCell_(workRow, workHeaders, 'จำนวนที่ได้รับ', checkedReceives.map(x => String(x.qty)).join(' | '));
       setCell_(workRow, workHeaders, 'หน่วยที่ได้รับ', checkedReceives.map(x => x.found.unit || x.item.unit || '').join(' | '));
@@ -190,6 +213,19 @@ function saveWorkLog_(data) {
         note: data.workType
       });
       transactions.push({ id: txId, type: 'เบิก', item: x.found.name, quantity: x.qty, unit });
+    }
+
+    for (const x of checkedReturns) {
+      const stock = toNumber_(x.found.quantity);
+      const unit = x.found.unit || x.item.unit || '';
+      inventorySheet.getRange(x.found.row, x.found.quantityCol).setValue(stock + x.qty);
+      const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
+      appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
+        txId, dateValue, time: data.icTime, type: 'คืน', itemId: x.found.id,
+        name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
+        note: data.workType
+      });
+      transactions.push({ id: txId, type: 'คืน', item: x.found.name, quantity: x.qty, unit });
     }
 
     for (const x of checkedReceives) {
@@ -383,6 +419,24 @@ function findInventoryItem_(sheet, headers, id, name) {
   }
   return null;
 }
+function getOutstandingWithdrawn_(sheet, headers, itemId, itemName) {
+  const count = Math.max(sheet.getLastRow() - 1, 0);
+  if (!count) return 0;
+  const values = sheet.getRange(2, 1, count, headers.length).getValues();
+  let withdrawn = 0, returned = 0;
+  for (const row of values) {
+    const id = String(valueByHeader_(row, headers, 'Item ID') || '').trim();
+    const name = String(valueByHeader_(row, headers, 'รายการ') || '').trim();
+    if (!((itemId && id === String(itemId).trim()) || (itemName && name === String(itemName).trim()))) continue;
+    const type = String(valueByHeader_(row, headers, 'ประเภท') || '').trim();
+    const qty = toNumber_(valueByHeader_(row, headers, 'จำนวน'));
+    if (type === 'เบิก') withdrawn += qty;
+    if (type === 'คืน') returned += qty;
+    if (type === 'ปรับเพิ่ม' && String(valueByHeader_(row, headers, 'หมายเหตุ') || '').includes('ย้อนรายการ: เบิก')) withdrawn -= qty;
+    if (type === 'ปรับลด' && String(valueByHeader_(row, headers, 'หมายเหตุ') || '').includes('ย้อนรายการ: คืน')) returned -= qty;
+  }
+  return Math.max(0, withdrawn - returned);
+}
 function appendInventoryLog_(sheet, headers, tx) {
   const row = blankRow_(headers.length);
   setCell_(row, headers, 'Transaction ID', tx.txId); setCell_(row, headers, 'วันที่ (มักเกิ้ล)', tx.dateValue);
@@ -409,6 +463,59 @@ const ADMIN_PASSWORD = 'Meduza2014';
 function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
+function requestDeleteWork_(data) {
+  const workId=String(data.workId||'').trim(), requester=String(data.requester||'').trim(), reason=String(data.reason||'').trim();
+  if(!workId) throw new Error('ไม่พบ Work ID');
+  if(!requester) throw new Error('กรุณาระบุชื่อผู้ขอลบ');
+  if(!reason) throw new Error('กรุณาระบุเหตุผลการขอลบ');
+  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const ss=SpreadsheetApp.openById(SPREADSHEET_ID), ws=ss.getSheetByName('WORK LOG');
+    const rs=getOrCreateSheet_(ss,'DELETE REQUESTS');
+    const rh=ensureHeaders_(rs,['Request ID','Requested At','Work ID','ผู้ขอลบ','เหตุผล','Status','Reviewed At','Reviewed By','Admin Reason']);
+    const wh=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
+    const rows=ws.getLastRow()>1?ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues():[];
+    const widCol=wh.indexOf('Work ID'), statusCol=wh.indexOf('Status');
+    const row=rows.find(r=>String(r[widCol]||'').trim()===workId);
+    if(!row) throw new Error('ไม่พบ WORK ID: '+workId);
+    if(statusCol>=0 && String(row[statusCol]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกยกเลิกแล้ว');
+    const reqRows=rs.getLastRow()>1?rs.getRange(2,1,rs.getLastRow()-1,rs.getLastColumn()).getValues():[];
+    const existing=reqRows.find(r=>String(valueByHeader_(r,rh,'Work ID')||'').trim()===workId && String(valueByHeader_(r,rh,'Status')||'').trim()==='PENDING');
+    if(existing) throw new Error('รายการนี้มีคำขอลบที่รอแอดมินอยู่แล้ว');
+    const reqId=nextId_(rs,'Request ID','D',5), out=blankRow_(rh.length);
+    setCell_(out,rh,'Request ID',reqId); setCell_(out,rh,'Requested At',new Date()); setCell_(out,rh,'Work ID',workId); setCell_(out,rh,'ผู้ขอลบ',requester); setCell_(out,rh,'เหตุผล',reason); setCell_(out,rh,'Status','PENDING');
+    rs.appendRow(out); SpreadsheetApp.flush(); return {ok:true,requestId:reqId};
+  } finally { lock.releaseLock(); }
+}
+function approveDeleteRequest_(data) {
+  if(String(data.password||'')!==ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const requestId=String(data.requestId||'').trim(), reason=String(data.reason||'').trim();
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID), rs=ss.getSheetByName('DELETE REQUESTS');
+  if(!rs) throw new Error('ไม่พบแท็บ DELETE REQUESTS');
+  const rh=rs.getRange(1,1,1,Math.max(rs.getLastColumn(),1)).getValues()[0].map(String);
+  const rows=rs.getLastRow()>1?rs.getRange(2,1,rs.getLastRow()-1,rs.getLastColumn()).getValues():[];
+  const idCol=rh.indexOf('Request ID'), statusCol=rh.indexOf('Status');
+  let rowNo=-1,row=null; for(let i=0;i<rows.length;i++){if(String(rows[i][idCol]||'').trim()===requestId){rowNo=i+2;row=rows[i];break;}}
+  if(rowNo<0) throw new Error('ไม่พบคำขอ: '+requestId);
+  if(String(row[statusCol]||'')!=='PENDING') throw new Error('คำขอนี้ถูกดำเนินการแล้ว');
+  const workId=String(valueByHeader_(row,rh,'Work ID')||'').trim();
+  const result=cancelWorkLog_({workId,password:ADMIN_PASSWORD,reason:reason||String(valueByHeader_(row,rh,'เหตุผล')||'ลบตามคำขอ'),skipRequest:true,deleteSource:'DELETE REQUEST',requestId});
+  setCell_(row,rh,'Status','APPROVED'); setCell_(row,rh,'Reviewed At',new Date()); setCell_(row,rh,'Reviewed By','Admin'); setCell_(row,rh,'Admin Reason',reason||'อนุมัติคำขอลบ');
+  rs.getRange(rowNo,1,1,rh.length).setValues([row]); SpreadsheetApp.flush(); return {ok:true,requestId,workId,result};
+}
+function rejectDeleteRequest_(data) {
+  if(String(data.password||'')!==ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const requestId=String(data.requestId||'').trim(), reason=String(data.reason||'').trim()||'ไม่อนุมัติ';
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID), rs=ss.getSheetByName('DELETE REQUESTS');
+  if(!rs) throw new Error('ไม่พบแท็บ DELETE REQUESTS');
+  const rh=rs.getRange(1,1,1,Math.max(rs.getLastColumn(),1)).getValues()[0].map(String), rows=rs.getLastRow()>1?rs.getRange(2,1,rs.getLastRow()-1,rs.getLastColumn()).getValues():[];
+  const idCol=rh.indexOf('Request ID'), statusCol=rh.indexOf('Status'); let rowNo=-1,row=null;
+  for(let i=0;i<rows.length;i++){if(String(rows[i][idCol]||'').trim()===requestId){rowNo=i+2;row=rows[i];break;}}
+  if(rowNo<0) throw new Error('ไม่พบคำขอ: '+requestId);
+  if(String(row[statusCol]||'')!=='PENDING') throw new Error('คำขอนี้ถูกดำเนินการแล้ว');
+  setCell_(row,rh,'Status','REJECTED'); setCell_(row,rh,'Reviewed At',new Date()); setCell_(row,rh,'Reviewed By','Admin'); setCell_(row,rh,'Admin Reason',reason);
+  rs.getRange(rowNo,1,1,rh.length).setValues([row]); SpreadsheetApp.flush(); return {ok:true,requestId};
+}
 function cancelWorkLog_(data) {
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
   const email='Password Admin';
@@ -431,19 +538,23 @@ function cancelWorkLog_(data) {
       if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
       const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim(), id=String(valueByHeader_(lr,lh,'Item ID')||'').trim(), name=String(valueByHeader_(lr,lh,'รายการ')||'').trim(), qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
       if(!(qty>0))continue; const found=findInventoryItem_(inv,ih,id,name); if(!found)throw new Error('ไม่พบรายการใน INVENTORY: '+name);
-      let newStock=toNumber_(found.quantity), rollback=''; if(type==='เบิก'){newStock+=qty;rollback='ปรับเพิ่ม';} else if(type==='รับเข้า'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);newStock-=qty;rollback='ปรับลด';} else continue;
+      let newStock=toNumber_(found.quantity), rollback=''; if(type==='เบิก'){newStock+=qty;rollback='ปรับเพิ่ม';} else if(type==='รับเข้า'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);newStock-=qty;rollback='ปรับลด';} else if(type==='คืน'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนการคืน: '+found.name);newStock-=qty;rollback='ปรับลด';} else continue;
       inv.getRange(found.row,found.quantityCol).setValue(newStock);
-      const txId=nextId_(il,'Transaction ID','T',5); appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | '+reason});
+      const txId=nextId_(il,'Transaction ID','T',5);
+      const reverseOf=type==='เบิก'?'เบิก':type==='คืน'?'คืน':type==='รับเข้า'?'รับเข้า':type;
+      appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | ย้อนรายการ: '+reverseOf+' | '+reason});
       reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
     }
     // เก็บสำเนาไว้ใน DELETED WORK LOG ก่อนลบจริง เพื่อให้ ADMIN ยังดูประวัติย้อนหลังได้
     const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
-    const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason']));
+    const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason','Delete Source','Delete Request ID']));
     const deletedRow=blankRow_(deletedHeaders.length);
     headers.forEach((h,i)=>{ if(i<row.length) deletedRow[i]=row[i]; });
     setCell_(deletedRow, deletedHeaders, 'Deleted At', new Date());
     setCell_(deletedRow, deletedHeaders, 'Deleted By', email);
     setCell_(deletedRow, deletedHeaders, 'Delete Reason', reason);
+    setCell_(deletedRow, deletedHeaders, 'Delete Source', data.deleteSource || 'ADMIN DIRECT');
+    setCell_(deletedRow, deletedHeaders, 'Delete Request ID', data.requestId || '');
     deletedSheet.appendRow(deletedRow);
 
     // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังและเก็บประวัติแล้ว
