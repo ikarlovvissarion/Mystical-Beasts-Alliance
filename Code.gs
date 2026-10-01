@@ -17,8 +17,7 @@ const WORK_TYPES = {
   ],
   'เก็บผลผลิต': [
     'การเก็บผลผลิตพืชผัก',
-    'การรับผลผลิตจากสัตว์วิเศษ',
-    'การแปรงขนสัตว์วิเศษ'
+    'การรับผลผลิตจากสัตว์วิเศษ'
   ]
 };
 
@@ -111,7 +110,7 @@ function saveWorkLog_(data) {
     const workHeaders = ensureHeaders_(workSheet, [
       'Category', 'Work ID', 'วันที่ (มักเกิ้ล)', 'วันผู้วิเศษ', 'เวลา (IC)',
       'ประเภทการทำงาน', 'Target ID', 'Target Name', 'ผู้ลงบันทึก',
-      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'รายการที่ได้รับ', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
+      'เบิกคลังชมรม', 'จำนวนที่เบิก', 'หน่วยที่เบิก', 'คืนคลังชมรม', 'จำนวนที่คืน', 'หน่วยที่คืน', 'จำนวนที่ได้รับ', 'หน่วยที่ได้รับ', 'รูปการทำงาน'
     ]);
     const inventoryHeaders = ensureHeaders_(inventorySheet, ['Category', 'ID', 'รายการ', 'จำนวน', 'หน่วย']);
     const inventoryLogHeaders = ensureHeaders_(inventoryLogSheet, [
@@ -120,29 +119,23 @@ function saveWorkLog_(data) {
     ]);
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
-    // ใช้วันที่ (มักเกิ้ล) ที่ผู้ใช้เลือกจากหน้าเว็บโดยตรง
-    // <input type="date"> ส่งค่าเป็น YYYY-MM-DD
+    // ใช้วันที่ (มักเกิ้ล) ที่ผู้ใช้ระบุจากฟอร์มโดยตรง
+    // ห้ามใช้ new Date() เป็นตัวแทน เพราะ Apps Script อาจทำงานคนละ Time Zone
+    // จนวันที่ในไทยเลื่อนเป็นวันก่อนหน้าได้
     const dateValue = parseMuggleDate_(data.muggleDate);
     const withdrawals = normalizeItems_(data.withdrawals);
     const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
-    const targetSelection = normalizeTargets_(data);
 
     // ตรวจสอบรายการคลังทั้งหมดก่อนเขียน เพื่อไม่ให้เกิดรายการบางส่วนเมื่อมีข้อผิดพลาด
     const checkedWithdrawals = [];
-    const pendingWithdrawals = {};
     if (data.category === 'งานทั่วไป') {
       for (const item of withdrawals) {
         const found = findInventoryItem_(inventorySheet, inventoryHeaders, item.id, item.name);
         if (!found) throw new Error('ไม่พบรายการที่ต้องการเบิกใน INVENTORY: ' + (item.name || item.id));
         const qty = Number(item.qty);
         if (!(qty > 0)) throw new Error('จำนวนที่เบิกต้องมากกว่า 0');
-        const key = found.id || found.name;
-        const alreadyRequested = toNumber_(pendingWithdrawals[key]);
-        if (toNumber_(found.quantity) < alreadyRequested + qty) {
-          throw new Error('จำนวนในคลังไม่เพียงพอ: ' + found.name);
-        }
-        pendingWithdrawals[key] = alreadyRequested + qty;
+        if (toNumber_(found.quantity) < qty) throw new Error('จำนวนในคลังไม่เพียงพอ: ' + found.name);
         checkedWithdrawals.push({ item, found, qty });
       }
     }
@@ -179,9 +172,8 @@ function saveWorkLog_(data) {
     setCell_(workRow, workHeaders, 'วันผู้วิเศษ', data.magicalDay);
     setCell_(workRow, workHeaders, 'เวลา (IC)', data.icTime);
     setCell_(workRow, workHeaders, 'ประเภทการทำงาน', data.workType);
-    // รองรับการเลือกสัตว์วิเศษ/พืชผักได้หลายรายการ โดยยังเก็บ Target ID ไว้ในฐานข้อมูลเพื่อความถูกต้องของข้อมูลเดิม
-    setCell_(workRow, workHeaders, 'Target ID', targetSelection.ids.join(' | '));
-    setCell_(workRow, workHeaders, 'Target Name', targetSelection.names.join(' | '));
+    setCell_(workRow, workHeaders, 'Target ID', data.targetId || '');
+    setCell_(workRow, workHeaders, 'Target Name', data.targetName || '');
     setCell_(workRow, workHeaders, 'ผู้ลงบันทึก', data.recorder);
 
     // คงคอลัมน์เดิมไว้เพื่อรองรับฐานข้อมูลเดิม โดยสรุปรายการหลายรายการเป็นข้อความใน WORK LOG
@@ -196,17 +188,14 @@ function saveWorkLog_(data) {
       setCell_(workRow, workHeaders, 'หน่วยที่คืน', checkedReturns.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
     if (checkedReceives.length) {
-      // ดึงชื่อรายการจาก INVENTORY คอลัมน์ 'รายการ' (Column C) ผ่าน findInventoryItem_
-      setCell_(workRow, workHeaders, 'รายการที่ได้รับ', checkedReceives.map(x => x.found.name).join(' | '));
       setCell_(workRow, workHeaders, 'จำนวนที่ได้รับ', checkedReceives.map(x => String(x.qty)).join(' | '));
       setCell_(workRow, workHeaders, 'หน่วยที่ได้รับ', checkedReceives.map(x => x.found.unit || x.item.unit || '').join(' | '));
     }
 
     // ต้องอัปโหลดรูปให้สำเร็จก่อน จึงจะบันทึก WORK LOG
     // เพื่อให้ทุก WORK LOG ที่เกิดขึ้นมีรูปและหน้าเว็บสามารถแสดงรูปได้แน่นอน
-    const photoUrls = saveWorkPhotos_(data.photos || (data.photo ? [data.photo] : []), workId);
-    if (!photoUrls.length) throw new Error('อัปโหลดรูปการทำงานไม่สำเร็จ');
-    const photoUrl = photoUrls.join(' | ');
+    const photoUrl = saveWorkPhoto_(data.photo, workId);
+    if (!photoUrl) throw new Error('อัปโหลดรูปการทำงานไม่สำเร็จ');
     setCell_(workRow, workHeaders, 'รูปการทำงาน', photoUrl);
 
     // บันทึก WORK LOG หลังจากรูปพร้อมแล้ว
@@ -254,35 +243,12 @@ function saveWorkLog_(data) {
     }
 
     SpreadsheetApp.flush();
-    return { ok: true, workId, transactions, photoUrl, photoUrls };
+    return { ok: true, workId, transactions, photoUrl };
   } finally {
     lock.releaseLock();
   }
 }
 
-
-function normalizeTargets_(data) {
-  const ids = Array.isArray(data && data.targetIds)
-    ? data.targetIds.map(x => String(x || '').trim()).filter(Boolean)
-    : (data && data.targetId ? String(data.targetId).split('|').map(x => x.trim()).filter(Boolean) : []);
-  const names = Array.isArray(data && data.targetNames)
-    ? data.targetNames.map(x => String(x || '').trim()).filter(Boolean)
-    : (data && data.targetName ? String(data.targetName).split('|').map(x => x.trim()).filter(Boolean) : []);
-  return { ids, names };
-}
-
-function saveWorkPhotos_(photos, workId) {
-  if (!Array.isArray(photos)) photos = photos ? [photos] : [];
-  photos = photos.filter(Boolean);
-  if (photos.length > 5) throw new Error('รูปการทำงานเลือกได้สูงสุด 5 รูป');
-  const urls = [];
-  photos.forEach((photo, index) => {
-    const url = saveWorkPhoto_(photo, workId + '-' + (index + 1));
-    if (!url) throw new Error('อัปโหลดรูปการทำงานรูปที่ ' + (index + 1) + ' ไม่สำเร็จ');
-    urls.push(url);
-  });
-  return urls;
-}
 
 function saveWorkPhoto_(photo, workId) {
   photo = photo || {};
@@ -377,49 +343,33 @@ function saveWorkPhoto_(photo, workId) {
 
 function parseMuggleDate_(value) {
   const raw = String(value || '').trim();
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) {
-    throw new Error('รูปแบบวันที่ไม่ถูกต้อง กรุณาเลือกวันที่จากช่องวันที่');
+  const m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
+
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const dateValue = new Date(year, month - 1, day);
+
+  // ตรวจสอบป้องกันวันที่ที่ JavaScript เลื่อนไปเดือนถัดไป เช่น 2026-02-31
+  if (dateValue.getFullYear() !== year ||
+      dateValue.getMonth() !== month - 1 ||
+      dateValue.getDate() !== day) {
+    throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
   }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-
-  // ป้องกันวันที่ไม่มีอยู่จริง เช่น 2026-02-31
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    throw new Error('วันที่ไม่ถูกต้อง');
-  }
-
-  return date;
+  return dateValue;
 }
 
 function validate_(data) {
   if (!data.category || !['งานทั่วไป', 'เก็บผลผลิต'].includes(data.category)) throw new Error('หมวดหมู่งานไม่ถูกต้อง');
   if (!data.workType || !WORK_TYPES[data.category].includes(data.workType)) throw new Error('ประเภทการทำงานไม่ถูกต้อง');
-  const targets = normalizeTargets_(data);
   if (data.category === 'งานทั่วไป' && data.workType !== 'การทำความสะอาด') {
-    if (!targets.names.length) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผักอย่างน้อย 1 รายการ');
-    if (targets.ids.length !== targets.names.length) throw new Error('ข้อมูล Target ไม่ครบ กรุณาเลือกสัตว์วิเศษ/พืชผักใหม่');
+    if (!data.targetId || !data.targetName) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผัก');
   }
-  if (data.category === 'เก็บผลผลิต') {
-    if (!targets.names.length) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผักอย่างน้อย 1 รายการ');
-    if (targets.ids.length !== targets.names.length) throw new Error('ข้อมูล Target ไม่ครบ กรุณาเลือกสัตว์วิเศษ/พืชผักใหม่');
-  }
+  if (data.category === 'เก็บผลผลิต' && (!data.targetId || !data.targetName)) throw new Error('กรุณาเลือกสัตว์วิเศษ/พืชผัก');
   if (!data.recorder) throw new Error('กรุณาเลือกผู้ลงบันทึก');
-  const photos = Array.isArray(data.photos) ? data.photos : (data.photo ? [data.photo] : []);
-  if (!photos.length) throw new Error('กรุณาแนบรูปการทำงาน');
-  if (photos.length > 5) throw new Error('รูปการทำงานเลือกได้สูงสุด 5 รูป');
-  photos.forEach((photo, i) => {
-    if (!photo || !photo.data) throw new Error('รูปการทำงานรูปที่ ' + (i + 1) + ' ไม่สมบูรณ์');
-    if (String(photo.data).length > 12 * 1024 * 1024) throw new Error('รูปการทำงานรูปที่ ' + (i + 1) + ' มีขนาดใหญ่เกินไป');
-  });
-  parseMuggleDate_(data.muggleDate);
+  if (!data.photo || !data.photo.data) throw new Error('กรุณาแนบรูปการทำงาน');
+  if (!data.muggleDate) throw new Error('กรุณาเลือกวันที่');
   if (!WIZARD_DAYS.includes(data.magicalDay)) throw new Error('วันผู้วิเศษไม่ถูกต้อง');
   if (!data.icTime) throw new Error('กรุณาเลือกเวลา IC');
 }
@@ -619,10 +569,10 @@ function cancelWorkLog_(data) {
     // ไม่ใช่ย้อนทุก INVENTORY LOG ที่มี Work ID เดียวกันแบบไม่จำกัดจำนวน
     // เพื่อป้องกันกรณีมีธุรกรรมซ้ำ/ข้อมูลเก่าซ้ำ ทำให้ 1 ชิ้นถูกคืนเป็นหลายชิ้น
     const expectedWithdrawals = buildWorkInventoryMap_(row, headers, 'เบิกคลังชมรม', 'จำนวนที่เบิก');
-    const expectedReceives = buildWorkInventoryMap_(row, headers, 'รายการที่ได้รับ', 'จำนวนที่ได้รับ');
+    const expectedReceivesTotal = toNumber_(valueByHeader_(row, headers, 'จำนวนที่ได้รับ'));
     const expectedReturns = buildWorkInventoryMap_(row, headers, 'คืนคลังชมรม', 'จำนวนที่คืน');
     const reversedWithdrawals = {};
-    const reversedReceives = {};
+    let reversedReceivesTotal = 0;
     const reversedReturns = {};
 
     for(const lr of logs){
@@ -642,10 +592,10 @@ function cancelWorkLog_(data) {
         reversedWithdrawals[key]=toNumber_(reversedWithdrawals[key])+allowed;
         rollback='ปรับเพิ่ม';
       } else if(type==='รับเข้า'){
-        allowed=Math.max(0, toNumber_(expectedReceives[id] ?? expectedReceives[name] ?? 0) - toNumber_(reversedReceives[id] ?? reversedReceives[name] ?? 0));
+        allowed=Math.max(0, expectedReceivesTotal - reversedReceivesTotal);
         if(allowed<=0) continue;
         allowed=Math.min(qty, allowed);
-        reversedReceives[key]=toNumber_(reversedReceives[key])+allowed;
+        reversedReceivesTotal+=allowed;
         rollback='ปรับลด';
       } else if(type==='คืน'){
         allowed=Math.max(0, toNumber_(expectedReturns[key] ?? expectedReturns[name] ?? 0) - toNumber_(reversedReturns[key] ?? reversedReturns[name] ?? 0));
