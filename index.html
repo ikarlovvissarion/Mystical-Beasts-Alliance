@@ -362,6 +362,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
    If a tab is unavailable, that section simply shows no data.
    ============================================================ */
 const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
+const DATE_DISPLAY_VERSION="muggle-date-v2";
 const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
@@ -467,16 +468,17 @@ function renderInventoryLarge(rows){
 }
 
 function formatWorkDate(value){
- const raw=String(value||'').trim();
+ const raw=String(value??'').trim();
  if(!raw)return '-';
- // Google Sheets / gviz อาจส่งวันที่พร้อมเวลา เช่น 30/9/2026, 10:00:00
- // ประวัติการทำงานต้องแสดงเฉพาะ วัน/เดือน/ปี เท่านั้น
- const m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
- if(m)return `${Number(m[1])}/${Number(m[2])}/${m[3]}`;
- const iso=raw.match(/^(\d{4})[\-](\d{1,2})[\-](\d{1,2})/);
+ // วันที่มักเกิ้ลเป็น "วันตามปฏิทิน" ห้ามใช้ new Date(raw) กับค่า YYYY-MM-DD
+ // เพราะ browser จะตีความเป็น UTC แล้วอาจถอยวันตาม timezone
+ const iso=raw.match(/^(\d{4})[\-](\d{1,2})[\-](\d{1,2})(?:$|[ T])/);
  if(iso)return `${Number(iso[3])}/${Number(iso[2])}/${iso[1]}`;
- const parsed=new Date(raw);
- if(!Number.isNaN(parsed.getTime()))return `${parsed.getDate()}/${parsed.getMonth()+1}/${parsed.getFullYear()}`;
+ const slash=raw.match(/^(\d{1,2})[\/](\d{1,2})[\/](\d{4})(?:$|[ ,T])/);
+ if(slash)return `${Number(slash[1])}/${Number(slash[2])}/${slash[3]}`;
+ // รองรับค่า Google Sheets แบบ Date(2026,9,2) หาก gviz ส่งรูปแบบนี้กลับมา
+ const gviz=raw.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})/);
+ if(gviz)return `${Number(gviz[3])}/${Number(gviz[2])+1}/${gviz[1]}`;
  return raw.split(/[ ,T]/)[0]||'-';
 }
 

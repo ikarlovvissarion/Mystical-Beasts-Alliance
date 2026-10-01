@@ -1,4 +1,5 @@
 const SPREADSHEET_ID = '1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0';
+const MUGGLE_TIME_ZONE = 'Asia/Bangkok';
 
 const WIZARD_DAYS = [
   'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
@@ -119,10 +120,10 @@ function saveWorkLog_(data) {
     ]);
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
-    // ใช้วันที่ (มักเกิ้ล) ที่ผู้ใช้ระบุจากฟอร์มโดยตรง
-    // ห้ามใช้ new Date() เป็นตัวแทน เพราะ Apps Script อาจทำงานคนละ Time Zone
-    // จนวันที่ในไทยเลื่อนเป็นวันก่อนหน้าได้
-    const dateValue = parseMuggleDate_(data.muggleDate);
+    // วันที่มักเกิ้ลเป็น "วันตามปฏิทิน" ไม่ใช่ timestamp
+    // เก็บเป็นข้อความ ISO (YYYY-MM-DD) เพื่อไม่ให้ Google Sheets / gviz
+    // แปลงเขตเวลาแล้วทำให้วันที่ถอยไป 1 วัน
+    const dateValue = normalizeMuggleDateText_(data.muggleDate);
     const withdrawals = normalizeItems_(data.withdrawals);
     const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
@@ -341,7 +342,7 @@ function saveWorkPhoto_(photo, workId) {
     encodeURIComponent(fileId) + '&sz=w1200';
 }
 
-function parseMuggleDate_(value) {
+function normalizeMuggleDateText_(value) {
   const raw = String(value || '').trim();
   const m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (!m) throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
@@ -349,15 +350,47 @@ function parseMuggleDate_(value) {
   const year = Number(m[1]);
   const month = Number(m[2]);
   const day = Number(m[3]);
-  const dateValue = new Date(year, month - 1, day);
-
-  // ตรวจสอบป้องกันวันที่ที่ JavaScript เลื่อนไปเดือนถัดไป เช่น 2026-02-31
-  if (dateValue.getFullYear() !== year ||
-      dateValue.getMonth() !== month - 1 ||
-      dateValue.getDate() !== day) {
+  const check = new Date(Date.UTC(year, month - 1, day));
+  if (check.getUTCFullYear() !== year ||
+      check.getUTCMonth() !== month - 1 ||
+      check.getUTCDate() !== day) {
     throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง: ' + raw);
   }
-  return dateValue;
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+// ใช้เฉพาะกรณีที่ระบบอื่นต้องการ Date จริง โดยกำหนด Time Zone ไทยชัดเจน
+function parseMuggleDate_(value) {
+  const raw = normalizeMuggleDateText_(value);
+  return Utilities.parseDate(raw, MUGGLE_TIME_ZONE, 'yyyy-MM-dd');
+}
+
+// เรียกฟังก์ชันนี้ 1 ครั้งหลังอัปเดตโค้ด เพื่อแปลงวันที่ WORK LOG เดิม
+// จาก Date ที่อาจถูก gviz เลื่อนวัน ให้เป็นข้อความตามวันที่ที่แสดงใน Google Sheets จริง
+function repairExistingMuggleDates_() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('WORK LOG');
+  if (!sheet) throw new Error('ไม่พบแท็บ WORK LOG');
+
+  const headers = sheet.getRange(1,1,1,Math.max(sheet.getLastColumn(),1)).getDisplayValues()[0].map(v => String(v || '').trim());
+  const col = headers.indexOf('วันที่ (มักเกิ้ล)');
+  if (col < 0) throw new Error('ไม่พบคอลัมน์ วันที่ (มักเกิ้ล)');
+  if (sheet.getLastRow() < 2) return {ok:true,updated:0};
+
+  // ใช้ค่าที่ Google Sheets แสดงจริง ไม่ใช้ getValues() ที่เป็น Date object
+  const display = sheet.getRange(2,col+1,sheet.getLastRow()-1,1).getDisplayValues();
+  const out = display.map(([v]) => {
+    const raw = String(v || '').trim();
+    const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (!m) return [raw];
+    return [`${m[3]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[1])).padStart(2,'0')}`];
+  });
+
+  const range = sheet.getRange(2,col+1,out.length,1);
+  range.setNumberFormat('@');
+  range.setValues(out);
+  SpreadsheetApp.flush();
+  return {ok:true,updated:out.length};
 }
 
 function validate_(data) {
