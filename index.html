@@ -439,35 +439,40 @@ function renderWorkHistory(rows, allowDelete=true){
   const status=getFirstValue(r,["Status"])||"";
   const cancelBy=getFirstValue(r,["Cancel By","Cancelled By"]);
   const cancelReason=getFirstValue(r,["Cancel Reason"]);
-  const withdrawalNames=getFirstValue(r,["เบิกคลังชมรม"]);
-  const withdrawalQty=getFirstValue(r,["จำนวนที่เบิก"]);
-  const withdrawalUnits=getFirstValue(r,["หน่วยที่เบิก"]);
-  const receiveNames=getFirstValue(r,["รายการที่ได้รับ","รายการรับเข้า","รายการที่รับเข้า"]);
-  const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
-  const receiveUnits=getFirstValue(r,["หน่วยที่ได้รับ"]);
-  const target=targetName?esc(targetName).replace(/\\s*\\|\\s*/g,' • '):'ไม่ระบุ';
-  const photoHtml=renderWorkPhotos(photo,workId);
+
+  // กฎการแสดงรายการคลังต้องยึด Category เป็นตัวตัดสินเท่านั้น:
+  // งานทั่วไป     -> แสดงเฉพาะรายการ "เบิกคลังชมรม"
+  // เก็บผลผลิต   -> แสดงเฉพาะรายการ "รายการที่ได้รับ/รับเข้า"
+  // หมวดอื่น/ไม่ทราบ -> ไม่แสดงรายการคลัง เพื่อป้องกันการนำเบิกกับรับมาปะปนกัน
+  const categoryKey=String(category||"").trim();
+  const isGeneralWork=categoryKey==='งานทั่วไป';
+  const isProductionWork=categoryKey==='เก็บผลผลิต';
   const stock=[];
-  const withdrawalNamesArr=String(withdrawalNames||'').split('|').map(v=>v.trim());
-  const withdrawalQtyArr=String(withdrawalQty||'').split('|').map(v=>v.trim());
-  const withdrawalUnitsArr=String(withdrawalUnits||'').split('|').map(v=>v.trim());
-  const withdrawalMax=Math.max(withdrawalNamesArr.length,withdrawalQtyArr.length,withdrawalUnitsArr.length,withdrawalNames?1:0);
-  for(let i=0;i<withdrawalMax;i++){
-    const name=withdrawalNamesArr[i]||'ไม่พบชื่อรายการ';
-    const qty=withdrawalQtyArr[i]||'';
-    const unit=withdrawalUnitsArr[i]||'';
-    if(name || qty) stock.push(`<div class="history-item-line withdraw"><span class="history-item-type">เบิก</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
+
+  if(isGeneralWork){
+    const names=String(getFirstValue(r,["เบิกคลังชมรม"])||"").split('|').map(v=>v.trim()).filter(Boolean);
+    const qtys=String(getFirstValue(r,["จำนวนที่เบิก"])||"").split('|').map(v=>v.trim());
+    const units=String(getFirstValue(r,["หน่วยที่เบิก"])||"").split('|').map(v=>v.trim());
+    for(let i=0;i<names.length;i++){
+      const name=names[i];
+      const qty=qtys[i]||'';
+      const unit=units[i]||'';
+      stock.push(`<div class="history-item-line withdraw"><span class="history-item-type">เบิก</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
+    }
+  }else if(isProductionWork){
+    const names=String(getFirstValue(r,["รายการที่ได้รับ","รายการรับเข้า","รายการที่รับเข้า"])||"").split('|').map(v=>v.trim()).filter(Boolean);
+    const qtys=String(getFirstValue(r,["จำนวนที่ได้รับ"])||"").split('|').map(v=>v.trim());
+    const units=String(getFirstValue(r,["หน่วยที่ได้รับ"])||"").split('|').map(v=>v.trim());
+    for(let i=0;i<names.length;i++){
+      const name=names[i];
+      const qty=qtys[i]||'';
+      const unit=units[i]||'';
+      stock.push(`<div class="history-item-line receive"><span class="history-item-type">รับ</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
+    }
   }
-  const receiveNamesArr=String(receiveNames||'').split('|').map(v=>v.trim());
-  const receiveQtyArr=String(receiveQty||'').split('|').map(v=>v.trim());
-  const receiveUnitsArr=String(receiveUnits||'').split('|').map(v=>v.trim());
-  const receiveMax=Math.max(receiveNamesArr.length,receiveQtyArr.length,receiveUnitsArr.length,receiveNames?1:0);
-  for(let i=0;i<receiveMax;i++){
-    const name=receiveNamesArr[i]||'ไม่พบชื่อรายการ';
-    const qty=receiveQtyArr[i]||'';
-    const unit=receiveUnitsArr[i]||'';
-    if(name || qty) stock.push(`<div class="history-item-line receive"><span class="history-item-type">รับ</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
-  }
+
+  const target=targetName?esc(targetName).replace(/\s*\|\s*/g,' • '):'ไม่ระบุ';
+  const photoHtml=renderWorkPhotos(photo,workId);
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
@@ -478,7 +483,6 @@ function renderWorkHistory(rows, allowDelete=true){
   return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
 }
-
 function renderDeletedHistory(rows){
  if(!rows.length)return `<div class="admin-empty">ยังไม่มีประวัติรายการที่ลบ</div>`;
  const newest=[...rows].reverse();
