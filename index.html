@@ -153,7 +153,9 @@
 
 .admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
 .work-id{display:none!important;}
+
 @media(max-width:700px){.target-picker-card{width:96vw;padding:16px}.target-picker-list{grid-template-columns:1fr}.target-category-heading{gap:6px}.target-category-heading span:first-child{font-size:13px}.target-option{grid-template-columns:22px 70px minmax(0,1fr)}.target-option img,.target-option .target-option-placeholder{width:70px;height:60px}}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -320,8 +322,8 @@ const FALLBACK_BEASTS = [
 
 let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[];
 let targetMap=new Map();
-let targetSelection=new Set();       // รายการที่ยืนยันแล้ว
-let targetDraftSelection=new Set();  // รายการที่กำลังเลือกใน Popup
+let targetSelection=new Set();
+let targetDraftSelection=new Set();
 
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const img=(src,label,emoji)=>src?`<img src="${esc(src)}" alt="${esc(label)}">`:`<div class="placeholder">${emoji}</div>`;
@@ -762,8 +764,9 @@ function toggleTargetDraft(id,checked){
  if(count)count.textContent=String(targetDraftSelection.size);
 }
 function removeTargetSelection(id){
- targetSelection.delete(String(id));
- targetDraftSelection.delete(String(id));
+ const key=String(id);
+ targetSelection.delete(key);
+ targetDraftSelection.delete(key);
  updateTargetSelectionSummary();
  renderTargetPicker();
 }
@@ -789,12 +792,14 @@ function openTargetPicker(){
 }
 function closeTargetPicker(){
  targetDraftSelection=new Set(targetSelection);
- document.getElementById('targetPickerModal')?.classList.remove('open');
+ const modal=document.getElementById('targetPickerModal');
+ if(modal)modal.classList.remove('open');
 }
 function confirmTargetPicker(){
  targetSelection=new Set(targetDraftSelection);
  updateTargetSelectionSummary();
- closeTargetPicker();
+ const modal=document.getElementById('targetPickerModal');
+ if(modal)modal.classList.remove('open');
 }
 function clearTargetSelection(){
  targetSelection.clear();
