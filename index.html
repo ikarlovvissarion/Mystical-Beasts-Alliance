@@ -73,6 +73,10 @@
 .work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
 .work-history-stock{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .work-history-stock span{padding:5px 8px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
+.inventory-history-list{display:flex;flex-direction:column;gap:5px;margin-top:12px;padding:10px 12px;border:1px solid #c4a66d;background:#f5e9cf}
+.history-item-line{display:grid;grid-template-columns:44px minmax(0,1fr) 80px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px dashed #d1b985;font-size:12px;color:#5d421e}
+.history-item-line:last-child{border-bottom:0}.history-item-line b{font-size:11px}.history-item-line strong{text-align:right;font-weight:700}
+
 .work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
 .history-icon{font-size:28px;color:#a17a38}
 .work-history-empty h3{margin:8px 0 4px;font-size:20px}
@@ -102,7 +106,14 @@
 .field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
 .field-title small{font-size:11px;font-weight:400;color:#85672f}
 .inventory-entry-list{display:flex;flex-direction:column;gap:10px}
-.inventory-entry-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:10px;align-items:center}
+
+.inventory-entry-row{display:grid;grid-template-columns:minmax(130px,.9fr) minmax(180px,1.5fr) 110px 110px 90px auto;gap:10px;align-items:end}
+.inventory-entry-row .inventory-balance{min-height:46px;padding:9px 10px;border:1px solid #c4a66d;background:#f3e5c3;color:#5d421e;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;white-space:nowrap}
+.inventory-entry-row .inventory-balance.low{color:#8a2f20;background:#f6ddd2;border-color:#c98978}
+.inventory-entry-row .inventory-unit{background:#f5ead0}
+.inventory-entry-row label>span{display:block;margin:0 0 5px;font-size:11px;color:#765727}
+@media(max-width:700px){.inventory-entry-row{grid-template-columns:1fr 1fr;gap:8px}.inventory-entry-row label:nth-child(2){grid-column:1/-1}.inventory-entry-row .remove-item-btn{min-height:44px}.inventory-entry-row .inventory-balance{justify-content:flex-start}}
+
 .inventory-entry-row .entry-unit{font-size:13px;text-align:center;color:#765727;font-weight:500}
 .remove-item-btn{min-height:44px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
 .add-item-btn{margin-top:12px;padding:9px 14px;border:1px solid #a17a38;background:#f4e6c8;font-size:13px}
@@ -392,12 +403,20 @@ function renderWorkHistory(rows, allowDelete=true){
   const cancelReason=getFirstValue(r,["Cancel Reason"]);
   const withdrawal=getFirstValue(r,["เบิกคลังชมรม"]);
   const withdrawQty=getFirstValue(r,["จำนวนที่เบิก"]);
+  const receiveItems=getFirstValue(r,["รายการที่ได้รับ","รับผลผลิตเข้าคลัง","รายการรับเข้า"]);
   const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
   const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
+  const splitHistory=(v)=>String(v||'').split(/\s*\|\s*|\s*,\s*/).map(x=>x.trim()).filter(Boolean);
+  const splitQty=(v)=>String(v||'').split(/\s*\|\s*|\s*,\s*/).map(x=>x.trim());
+  const inventoryHistory=[];
+  const wNames=splitHistory(withdrawal), wQty=splitQty(withdrawQty);
+  wNames.forEach((name,i)=>inventoryHistory.push(`<div class="history-item-line"><b>เบิก</b><span>${esc(name)}</span><strong>${esc(wQty[i]||'—')}</strong></div>`));
+  const rNames=splitHistory(receiveItems);
+  const rQty=splitQty(receiveQty);
+  if(rNames.length){rNames.forEach((name,i)=>inventoryHistory.push(`<div class="history-item-line"><b>รับ</b><span>${esc(name)}</span><strong>${esc(rQty[i]||'—')}</strong></div>`));}
+  else if(receiveQty)splitQty(receiveQty).forEach((q,i)=>inventoryHistory.push(`<div class="history-item-line"><b>รับ</b><span>รายการที่รับเข้า</span><strong>${esc(q||'—')}</strong></div>`));
   const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
-  const stock=[];
-  if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
-  if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
+  const stock=inventoryHistory.length?[`<div class="inventory-history-list">${inventoryHistory.join('')}</div>`]:[];
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
@@ -560,24 +579,15 @@ function rebuildWorkLogLookups(){
   }).join('');
   if(currentRecorder) rec.value=currentRecorder;
  }
- const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
-  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
- }).join('');
- // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
+ // Refresh only category/item options. Existing selections and quantities stay in place.
  document.querySelectorAll('.inventory-item-template').forEach(sel=>{
-   const current=sel.value;
    const row=sel.closest('.inventory-entry-row');
-   const qty=row?.querySelector('.inventory-qty')?.value || '';
-   sel.innerHTML=invOptions;
+   if(!row)return;
+   const current=sel.value;
+   const cat=row.querySelector('.inventory-category')?.value||'';
+   sel.innerHTML=inventoryItemOptionsHTML(cat,current);
    if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
-   const unitInput=row?.querySelector('.inventory-unit');
-   if(unitInput){
-     const opt=sel.options[sel.selectedIndex];
-     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
-   }
-   const qtyInput=row?.querySelector('.inventory-qty');
-   if(qtyInput) qtyInput.value=qty;
+   updateInventoryRow(sel);
  });
  // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
  // Those functions intentionally change the form when the user changes Category/Work Type,
@@ -662,18 +672,61 @@ function initWorkLogForm(){
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
  resetInventoryRows();
 }
-function inventoryOptionsHTML(){
- return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+function inventoryCategories(){
+ const set=new Set();
+ inventory.forEach(x=>{
+  const c=getFirstValue(x,['Category','หมวดหมู่','ประเภท']);
+  if(c) set.add(String(c).trim());
+ });
+ return [...set].sort((a,b)=>a.localeCompare(b,'th'));
+}
+function inventoryCategoryOptionsHTML(current=''){
+ return '<option value="">เลือกหมวดหมู่</option>'+inventoryCategories().map(c=>`<option value="${esc(c)}" ${String(c)===String(current)?'selected':''}>${esc(c)}</option>`).join('');
+}
+function inventoryItemOptionsHTML(category='', currentId=''){
+ const list=inventory.filter(x=>{
+  const c=getFirstValue(x,['Category','หมวดหมู่','ประเภท']);
+  return !category || String(c).trim()===String(category).trim();
+ });
+ return '<option value="">เลือกรายการ</option>'+list.map((x,i)=>{
   const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+  const stock=getFirstValue(x,['จำนวน','Quantity','Qty','คงเหลือ','Stock']);
+  const selected=String(id||name)===String(currentId)?' selected':'';
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-stock="${esc(stock)}" data-index="${inventory.indexOf(x)}"${selected}>${esc(name)}</option>`;
  }).join('');
 }
+function getInventoryStockById(id){
+ const x=inventory.find(v=>String(getFirstValue(v,['ID','Item ID']))===String(id));
+ return x?getFirstValue(x,['จำนวน','Quantity','Qty','คงเหลือ','Stock']):'';
+}
+function updateInventoryRow(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(!row)return;
+ const opt=selectEl.options[selectEl.selectedIndex];
+ const unit=row.querySelector('.inventory-unit');
+ const balance=row.querySelector('.inventory-balance');
+ if(unit)unit.value=opt?.dataset?.unit||'';
+ if(balance){
+  const stock=opt?.dataset?.stock ?? '';
+  balance.textContent=stock===''?'—':`${stock} ${opt?.dataset?.unit||''}`.trim();
+  balance.classList.toggle('low',Number(stock)<=0);
+ }
+}
+function updateInventoryCategory(catEl){
+ const row=catEl.closest('.inventory-entry-row');
+ const item=row?.querySelector('.inventory-item-template');
+ if(!item)return;
+ item.innerHTML=inventoryItemOptionsHTML(catEl.value,'');
+ updateInventoryRow(item);
+}
+function inventoryOptionsHTML(){ return inventoryItemOptionsHTML(''); }
 function addInventoryRow(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
  if(!list)return;
  const row=document.createElement('div'); row.className='inventory-entry-row';
- const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
- row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+ row.innerHTML=`<label><span>หมวดหมู่</span><select class="inventory-category" data-kind="${kind}" onchange="updateInventoryCategory(this)">${inventoryCategoryOptionsHTML()}</select></label>
+ <label><span>${kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า'}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryRow(this)">${inventoryItemOptionsHTML()}</select></label>
+ <label><span>คงเหลือ</span><div class="inventory-balance">—</div></label>
  <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
  <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
  <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
@@ -701,7 +754,7 @@ function collectInventoryRows(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
  return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
   const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
-  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',category:row.querySelector('.inventory-category')?.value||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
  }).filter(x=>x.id||x.qty);
 }
 function clearWorkPhoto(){
