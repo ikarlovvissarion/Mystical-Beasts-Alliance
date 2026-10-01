@@ -73,6 +73,11 @@
 .work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
 .work-history-stock{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .work-history-stock span{padding:5px 8px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
+.history-item-line{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;width:100%;padding:7px 10px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
+.history-item-type{font-weight:700;text-align:center}
+.history-item-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-item-qty{font-weight:600;white-space:nowrap}
+@media(max-width:700px){.history-item-line{grid-template-columns:34px minmax(0,1fr) auto;gap:7px}}
 .work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
 .history-icon{font-size:28px;color:#a17a38}
 .work-history-empty h3{margin:8px 0 4px;font-size:20px}
@@ -215,7 +220,7 @@
         <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
       </div>
       <div id="receiveFields" class="conditional-fields" hidden>
-        <div class="field-title">รับผลผลิตเข้าคลัง <small>(เพิ่มได้หลายรายการ)</small></div>
+        <div class="field-title">รับเข้า <small>(เพิ่มได้หลายรายการ)</small></div>
         <div id="receiveRows" class="inventory-entry-list"></div>
         <button type="button" class="add-item-btn" onclick="addInventoryRow('receive')">＋ เพิ่มรายการที่รับเข้า</button>
       </div>
@@ -408,33 +413,40 @@ function renderWorkHistory(rows, allowDelete=true){
   const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
   const category=getFirstValue(r,["Category"])||"-";
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
-  const targetId=getFirstValue(r,["Target ID"])||"";
-  const targetName=getFirstValue(r,["Target Name"])||"";
+  const targetName=getFirstValue(r,["Target Name"] )||"";
   const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
   const photo=getFirstValue(r,["รูปการทำงาน","Work Photo","Photo","Image"]);
   const status=getFirstValue(r,["Status"])||"";
-  const cancelBy=getFirstValue(r,["Cancel By"]);
+  const cancelBy=getFirstValue(r,["Cancel By","Cancelled By"]);
   const cancelReason=getFirstValue(r,["Cancel Reason"]);
-  const withdrawal=getFirstValue(r,["เบิกคลังชมรม"]);
-  const withdrawQty=getFirstValue(r,["จำนวนที่เบิก"]);
+  const withdrawalNames=getFirstValue(r,["เบิกคลังชมรม"]);
+  const withdrawalQty=getFirstValue(r,["จำนวนที่เบิก"]);
+  const withdrawalUnits=getFirstValue(r,["หน่วยที่เบิก"]);
   const receiveNames=getFirstValue(r,["รายการที่ได้รับ","รายการรับเข้า","รายการที่รับเข้า"]);
   const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
   const receiveUnits=getFirstValue(r,["หน่วยที่ได้รับ"]);
-  const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
+  const target=targetName?esc(targetName).replace(/\\s*\\|\\s*/g,' • '):'ไม่ระบุ';
   const photoHtml=renderWorkPhotos(photo,workId);
   const stock=[];
-  if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
-  if(receiveQty){
-   const names=String(receiveNames||'').split('|').map(v=>v.trim());
-   const qtys=String(receiveQty||'').split('|').map(v=>v.trim());
-   const units=String(receiveUnits||'').split('|').map(v=>v.trim());
-   const max=Math.max(names.length,qtys.length,units.length,1);
-   for(let i=0;i<max;i++){
-    const name=names[i]||'ไม่พบชื่อรายการ';
-    const qty=qtys[i]||'';
-    const unit=units[i]||'';
-    stock.push(`<div class="history-item-line receive"><span class="history-item-type">รับ</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
-   }
+  const withdrawalNamesArr=String(withdrawalNames||'').split('|').map(v=>v.trim());
+  const withdrawalQtyArr=String(withdrawalQty||'').split('|').map(v=>v.trim());
+  const withdrawalUnitsArr=String(withdrawalUnits||'').split('|').map(v=>v.trim());
+  const withdrawalMax=Math.max(withdrawalNamesArr.length,withdrawalQtyArr.length,withdrawalUnitsArr.length,withdrawalNames?1:0);
+  for(let i=0;i<withdrawalMax;i++){
+    const name=withdrawalNamesArr[i]||'ไม่พบชื่อรายการ';
+    const qty=withdrawalQtyArr[i]||'';
+    const unit=withdrawalUnitsArr[i]||'';
+    if(name || qty) stock.push(`<div class="history-item-line withdraw"><span class="history-item-type">เบิก</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
+  }
+  const receiveNamesArr=String(receiveNames||'').split('|').map(v=>v.trim());
+  const receiveQtyArr=String(receiveQty||'').split('|').map(v=>v.trim());
+  const receiveUnitsArr=String(receiveUnits||'').split('|').map(v=>v.trim());
+  const receiveMax=Math.max(receiveNamesArr.length,receiveQtyArr.length,receiveUnitsArr.length,receiveNames?1:0);
+  for(let i=0;i<receiveMax;i++){
+    const name=receiveNamesArr[i]||'ไม่พบชื่อรายการ';
+    const qty=receiveQtyArr[i]||'';
+    const unit=receiveUnitsArr[i]||'';
+    if(name || qty) stock.push(`<div class="history-item-line receive"><span class="history-item-type">รับ</span><span class="history-item-name">${esc(name)}</span><span class="history-item-qty">${esc(qty)}${unit?` ${esc(unit)}`:''}</span></div>`);
   }
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
@@ -443,7 +455,7 @@ function renderWorkHistory(rows, allowDelete=true){
     ?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ลบรายการโดย Admin</button>`
     :(pendingDelete?`<button class="admin-cancel-btn delete-request-pending" type="button" disabled>⏳ รอ Admin อนุมัติการลบ</button>`:`<button class="admin-cancel-btn" type="button" onclick="requestDeleteWork('${esc(workId)}')">✉ ขอลบรายการ</button>`)
   ):'';
-  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
 }
 
@@ -873,6 +885,7 @@ async function submitWorkLog(ev){
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
  const muggleDate=document.getElementById('wlDate').value;
  const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
+ const recorder=document.getElementById('wlRecorder').value.trim();
  const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
  const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
  if(!cat){
@@ -884,6 +897,11 @@ async function submitWorkLog(ev){
    status.textContent='กรุณาเลือกประเภทการทำงาน';
    status.className='form-status error';
    return;
+ }
+ if(!recorder){
+   status.textContent='กรุณาเลือกผู้ลงบันทึกจากรายการสมาชิก';
+   status.className='form-status error';
+   btn.dataset.submitting='0'; btn.disabled=false; return;
  }
  if(!muggleDate){
    status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
@@ -916,7 +934,7 @@ async function submitWorkLog(ev){
   : ('REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2));
  const payload={
   clientRequestId,category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
-  workType:wt,targetIds:cleaning?[]:[...targetSelection],targetNames:cleaning?[]:[...targetSelection].map(id=>targetMap.get(id)?.name).filter(Boolean),targetId:cleaning?'':[...targetSelection][0]||'',targetName:cleaning?'':[...targetSelection].map(id=>targetMap.get(id)?.name).filter(Boolean)[0]||'',recorder:document.getElementById('wlRecorder').value,recorderId:'',
+  workType:wt,targetIds:cleaning?[]:[...targetSelection].filter(id=>targetMap.has(id)),targetNames:cleaning?[]:[...targetSelection].map(id=>targetMap.get(id)?.name).filter(Boolean),targetId:cleaning?'':[...targetSelection].filter(id=>targetMap.has(id))[0]||'',targetName:cleaning?'':[...targetSelection].map(id=>targetMap.get(id)?.name).filter(Boolean)[0]||'',recorder:recorder,recorderId:'',
   withdrawals,receives,photos,photo:photos[0]
  };
  btn.disabled=true;status.textContent='กำลังบันทึก WORK LOG และอัปโหลดรูป…';status.className='form-status';
