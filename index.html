@@ -71,14 +71,8 @@
 .work-history-meta>div{padding:9px 10px;border-top:1px solid #c4a66d}
 .work-history-meta small{display:block;margin-bottom:4px;font-size:10px;letter-spacing:.8px;color:#806333}
 .work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
-.work-history-stock{display:flex;flex-direction:column;gap:7px;margin-top:12px;padding:10px 12px;border:1px solid #c4a66d;background:#f4e4bf}
-.work-history-stock-label{font-size:11px;font-weight:700;letter-spacing:.4px;color:#765727;margin-bottom:1px}
-.work-history-stock-list{display:flex;flex-direction:column;gap:0}
-.work-history-stock-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 9px;background:#ead7ad;border:0;font-size:12px;color:#5d421e}
-.work-history-stock-item .stock-item-name{font-weight:600;min-width:0;overflow-wrap:anywhere}
-.work-history-stock-item .stock-item-qty{font-weight:700;white-space:nowrap;margin-left:auto}
-.work-history-stock-receive{margin-top:3px}
-.work-history-stock-receive .work-history-stock-item{background:#efe2c5}
+.work-history-stock{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.work-history-stock span{padding:5px 8px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
 .work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
 .history-icon{font-size:28px;color:#a17a38}
 .work-history-empty h3{margin:8px 0 4px;font-size:20px}
@@ -108,17 +102,9 @@
 .field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
 .field-title small{font-size:11px;font-weight:400;color:#85672f}
 .inventory-entry-list{display:flex;flex-direction:column;gap:10px}
-.inventory-entry-row{display:grid;grid-template-columns:minmax(145px,190px) minmax(0,1fr) 105px 120px 90px auto;gap:10px;align-items:end}
-.inventory-entry-row .inventory-field{display:flex;flex-direction:column;gap:7px;min-width:0}
-.inventory-entry-row .inventory-field>span{font-size:12px;font-weight:600;letter-spacing:.3px;color:#5d421e}
-.inventory-entry-row .inventory-stock{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:46px;padding:8px 6px;border:1px solid #c4a66d;background:#efe1bf;color:#4b3519;border-radius:3px;box-sizing:border-box}
-.inventory-entry-row .inventory-stock .stock-number{font-size:18px;font-weight:800;line-height:1.1}
-.inventory-entry-row .inventory-stock .stock-unit{font-size:11px;color:#765727;margin-top:2px}
-.inventory-entry-row .inventory-stock.stock-low{border-color:#b66b4d;background:#f1d8c9}
-.inventory-entry-row .inventory-stock.stock-empty{border-color:#9b4d3e;background:#ead0c8;color:#6a281d}
-.inventory-entry-row .inventory-unit{background:#efe1bf!important}
-.inventory-entry-row .inventory-item-template:disabled{background:#efe1bf;color:#8a744f}
-.remove-item-btn{min-height:46px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
+.inventory-entry-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:10px;align-items:center}
+.inventory-entry-row .entry-unit{font-size:13px;text-align:center;color:#765727;font-weight:500}
+.remove-item-btn{min-height:44px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
 .add-item-btn{margin-top:12px;padding:9px 14px;border:1px solid #a17a38;background:#f4e6c8;font-size:13px}
 .add-item-btn:hover,.remove-item-btn:hover{background:#ead5a6}
 .primary-action{width:100%;margin-top:24px;min-height:52px;padding:12px 18px;border:1px solid #7e5b24;background:#5c421d;color:#fff8e7;font-size:15px;font-weight:600;letter-spacing:1px;box-shadow:0 5px 14px #4b351926}
@@ -137,7 +123,7 @@
  .form-grid{grid-template-columns:1fr;gap:15px}
  .form-grid-span-2{grid-column:auto}
  .target-fields{grid-template-columns:1fr;gap:15px}
- .inventory-entry-row{grid-template-columns:1fr;gap:8px}
+ .inventory-entry-row{grid-template-columns:minmax(0,1fr) 78px 62px auto;gap:6px}
  .form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{font-size:13px;min-height:44px}
 }
 
@@ -197,10 +183,10 @@
     <div class="section-title">✦ บันทึกการทำงาน ✦</div>
     <form id="workLogForm" onsubmit="submitWorkLog(event)">
       <div class="form-grid">
-        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" required></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
-        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
-        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="00:00" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeICTimeInput(this)" required></label>
+        <label><span>หมวดหมู่การทำงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">โปรดเลือกรายการนี้ก่อนประเภทการทำงาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
         <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
         <div id="targetFields" class="target-fields form-grid-span-2">
@@ -213,7 +199,7 @@
         </div>
       </div>
       <div id="withdrawFields" class="conditional-fields" hidden>
-        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ)</small></div>
+        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ • แสดงเฉพาะชื่อรายการ)</small></div>
         <div id="withdrawRows" class="inventory-entry-list"></div>
         <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
       </div>
@@ -394,7 +380,7 @@ function renderWorkHistory(rows, allowDelete=true){
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
   const day=getFirstValue(r,["วันผู้วิเศษ"])||"-";
-  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
   const category=getFirstValue(r,["Category"])||"-";
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const targetId=getFirstValue(r,["Target ID"])||"";
@@ -410,16 +396,8 @@ function renderWorkHistory(rows, allowDelete=true){
   const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
   const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
   const stock=[];
-  if(withdrawal){
-   const names=String(withdrawal).split('\|').map(v=>v.trim()).filter(Boolean);
-   const qtys=String(withdrawQty||'').split('\|').map(v=>v.trim());
-   const items=names.map((name,idx)=>{
-    const qty=qtys[idx]!==undefined && qtys[idx]!=='' ? qtys[idx] : '';
-    return `<div class="work-history-stock-item"><span class="stock-item-name">${esc(name)}</span><span class="stock-item-qty">${qty?`เบิก ${esc(qty)}`:'ไม่ระบุจำนวน'}</span></div>`;
-   }).join('');
-   stock.push(`<div class="work-history-stock"><div class="work-history-stock-label">รายการที่เบิก</div><div class="work-history-stock-list">${items}</div></div>`);
-  }
-  if(receiveQty)stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list"><div class="work-history-stock-item"><span class="stock-item-name">${esc(receiveQty)}</span></div></div></div>`);
+  if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
+  if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
@@ -427,7 +405,7 @@ function renderWorkHistory(rows, allowDelete=true){
     ?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ลบรายการโดย Admin</button>`
     :(pendingDelete?`<button class="admin-cancel-btn delete-request-pending" type="button" disabled>⏳ รอ Admin อนุมัติการลบ</button>`:`<button class="admin-cancel-btn" type="button" onclick="requestDeleteWork('${esc(workId)}')">✉ ขอลบรายการ</button>`)
   ):'';
-  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?stock.join(''):''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
 }
 
@@ -437,7 +415,7 @@ function renderDeletedHistory(rows){
  return `<div class="history-list">${newest.map(r=>{
   const workId=getFirstValue(r,["Work ID"])||"-";
   const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
-  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const time=formatICTime(getFirstValue(r,["เวลา (IC)"]));
   const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
   const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
   const deletedAt=getFirstValue(r,["Deleted At","วันที่ลบ"])||"-";
@@ -651,40 +629,43 @@ function localDateISO(d=new Date()){
 function localTime24(d=new Date()){
  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+function normalizeICTimeInput(input){
+ const raw=String(input.value||'').replace(/[^0-9]/g,'').slice(0,4);
+ input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
+}
+function normalizeICTimeValue(value){
+ const raw=String(value||'').trim();
+ let m=raw.match(/^(\d{1,2}):(\d{2})$/);
+ if(m){
+   const h=Number(m[1]),min=Number(m[2]);
+   if(h>=0&&h<=23&&min>=0&&min<=59)return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+ }
+ m=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+ if(m){
+   let h=Number(m[1]),min=Number(m[2]);
+   if(h>=1&&h<=12&&min>=0&&min<=59){
+     if(m[3].toUpperCase()==='AM'&&h===12)h=0;
+     if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;
+     return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+   }
+ }
+ return '';
+}
+function formatICTime(value){
+ const t=normalizeICTimeValue(value);
+ return /^\d{2}:\d{2}$/.test(t)?t+' น.':(String(value||'-').trim()||'-');
+}
 function initWorkLogForm(){
- const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
+ const d=document.getElementById('wlDate'); if(d && !d.value)d.value=localDateISO();
  const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
  const md=document.getElementById('wlMagicalDay');
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
  resetInventoryRows();
 }
-function getInventoryCategory(item){
- return getFirstValue(item,['Category','หมวดหมู่','ประเภท']) || '';
-}
-function inventoryCategories(){
- const seen=new Set(); const out=[];
- inventory.forEach(x=>{
-  const c=getInventoryCategory(x);
-  const key=c||'__EMPTY__';
-  if(!seen.has(key)){seen.add(key);out.push(c);}
- });
- return out;
-}
-function inventoryCategoryOptionsHTML(selected=''){
- const cats=inventoryCategories();
- return '<option value="">เลือกหมวดหมู่</option>'+cats.map(c=>{
-  const label=c||'ไม่ระบุหมวดหมู่';
-  return `<option value="${esc(c)}" ${String(c)===String(selected)?'selected':''}>${esc(label)}</option>`;
- }).join('');
-}
-function inventoryOptionsHTML(category=''){
- const filtered=inventory.filter(x=>getInventoryCategory(x)===String(category||''));
- return '<option value="">'+(category?'เลือกรายการ':'เลือกหมวดหมู่ก่อน')+'</option>'+filtered.map(x=>{
-  const id=getFirstValue(x,['ID','Item ID']);
-  const name=getFirstValue(x,['รายการ','Name','Item']);
-  const unit=getFirstValue(x,['หน่วย','Unit']);
-  const qty=getFirstValue(x,['จำนวน','Quantity'])||'0';
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-stock="${esc(qty)}">${esc(name)}</option>`;
+function inventoryOptionsHTML(){
+ return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
  }).join('');
 }
 function addInventoryRow(kind){
@@ -692,64 +673,11 @@ function addInventoryRow(kind){
  if(!list)return;
  const row=document.createElement('div'); row.className='inventory-entry-row';
  const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
- row.innerHTML=`
-  <label class="inventory-field"><span>หมวดหมู่</span><select class="inventory-category" data-kind="${kind}" onchange="updateInventoryCategory(this)">${inventoryCategoryOptionsHTML()}</select></label>
-  <label class="inventory-field"><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)" disabled>${inventoryOptionsHTML()}</select></label>
-  <div class="inventory-field"><span>คงเหลือ</span><div class="inventory-stock"><span class="stock-number">—</span><span class="stock-unit"></span></div></div>
-  <label class="inventory-field"><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
-  <label class="inventory-field"><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
-  <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+ <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+ <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+ <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
  list.appendChild(row);
-}
-function updateInventoryCategory(selectEl){
- const row=selectEl.closest('.inventory-entry-row');
- if(!row)return;
- const itemSelect=row.querySelector('.inventory-item-template');
- if(!itemSelect)return;
- const category=selectEl.value||'';
- itemSelect.innerHTML=inventoryOptionsHTML(category);
- itemSelect.disabled=!category;
- const unit=row.querySelector('.inventory-unit');
- if(unit)unit.value='';
- const stock=row.querySelector('.inventory-stock');
- if(stock){stock.classList.remove('stock-low','stock-empty');stock.querySelector('.stock-number').textContent='—';stock.querySelector('.stock-unit').textContent='';}
-}
-function updateInventoryUnit(selectEl){
- const row=selectEl.closest('.inventory-entry-row');
- if(!row)return;
- const opt=selectEl.options[selectEl.selectedIndex];
- const unit=row.querySelector('.inventory-unit');
- if(unit)unit.value=opt?.dataset?.unit||'';
- const stock=row.querySelector('.inventory-stock');
- if(stock){
-  const n=toNumberClient(opt?.dataset?.stock||0);
-  const qty=row.querySelector('.inventory-qty');
-  const requested=toNumberClient(qty?.value||0);
-  const display=Number.isInteger(n)?String(n):n.toLocaleString('th-TH',{maximumFractionDigits:2});
-  stock.querySelector('.stock-number').textContent=opt?.value?display:'—';
-  stock.querySelector('.stock-unit').textContent=opt?.value?(opt?.dataset?.unit||''):'';
-  stock.classList.toggle('stock-empty',!!opt?.value && n<=0);
-  stock.classList.toggle('stock-low',!!opt?.value && n>0 && requested>n);
- }
-}
-function refreshInventoryRowOptions(){
- document.querySelectorAll('.inventory-entry-row').forEach(row=>{
-  const cat=row.querySelector('.inventory-category');
-  const item=row.querySelector('.inventory-item-template');
-  if(!cat||!item)return;
-  const currentCategory=cat.value;
-  const currentItem=item.value;
-  cat.innerHTML=inventoryCategoryOptionsHTML(currentCategory);
-  const categoryStillExists=inventoryCategories().some(c=>String(c)===String(currentCategory));
-  if(!categoryStillExists){
-   cat.value='';
-   updateInventoryCategory(cat);
-   return;
-  }
-  updateInventoryCategory(cat);
-  const stillExists=[...item.options].some(o=>o.value===currentItem);
-  if(stillExists){item.value=currentItem;updateInventoryUnit(item);}
- });
 }
 function ensureInventoryRow(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
@@ -765,19 +693,15 @@ function resetInventoryRows(){
  if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
  if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
 }
-document.addEventListener('input',ev=>{
- if(ev.target?.classList?.contains('inventory-qty')){
-  const row=ev.target.closest('.inventory-entry-row');
-  const item=row?.querySelector('.inventory-item-template');
-  if(item)updateInventoryUnit(item);
- }
-});
+function updateInventoryUnit(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(row)row.querySelector('.inventory-unit').value=selectEl.options[selectEl.selectedIndex]?.dataset?.unit||'';
+}
 function collectInventoryRows(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
  return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
   const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
-  const category=row.querySelector('.inventory-category')?.value||'';
-  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||'',category};
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
  }).filter(x=>x.id||x.qty);
 }
 function clearWorkPhoto(){
@@ -822,27 +746,55 @@ function prepareWorkPhoto(file,maxSide=1280,quality=.74){
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
- if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
+ if(btn.dataset.submitting==='1') return;
+ btn.dataset.submitting='1'; btn.disabled=true;
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
+ const muggleDate=document.getElementById('wlDate').value;
+ const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
  const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
  const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(!cat){
+   status.textContent='กรุณาเลือกหมวดหมู่การทำงานก่อนประเภทการทำงาน';
+   status.className='form-status error';
+   return;
+ }
+ if(!wt){
+   status.textContent='กรุณาเลือกประเภทการทำงาน';
+   status.className='form-status error';
+   return;
+ }
+ if(!muggleDate){
+   status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
+   status.className='form-status error';
+   return;
+ }
+ if(!/^\d{2}:\d{2}$/.test(icTime)){
+   status.textContent='กรุณาระบุเวลา (IC) แบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
+   status.className='form-status error';
+   return;
+ }
+ document.getElementById('wlTime').value=icTime;
  if(cat==='งานทั่วไป'){
-   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
  } else if(cat==='เก็บผลผลิต'){
-   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
-   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
  }
  let photo=null;
  try{
   const file=document.getElementById('wlPhoto')?.files?.[0];
-  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';return;}
-  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
+  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
   status.textContent='กำลังเตรียมรูป…';
   photo=await prepareWorkPhoto(file);
-  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
- }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
+  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+ }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
+ const clientRequestId = (window.crypto && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : ('REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2));
  const payload={
-  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
+  clientRequestId,category:cat,muggleDate:muggleDate,magicalDay:document.getElementById('wlMagicalDay').value,icTime:icTime,
   workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
   withdrawals,receives,photo
  };
@@ -853,7 +805,7 @@ async function submitWorkLog(ev){
   document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
   setTimeout(syncData,4000);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
- finally{btn.disabled=false;}
+ finally{btn.dataset.submitting='0';btn.disabled=false;}
 }
 
 async function syncData(){
@@ -863,9 +815,7 @@ async function syncData(){
   ]);
   if(b.length)beasts=b;
   plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];
-  refreshInventoryRowOptions();
   rebuildWorkLogLookups();
-  const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
   render();
   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
  }catch(e){
