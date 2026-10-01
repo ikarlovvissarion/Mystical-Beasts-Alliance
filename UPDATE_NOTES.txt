@@ -1,13 +1,31 @@
-MYSTICAL BEASTS ALLIANCE — SAFE ROLLBACK FIX
+MYSTICAL BEASTS ALLIANCE — CURRENT VERSION
 
-ฐานข้อมูลหลักยังชี้ไปที่ Spreadsheet ID เดิม:
+ฐานข้อมูลตั้งต้นจากไฟล์ที่ผู้ใช้ส่งล่าสุด:
+- BEASTS.csv
+- INVENTORY.csv
+- INVENTORY LOG.csv
+- MEMBER.csv
+- PLANTS.csv
+- WORK LOG LISTS.csv
+- WORK LOG.csv
+- DELETED WORK LOG.csv
+- API STATUS.csv
+
+Google Sheets Master:
 1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0
 
-แก้เฉพาะระบบย้อนคลังเมื่อ Admin อนุมัติลบ/ยกเลิก WORK LOG:
-- คืนของจากรายการ "เบิก" ตามจำนวนที่เบิกจริงเท่านั้น
-- หักของจากรายการ "รับเข้า" ตามจำนวนที่รับเข้าจริงเท่านั้น
-- ไม่วนเอา "ปรับเพิ่ม/ปรับลด" ที่เกิดจากการ rollback มาคืนซ้ำ
-- รองรับ rollback เก่าที่มีอยู่แล้ว เพื่อไม่ให้คืนซ้ำ
-- ใช้ Script Lock ป้องกันการประมวลผลซ้อนกัน
-- ไม่ลบ/สร้างใหม่/แทนที่ BEASTS, INVENTORY, PLANTS, MEMBER หรือข้อมูลเดิมใน Google Sheets
-- ระบบคำขอลบ DELETION REQUESTS และ password Admin Meduza2014 ยังคงอยู่
+ฟังก์ชันที่คงไว้:
+- BEASTS / GARDEN PLOT / WORK LOG / INVENTORY / ADMIN
+- Password Admin: Meduza2014
+- คำขอลบรายการพร้อมเหตุผล -> Admin อนุมัติ -> ลบ WORK LOG จริงและเก็บ DELETED WORK LOG
+- อัปโหลดรูป WORK LOG ไปยัง Google Drive ตามระบบเดิม
+
+แก้ไขสำคัญ:
+- Rollback การเบิก/รับเข้าจะย้อนเฉพาะธุรกรรมต้นฉบับประเภท "เบิก" หรือ "รับเข้า"
+- ไม่ย้อนรายการ "ปรับเพิ่ม" / "ปรับลด" ซึ่งเป็นรายการ rollback เดิม
+- บันทึกความสัมพันธ์กับ Transaction ID ต้นฉบับในหมายเหตุ เช่น "คืนจาก T00001"
+- ป้องกันการ rollback ธุรกรรมต้นฉบับเดิมซ้ำ หากพบ rollback ที่อ้างถึง Transaction ID นั้นแล้ว
+- ไม่แตะหรือแทนที่ข้อมูล BEASTS / INVENTORY ใน Google Sheets
+
+หมายเหตุ:
+ข้อมูลที่มีอยู่ใน Google Sheets Master เป็นแหล่งข้อมูลจริงของระบบ Web App ส่วน CSV ในแพ็กเกจเป็นข้อมูลตั้งต้น/สำรองจากไฟล์ล่าสุดที่ผู้ใช้ส่งให้

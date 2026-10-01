@@ -1,0 +1,2 @@
+Request ID,Status,Updated At,Error,Work ID,Photo URL
+REQ-muor256b-xqa2t8lm,error,"30/9/2026, 16:42:06","Apps Script เข้าถึงโฟลเดอร์ Google Drive ไม่ได้: You do not have permission to call DriveApp.getFolderById. Required permissions: (https://www.googleapis.com/auth/drive.readonly || https://www.googleapis.com/auth/drive). For more information, see https://developers.google.com/apps-script/guides/support/troubleshooting#authorization-is",,

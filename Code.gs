@@ -496,88 +496,10 @@ function setCellBySheetHeader_(sheet,rowNo,headers,name,value){
   if(i>=0) sheet.getRange(rowNo,i+1).setValue(value);
 }
 
-function rollbackInventoryForWorkLog_(ss, workId, reason, email, actionLabel) {
-  const inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
-  if(!inv||!il) throw new Error('ไม่พบแท็บ INVENTORY / INVENTORY LOG');
-  const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String);
-  const lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
-  const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[];
-
-  // ย้อนเฉพาะธุรกรรมต้นทางจริง (เบิก / รับเข้า) และกันการคืนซ้ำด้วย Transaction ID
-  const originals=[];
-  const rolledBackTxIds=new Set();
-  const legacyRollbackByItem={};
-  for(const lr of logs){
-    if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
-    const txId=String(valueByHeader_(lr,lh,'Transaction ID')||'').trim();
-    const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim();
-    const id=String(valueByHeader_(lr,lh,'Item ID')||'').trim();
-    const name=String(valueByHeader_(lr,lh,'รายการ')||'').trim();
-    const qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
-    if(!(qty>0)) continue;
-
-    if(type==='เบิก' || type==='รับเข้า') {
-      originals.push({txId,id,name,qty,type});
-    } else if(type==='ปรับเพิ่ม' || type==='ปรับลด') {
-      const note=String(valueByHeader_(lr,lh,'หมายเหตุ')||'');
-      const sourceMatch=note.match(/rollback ของ (เบิก|รับเข้า) \[([A-Z]+\d+)\]/);
-      if(sourceMatch && sourceMatch[2]) {
-        rolledBackTxIds.add(sourceMatch[2]);
-      } else if(note.indexOf(workId)>=0) {
-        // รองรับ rollback รุ่นเก่าที่ไม่มี source Transaction ID
-        const originalType=(type==='ปรับเพิ่ม')?'เบิก':'รับเข้า';
-        const key=(id||name)+'|'+originalType;
-        legacyRollbackByItem[key]=(legacyRollbackByItem[key]||0)+qty;
-      }
-    }
-  }
-
-  const reverted=[];
-  for(const item of originals){
-    // รายการที่มี rollback ผูกกับ Transaction ID แล้ว ห้ามคืนซ้ำ
-    if(item.txId && rolledBackTxIds.has(item.txId)) continue;
-
-    // สำหรับข้อมูลเก่าที่ไม่มี source Transaction ID ให้หักจำนวน rollback เก่าที่พบก่อน
-    const key=(item.id||item.name)+'|'+item.type;
-    const legacyUsed=Math.min(item.qty, legacyRollbackByItem[key]||0);
-    if(legacyUsed>0) legacyRollbackByItem[key]-=legacyUsed;
-    const qtyToRollback=item.qty-legacyUsed;
-    if(!(qtyToRollback>0)) continue;
-
-    const found=findInventoryItem_(inv,ih,item.id,item.name);
-    if(!found) throw new Error('ไม่พบรายการใน INVENTORY: '+item.name);
-    let newStock=toNumber_(found.quantity), rollbackType='';
-    if(item.type==='เบิก') {
-      newStock += qtyToRollback;
-      rollbackType='ปรับเพิ่ม';
-    } else {
-      if(newStock < qtyToRollback) throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);
-      newStock -= qtyToRollback;
-      rollbackType='ปรับลด';
-    }
-    inv.getRange(found.row,found.quantityCol).setValue(newStock);
-    const newTxId=nextId_(il,'Transaction ID','T',5);
-    appendInventoryLog_(il,lh,{
-      txId:newTxId,
-      dateValue:new Date(),
-      time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),
-      type:rollbackType,
-      itemId:found.id,
-      name:found.name,
-      qty:qtyToRollback,
-      unit:found.unit,
-      workId:workId,
-      recorder:email,
-      note:actionLabel+' '+workId+' | '+reason+' | rollback ของ '+item.type+' ['+(item.txId||'legacy')+']'
-    });
-    reverted.push({item:found.name,quantity:qtyToRollback,unit:found.unit,type:rollbackType});
-  }
-  return reverted;
-}
-
 function deleteWorkLogInternal_(ss, workId, reason, email) {
-  const ws=ss.getSheetByName('WORK LOG');
-  if(!ws) throw new Error('ไม่พบแท็บ WORK LOG');
+  const ws=ss.getSheetByName('WORK LOG'), inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
+  if(!ws||!inv||!il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
+
   let headers=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
   const statusCol=ensureColumn_(ws,headers,'Status');
   ensureColumn_(ws,headers,'Cancelled By'); ensureColumn_(ws,headers,'Cancelled At'); ensureColumn_(ws,headers,'Cancel Reason');
@@ -589,10 +511,58 @@ function deleteWorkLogInternal_(ss, workId, reason, email) {
   if(rowNo<0) throw new Error('ไม่พบ WORK ID: '+workId);
   if(String(row[statusCol-1]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกลบไปแล้ว');
 
-  const reverted=rollbackInventoryForWorkLog_(ss,workId,reason,email,'ลบ');
+  const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String);
+  const lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
+  const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[];
+  const reverted=[];
+
+  // Rollback เฉพาะธุรกรรมต้นฉบับของงานนี้เท่านั้น: "เบิก" หรือ "รับเข้า"
+  // ไม่เอา "ปรับเพิ่ม/ปรับลด" ที่เป็น rollback เดิมมาคืนซ้ำ
+  for(const lr of logs){
+    if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
+    const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim();
+    if(type!=='เบิก' && type!=='รับเข้า') continue;
+
+    const originalTxId=String(valueByHeader_(lr,lh,'Transaction ID')||'').trim();
+    const id=String(valueByHeader_(lr,lh,'Item ID')||'').trim();
+    const name=String(valueByHeader_(lr,lh,'รายการ')||'').trim();
+    const qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
+    if(!(qty>0)) continue;
+
+    // ป้องกันการ rollback ธุรกรรมต้นฉบับเดิมซ้ำ หากมีรายการ rollback ที่สร้างไว้แล้ว
+    if(originalTxId){
+      const alreadyReverted=logs.some(x=>{
+        if(String(valueByHeader_(x,lh,'Work ID')||'').trim()!==workId) return false;
+        const t=String(valueByHeader_(x,lh,'ประเภท')||'').trim();
+        if(t!=='ปรับเพิ่ม' && t!=='ปรับลด') return false;
+        const note=String(valueByHeader_(x,lh,'หมายเหตุ')||'');
+        return note.indexOf('คืนจาก '+originalTxId)>=0;
+      });
+      if(alreadyReverted) continue;
+    }
+
+    const found=findInventoryItem_(inv,ih,id,name);
+    if(!found) throw new Error('ไม่พบรายการใน INVENTORY: '+name);
+
+    let newStock=toNumber_(found.quantity), rollback='';
+    if(type==='เบิก'){
+      // คืนเท่ากับจำนวนที่เบิกจริงจากธุรกรรมต้นฉบับ
+      newStock+=qty; rollback='ปรับเพิ่ม';
+    } else {
+      // ย้อนผลผลิต: ลดเท่ากับจำนวนที่รับเข้าจริง
+      if(newStock<qty) throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);
+      newStock-=qty; rollback='ปรับลด';
+    }
+
+    inv.getRange(found.row,found.quantityCol).setValue(newStock);
+    const txId=nextId_(il,'Transaction ID','T',5);
+    const rollbackNote='ลบ '+workId+' | คืนจาก '+(originalTxId||'ธุรกรรมต้นฉบับ')+' | '+reason;
+    appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:rollbackNote});
+    reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback,sourceTransactionId:originalTxId});
+  }
 
   const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
-  const deletedHeaders=ensureHeaders_(deletedSheet,headers.concat(['Deleted At','Deleted By','Delete Reason']));
+  const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason']));
   const deletedRow=blankRow_(deletedHeaders.length);
   headers.forEach((h,i)=>{if(i<row.length)deletedRow[i]=row[i];});
   setCell_(deletedRow,deletedHeaders,'Deleted At',new Date());
@@ -608,12 +578,41 @@ function cancelWorkLog_(data) {
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
   const email='Password Admin';
   const workId=String(data.workId||'').trim(), reason=String(data.reason||'').trim();
-  if(!workId) throw new Error('ไม่พบ Work ID');
-  if(!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
+  if(!workId) throw new Error('ไม่พบ Work ID'); if(!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
   const lock=LockService.getScriptLock(); lock.waitLock(30000);
   try {
-    const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
-    const result=deleteWorkLogInternal_(ss,workId,reason,email);
-    return {ok:true,workId:workId,deleted:true,cancelledBy:email,reverted:result.reverted};
+    const ss=SpreadsheetApp.openById(SPREADSHEET_ID), ws=ss.getSheetByName('WORK LOG'), inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
+    if(!ws||!inv||!il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
+    let headers=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
+    const statusCol=ensureColumn_(ws,headers,'Status'), byCol=ensureColumn_(ws,headers,'Cancelled By'), atCol=ensureColumn_(ws,headers,'Cancelled At'), reasonCol=ensureColumn_(ws,headers,'Cancel Reason');
+    headers=ws.getRange(1,1,1,ws.getLastColumn()).getValues()[0].map(String);
+    const widCol=headers.indexOf('Work ID'), rows=ws.getLastRow()>1?ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues():[];
+    let rowNo=-1,row=null; for(let i=0;i<rows.length;i++){if(String(rows[i][widCol]||'').trim()===workId){rowNo=i+2;row=rows[i];break;}}
+    if(rowNo<0) throw new Error('ไม่พบ WORK ID: '+workId);
+    if(String(row[statusCol-1]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกยกเลิกไปแล้ว');
+    const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String), lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
+    const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[], reverted=[];
+    for(const lr of logs){
+      if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
+      const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim(), id=String(valueByHeader_(lr,lh,'Item ID')||'').trim(), name=String(valueByHeader_(lr,lh,'รายการ')||'').trim(), qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
+      if(!(qty>0))continue; const found=findInventoryItem_(inv,ih,id,name); if(!found)throw new Error('ไม่พบรายการใน INVENTORY: '+name);
+      let newStock=toNumber_(found.quantity), rollback=''; if(type==='เบิก'){newStock+=qty;rollback='ปรับเพิ่ม';} else if(type==='รับเข้า'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);newStock-=qty;rollback='ปรับลด';} else continue;
+      inv.getRange(found.row,found.quantityCol).setValue(newStock);
+      const txId=nextId_(il,'Transaction ID','T',5); appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | '+reason});
+      reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
+    }
+    // เก็บสำเนาไว้ใน DELETED WORK LOG ก่อนลบจริง เพื่อให้ ADMIN ยังดูประวัติย้อนหลังได้
+    const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
+    const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason']));
+    const deletedRow=blankRow_(deletedHeaders.length);
+    headers.forEach((h,i)=>{ if(i<row.length) deletedRow[i]=row[i]; });
+    setCell_(deletedRow, deletedHeaders, 'Deleted At', new Date());
+    setCell_(deletedRow, deletedHeaders, 'Deleted By', email);
+    setCell_(deletedRow, deletedHeaders, 'Delete Reason', reason);
+    deletedSheet.appendRow(deletedRow);
+
+    // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังและเก็บประวัติแล้ว
+    ws.deleteRow(rowNo); SpreadsheetApp.flush();
+    return {ok:true,workId:workId,deleted:true,cancelledBy:email,reverted:reverted};
   } finally { lock.releaseLock(); }
 }
