@@ -1,0 +1,25 @@
+MYSTICAL BEASTS ALLIANCE — UPDATED ALL-IN-ONE VERSION
+
+สำคัญที่สุดของเวอร์ชันนี้:
+1. แก้ปัญหา WORK LOG อัปโหลดรูปเข้า Google Drive ได้ แต่ช่อง "รูปการทำงาน" ใน Google Sheets ว่าง
+   - Code.gs จะเติมหัวคอลัมน์ "รูปการทำงาน" หากยังไม่มีจริง
+   - URL thumbnail ของรูปจะถูกเขียนลง WORK LOG ก่อน append row
+2. ใช้ Spreadsheet ID ล่าสุด:
+   1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0
+3. ใช้โฟลเดอร์รูป Google Drive ที่กำหนด:
+   1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse
+4. Password Admin: Meduza2014
+5. รูป WORK LOG เป็นข้อมูลบังคับ และรองรับ JPG / PNG / WEBP
+6. เว็บไซต์ใช้ Google Sheets เป็นฐานข้อมูล และซิงก์อัตโนมัติ
+
+การติดตั้ง:
+A) GitHub Pages: ใช้ index.html เป็นไฟล์หน้าเว็บหลัก
+B) Apps Script: นำ Code.gs และ appsscript.json ไปใช้ในโปรเจกต์ Apps Script เดิม
+C) Deploy Web App ใหม่หลังแก้ Code.gs โดยใช้บัญชีเจ้าของระบบเป็นผู้ Execute
+D) ใช้ Web App URL เดิมใน index.html
+
+หลัง Deploy ให้ทดสอบ WORK LOG 1 รายการพร้อมรูป
+ผลที่ควรได้:
+- รูปอยู่ใน Google Drive folder ที่กำหนด
+- WORK LOG มีค่าในคอลัมน์ "รูปการทำงาน"
+- รูปปรากฏในประวัติ WORK LOG บนเว็บไซต์
