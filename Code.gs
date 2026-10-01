@@ -45,6 +45,7 @@ function setupMBA() {
   getOrCreateSheet_(ss, 'INVENTORY');
   getOrCreateSheet_(ss, 'INVENTORY LOG');
   getOrCreateSheet_(ss, 'DELETED WORK LOG');
+  getOrCreateSheet_(ss, 'DELETION REQUESTS');
   try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
   return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
 }
@@ -80,6 +81,12 @@ function doPost(e) {
       : payloadText;
     if (data.action === 'testPhoto') {
       return json_({ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID});
+    }
+    if (data.action === 'requestDelete') {
+      return json_(requestDeleteWorkLog_(data));
+    }
+    if (data.action === 'approveDeleteRequest') {
+      return json_(approveDeleteRequest_(data));
     }
     if (data.action === 'cancelWork') {
       const result = cancelWorkLog_(data);
@@ -409,6 +416,175 @@ const ADMIN_PASSWORD = 'Meduza2014';
 function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
+function requestDeleteWorkLog_(data) {
+  const workId = String(data.workId || '').trim();
+  const reason = String(data.reason || '').trim();
+  const requester = String(data.requester || '').trim() || 'ไม่ระบุ';
+  if (!workId) throw new Error('ไม่พบ Work ID');
+  if (!reason) throw new Error('กรุณาระบุเหตุผลที่ต้องการลบ');
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ws = ss.getSheetByName('WORK LOG');
+    if (!ws) throw new Error('ไม่พบแท็บ WORK LOG');
+    const headers = ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
+    const widCol = headers.indexOf('Work ID');
+    if (widCol < 0) throw new Error('ไม่พบคอลัมน์ Work ID');
+    const rows = ws.getLastRow()>1 ? ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues() : [];
+    let exists = false;
+    for (const row of rows) if (String(row[widCol]||'').trim() === workId) { exists=true; break; }
+    if (!exists) throw new Error('ไม่พบ WORK ID: ' + workId);
+
+    const reqSheet = getOrCreateSheet_(ss, 'DELETION REQUESTS');
+    const reqHeaders = ensureHeaders_(reqSheet, [
+      'Request ID','Requested At','Work ID','ผู้ขอลบ','เหตุผล','Status','Approved At','Approved By'
+    ]);
+    const reqRows = reqSheet.getLastRow()>1 ? reqSheet.getRange(2,1,reqSheet.getLastRow()-1,reqSheet.getLastColumn()).getValues() : [];
+    for (const row of reqRows) {
+      if (String(valueByHeader_(row,reqHeaders,'Work ID')||'').trim()===workId &&
+          String(valueByHeader_(row,reqHeaders,'Status')||'').trim().toUpperCase()==='PENDING') {
+        throw new Error('รายการนี้มีคำขอลบที่รอ Admin อนุมัติอยู่แล้ว');
+      }
+    }
+    const requestId = nextId_(reqSheet,'Request ID','R',5);
+    const row = blankRow_(reqHeaders.length);
+    setCell_(row,reqHeaders,'Request ID',requestId);
+    setCell_(row,reqHeaders,'Requested At',new Date());
+    setCell_(row,reqHeaders,'Work ID',workId);
+    setCell_(row,reqHeaders,'ผู้ขอลบ',requester);
+    setCell_(row,reqHeaders,'เหตุผล',reason);
+    setCell_(row,reqHeaders,'Status','PENDING');
+    reqSheet.appendRow(row);
+    SpreadsheetApp.flush();
+    return {ok:true,requestId,workId,status:'PENDING'};
+  } finally { lock.releaseLock(); }
+}
+
+function approveDeleteRequest_(data) {
+  if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const requestId = String(data.requestId || '').trim();
+  if (!requestId) throw new Error('ไม่พบ Request ID');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const reqSheet = ss.getSheetByName('DELETION REQUESTS');
+    if (!reqSheet) throw new Error('ยังไม่มีรายการคำขอลบ');
+    const rh = reqSheet.getRange(1,1,1,Math.max(reqSheet.getLastColumn(),1)).getValues()[0].map(String);
+    const rows = reqSheet.getLastRow()>1 ? reqSheet.getRange(2,1,reqSheet.getLastRow()-1,reqSheet.getLastColumn()).getValues() : [];
+    let rowNo=-1, row=null;
+    for(let i=0;i<rows.length;i++) if(String(valueByHeader_(rows[i],rh,'Request ID')||'').trim()===requestId){rowNo=i+2;row=rows[i];break;}
+    if(rowNo<0) throw new Error('ไม่พบคำขอ: '+requestId);
+    if(String(valueByHeader_(row,rh,'Status')||'').trim().toUpperCase()!=='PENDING') throw new Error('คำขอนี้ได้รับการดำเนินการไปแล้ว');
+    const workId=String(valueByHeader_(row,rh,'Work ID')||'').trim();
+    const reason=String(valueByHeader_(row,rh,'เหตุผล')||'').trim();
+
+    // ใช้ขั้นตอนลบเดียวกับ Admin เดิม แต่ไม่สร้างคำขอซ้ำ
+    const result = deleteWorkLogInternal_(ss, workId, reason, 'Password Admin');
+    setCellBySheetHeader_(reqSheet,rowNo,rh,'Status','APPROVED');
+    setCellBySheetHeader_(reqSheet,rowNo,rh,'Approved At',new Date());
+    setCellBySheetHeader_(reqSheet,rowNo,rh,'Approved By','Password Admin');
+    SpreadsheetApp.flush();
+    return {ok:true,requestId,workId,deleted:true,result};
+  } finally { lock.releaseLock(); }
+}
+
+function setCellBySheetHeader_(sheet,rowNo,headers,name,value){
+  const i=headers.indexOf(name);
+  if(i>=0) sheet.getRange(rowNo,i+1).setValue(value);
+}
+
+function deleteWorkLogInternal_(ss, workId, reason, email) {
+  const ws=ss.getSheetByName('WORK LOG'), inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
+  if(!ws||!inv||!il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
+
+  let headers=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
+  const statusCol=ensureColumn_(ws,headers,'Status');
+  ensureColumn_(ws,headers,'Cancelled By'); ensureColumn_(ws,headers,'Cancelled At'); ensureColumn_(ws,headers,'Cancel Reason');
+  headers=ws.getRange(1,1,1,ws.getLastColumn()).getValues()[0].map(String);
+
+  const widCol=headers.indexOf('Work ID');
+  const rows=ws.getLastRow()>1?ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues():[];
+  let rowNo=-1,row=null;
+  for(let i=0;i<rows.length;i++) if(String(rows[i][widCol]||'').trim()===workId){rowNo=i+2;row=rows[i];break;}
+  if(rowNo<0) throw new Error('ไม่พบ WORK ID: '+workId);
+  if(String(row[statusCol-1]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกลบไปแล้ว');
+
+  const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String);
+  const lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
+  const reverted=[];
+
+  // สำคัญ: ย้อนคลังจาก "จำนวนที่บันทึกจริงใน WORK LOG" เท่านั้น
+  // ไม่อ่าน INVENTORY LOG ทั้งหมด เพราะรายการย้อนหลัง/รายการปรับแก้อาจทำให้ยอดถูกคืนซ้ำได้
+  const withdrawNames=splitPipe_(valueByHeader_(row,headers,'เบิกคลังชมรม'));
+  const withdrawQtys=splitPipe_(valueByHeader_(row,headers,'จำนวนที่เบิก')).map(toNumber_);
+  const withdrawUnits=splitPipe_(valueByHeader_(row,headers,'หน่วยที่เบิก'));
+  const receiveQtys=splitPipe_(valueByHeader_(row,headers,'จำนวนที่ได้รับ')).map(toNumber_);
+  const receiveUnits=splitPipe_(valueByHeader_(row,headers,'หน่วยที่ได้รับ'));
+
+  // จำนวนที่เบิกจริง -> คืนเข้าคลังเท่าจำนวนเดิม
+  if(withdrawNames.length){
+    if(withdrawNames.length!==withdrawQtys.length) throw new Error('ข้อมูลจำนวนที่เบิกของ '+workId+' ไม่ตรงกัน กรุณาตรวจสอบ WORK LOG');
+    for(let i=0;i<withdrawNames.length;i++){
+      const name=withdrawNames[i], qty=withdrawQtys[i];
+      if(!(qty>0)) continue;
+      const found=findInventoryItem_(inv,ih,'',name);
+      if(!found) throw new Error('ไม่พบรายการใน INVENTORY: '+name);
+      const unit=found.unit || withdrawUnits[i] || '';
+      const newStock=toNumber_(found.quantity)+qty;
+      inv.getRange(found.row,found.quantityCol).setValue(newStock);
+      const txId=nextId_(il,'Transaction ID','T',5);
+      appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:'ปรับเพิ่ม',itemId:found.id,name:found.name,qty:qty,unit:unit,workId:workId,recorder:email,note:'คืนของจากการลบ '+workId+' | '+reason});
+      reverted.push({item:found.name,quantity:qty,unit:unit,type:'ปรับเพิ่ม'});
+    }
+  }
+
+  // ผลผลิตที่รับเข้า: ย้อนเฉพาะ transaction "รับเข้า" เดิม และข้ามรายการ rollback
+  // เพื่อไม่ให้การลบย้อนหลังนำรายการคืนของเดิมมาคิดซ้ำอีกครั้ง
+  if(receiveQtys.length){
+    const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[];
+    for(const lr of logs){
+      if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
+      const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim();
+      const note=String(valueByHeader_(lr,lh,'หมายเหตุ')||'').trim();
+      if(type!=='รับเข้า' || /ลบ|ยกเลิก|ย้อน/.test(note)) continue;
+      const id=String(valueByHeader_(lr,lh,'Item ID')||'').trim();
+      const name=String(valueByHeader_(lr,lh,'รายการ')||'').trim();
+      const qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
+      if(!(qty>0)) continue;
+      const found=findInventoryItem_(inv,ih,id,name);
+      if(!found) throw new Error('ไม่พบรายการใน INVENTORY: '+name);
+      const stock=toNumber_(found.quantity);
+      if(stock<qty) throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);
+      const unit=found.unit || valueByHeader_(lr,lh,'หน่วย') || '';
+      inv.getRange(found.row,found.quantityCol).setValue(stock-qty);
+      const txId=nextId_(il,'Transaction ID','T',5);
+      appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:'ปรับลด',itemId:found.id,name:found.name,qty:qty,unit:unit,workId:workId,recorder:email,note:'ย้อนผลผลิตจากการลบ '+workId+' | '+reason});
+      reverted.push({item:found.name,quantity:qty,unit:unit,type:'ปรับลด'});
+    }
+  }
+
+  const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
+  const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason']));
+  const deletedRow=blankRow_(deletedHeaders.length);
+  headers.forEach((h,i)=>{if(i<row.length)deletedRow[i]=row[i];});
+  setCell_(deletedRow,deletedHeaders,'Deleted At',new Date());
+  setCell_(deletedRow,deletedHeaders,'Deleted By',email);
+  setCell_(deletedRow,deletedHeaders,'Delete Reason',reason);
+  deletedSheet.appendRow(deletedRow);
+  ws.deleteRow(rowNo);
+  SpreadsheetApp.flush();
+  return {reverted};
+}
+
+function splitPipe_(value){
+  const s=String(value==null?'':value).trim();
+  if(!s) return [];
+  return s.split('|').map(x=>String(x).trim());
+}
+
 function cancelWorkLog_(data) {
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
   const email='Password Admin';

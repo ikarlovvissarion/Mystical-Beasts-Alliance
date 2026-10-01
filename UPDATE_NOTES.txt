@@ -1,25 +1,25 @@
-MYSTICAL BEASTS ALLIANCE — UPDATED ALL-IN-ONE VERSION
+MYSTICAL BEASTS ALLIANCE — UPDATE
 
-สำคัญที่สุดของเวอร์ชันนี้:
-1. แก้ปัญหา WORK LOG อัปโหลดรูปเข้า Google Drive ได้ แต่ช่อง "รูปการทำงาน" ใน Google Sheets ว่าง
-   - Code.gs จะเติมหัวคอลัมน์ "รูปการทำงาน" หากยังไม่มีจริง
-   - URL thumbnail ของรูปจะถูกเขียนลง WORK LOG ก่อน append row
-2. ใช้ Spreadsheet ID ล่าสุด:
-   1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0
-3. ใช้โฟลเดอร์รูป Google Drive ที่กำหนด:
-   1vUYwKD8Ka-sh8yo93qpr5AiKW9MHwDse
-4. Password Admin: Meduza2014
-5. รูป WORK LOG เป็นข้อมูลบังคับ และรองรับ JPG / PNG / WEBP
-6. เว็บไซต์ใช้ Google Sheets เป็นฐานข้อมูล และซิงก์อัตโนมัติ
+เพิ่มระบบคำขอลบ WORK LOG
 
-การติดตั้ง:
-A) GitHub Pages: ใช้ index.html เป็นไฟล์หน้าเว็บหลัก
-B) Apps Script: นำ Code.gs และ appsscript.json ไปใช้ในโปรเจกต์ Apps Script เดิม
-C) Deploy Web App ใหม่หลังแก้ Code.gs โดยใช้บัญชีเจ้าของระบบเป็นผู้ Execute
-D) ใช้ Web App URL เดิมใน index.html
+1. ผู้กรอก
+- ในประวัติ WORK LOG จะมีปุ่ม “ขอให้ Admin ลบรายการ”
+- ผู้กรอกต้องระบุเหตุผลก่อนส่งคำขอ
+- ระบบสร้างแท็บ DELETION REQUESTS อัตโนมัติ
+- WORK LOG จะยังไม่ถูกลบทันที
+- หากส่งคำขอซ้ำรายการเดิม ระบบจะแจ้งว่ามีคำขอรออนุมัติแล้ว
 
-หลัง Deploy ให้ทดสอบ WORK LOG 1 รายการพร้อมรูป
-ผลที่ควรได้:
-- รูปอยู่ใน Google Drive folder ที่กำหนด
-- WORK LOG มีค่าในคอลัมน์ "รูปการทำงาน"
-- รูปปรากฏในประวัติ WORK LOG บนเว็บไซต์
+2. ADMIN
+- โซน Admin แสดงจำนวนคำขอลบที่รออนุมัติ
+- แสดง Request ID, Work ID, ผู้ขอลบ, เหตุผล และเวลาที่ขอ
+- มีปุ่ม “อนุมัติและลบรายการ”
+- เมื่อ Admin อนุมัติ ระบบจะลบ WORK LOG ออกจากประวัติจริง
+- ระบบย้อนรายการ INVENTORY ที่เกี่ยวข้องให้เหมือนการลบเดิม
+- เก็บสำเนาไว้ใน DELETED WORK LOG เพื่อเป็นหลักฐานย้อนหลัง
+- คำขอจะเปลี่ยนสถานะเป็น APPROVED
+
+3. Google Apps Script
+- ใช้ Spreadsheet ID เดิม
+- ใช้ Drive Folder ID เดิมสำหรับรูป WORK LOG
+- ต้อง Deploy Web App เวอร์ชันใหม่หลังนำ Code.gs นี้ไปวาง
+- ใช้ Execute as Me และ Anyone ตามการตั้งค่าที่ใช้งานอยู่
