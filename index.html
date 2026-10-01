@@ -102,9 +102,17 @@
 .field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
 .field-title small{font-size:11px;font-weight:400;color:#85672f}
 .inventory-entry-list{display:flex;flex-direction:column;gap:10px}
-.inventory-entry-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:10px;align-items:center}
-.inventory-entry-row .entry-unit{font-size:13px;text-align:center;color:#765727;font-weight:500}
-.remove-item-btn{min-height:44px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
+.inventory-entry-row{display:grid;grid-template-columns:minmax(145px,190px) minmax(0,1fr) 105px 120px 90px auto;gap:10px;align-items:end}
+.inventory-entry-row .inventory-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.inventory-entry-row .inventory-field>span{font-size:12px;font-weight:600;letter-spacing:.3px;color:#5d421e}
+.inventory-entry-row .inventory-stock{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:46px;padding:8px 6px;border:1px solid #c4a66d;background:#efe1bf;color:#4b3519;border-radius:3px;box-sizing:border-box}
+.inventory-entry-row .inventory-stock .stock-number{font-size:18px;font-weight:800;line-height:1.1}
+.inventory-entry-row .inventory-stock .stock-unit{font-size:11px;color:#765727;margin-top:2px}
+.inventory-entry-row .inventory-stock.stock-low{border-color:#b66b4d;background:#f1d8c9}
+.inventory-entry-row .inventory-stock.stock-empty{border-color:#9b4d3e;background:#ead0c8;color:#6a281d}
+.inventory-entry-row .inventory-unit{background:#efe1bf!important}
+.inventory-entry-row .inventory-item-template:disabled{background:#efe1bf;color:#8a744f}
+.remove-item-btn{min-height:46px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
 .add-item-btn{margin-top:12px;padding:9px 14px;border:1px solid #a17a38;background:#f4e6c8;font-size:13px}
 .add-item-btn:hover,.remove-item-btn:hover{background:#ead5a6}
 .primary-action{width:100%;margin-top:24px;min-height:52px;padding:12px 18px;border:1px solid #7e5b24;background:#5c421d;color:#fff8e7;font-size:15px;font-weight:600;letter-spacing:1px;box-shadow:0 5px 14px #4b351926}
@@ -123,7 +131,7 @@
  .form-grid{grid-template-columns:1fr;gap:15px}
  .form-grid-span-2{grid-column:auto}
  .target-fields{grid-template-columns:1fr;gap:15px}
- .inventory-entry-row{grid-template-columns:minmax(0,1fr) 78px 62px auto;gap:6px}
+ .inventory-entry-row{grid-template-columns:1fr;gap:8px}
  .form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{font-size:13px;min-height:44px}
 }
 
@@ -199,7 +207,7 @@
         </div>
       </div>
       <div id="withdrawFields" class="conditional-fields" hidden>
-        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ • แสดงเฉพาะชื่อรายการ)</small></div>
+        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ)</small></div>
         <div id="withdrawRows" class="inventory-entry-list"></div>
         <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
       </div>
@@ -560,25 +568,34 @@ function rebuildWorkLogLookups(){
   }).join('');
   if(currentRecorder) rec.value=currentRecorder;
  }
- const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
-  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
- }).join('');
  // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
  document.querySelectorAll('.inventory-item-template').forEach(sel=>{
-   const current=sel.value;
    const row=sel.closest('.inventory-entry-row');
-   const qty=row?.querySelector('.inventory-qty')?.value || '';
-   sel.innerHTML=invOptions;
-   if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
-   const unitInput=row?.querySelector('.inventory-unit');
-   if(unitInput){
-     const opt=sel.options[sel.selectedIndex];
-     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
+   if(row?.querySelector('.inventory-category')){
+     // Withdrawal rows are filtered by the selected Category from INVENTORY.
+     const current=sel.value;
+     const category=row.querySelector('.inventory-category')?.value || '';
+     sel.innerHTML=inventoryOptionsHTML(category,true);
+     if(current && [...sel.options].some(o=>o.value===current)){
+       sel.value=current;
+     }
+     updateInventoryUnit(sel);
+   }else{
+     // Receive rows keep the existing all-item selector.
+     const current=sel.value;
+     const qty=row?.querySelector('.inventory-qty')?.value || '';
+     sel.innerHTML=inventoryOptionsHTML('');
+     if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+     const unitInput=row?.querySelector('.inventory-unit');
+     if(unitInput){
+       const opt=sel.options[sel.selectedIndex];
+       unitInput.value=opt?.dataset?.unit || unitInput.value || '';
+     }
+     const qtyInput=row?.querySelector('.inventory-qty');
+     if(qtyInput) qtyInput.value=qty;
    }
-   const qtyInput=row?.querySelector('.inventory-qty');
-   if(qtyInput) qtyInput.value=qty;
  });
+ refreshInventoryRowOptions();
  // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
  // Those functions intentionally change the form when the user changes Category/Work Type,
  // but must never run just because background data synchronization occurred.
@@ -662,10 +679,36 @@ function initWorkLogForm(){
  if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
  resetInventoryRows();
 }
-function inventoryOptionsHTML(){
- return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
-  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
-  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+function getInventoryCategory(item){
+ return getFirstValue(item,['Category','หมวดหมู่','ประเภท']) || '';
+}
+function inventoryCategories(){
+ const seen=new Set(); const out=[];
+ inventory.forEach(x=>{
+  const c=getInventoryCategory(x);
+  const key=c||'__EMPTY__';
+  if(!seen.has(key)){seen.add(key);out.push(c);}
+ });
+ return out;
+}
+function inventoryCategoryOptionsHTML(selected=''){
+ const cats=inventoryCategories();
+ return '<option value="">เลือกหมวดหมู่</option>'+cats.map(c=>{
+  const label=c||'ไม่ระบุหมวดหมู่';
+  return `<option value="${esc(c)}" ${String(c)===String(selected)?'selected':''}>${esc(label)}</option>`;
+ }).join('');
+}
+function inventoryOptionsHTML(category='', filterByCategory=false){
+ const filtered=filterByCategory
+  ? inventory.filter(x=>getInventoryCategory(x)===String(category))
+  : inventory;
+ const placeholder=filterByCategory ? (category?'เลือกรายการ':'เลือกหมวดหมู่ก่อน') : 'เลือกรายการ';
+ return '<option value="">'+placeholder+'</option>'+filtered.map(x=>{
+  const id=getFirstValue(x,['ID','Item ID']);
+  const name=getFirstValue(x,['รายการ','Name','Item']);
+  const unit=getFirstValue(x,['หน่วย','Unit']);
+  const qty=getFirstValue(x,['จำนวน','Quantity'])||'0';
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-stock="${esc(qty)}">${esc(name)}</option>`;
  }).join('');
 }
 function addInventoryRow(kind){
@@ -673,11 +716,76 @@ function addInventoryRow(kind){
  if(!list)return;
  const row=document.createElement('div'); row.className='inventory-entry-row';
  const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
- row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
- <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
- <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
- <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ if(kind==='withdraw'){
+  row.innerHTML=`
+   <label class="inventory-field"><span>หมวดหมู่</span><select class="inventory-category" data-kind="${kind}" onchange="updateInventoryCategory(this)">${inventoryCategoryOptionsHTML()}</select></label>
+   <label class="inventory-field"><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)" disabled>${inventoryOptionsHTML('',true)}</select></label>
+   <div class="inventory-field"><span>คงเหลือ</span><div class="inventory-stock"><span class="stock-number">—</span><span class="stock-unit"></span></div></div>
+   <label class="inventory-field"><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+   <label class="inventory-field"><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+   <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ }else{
+  row.innerHTML=`
+   <label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+   <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+   <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+   <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ }
  list.appendChild(row);
+}
+function updateInventoryCategory(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(!row)return;
+ const itemSelect=row.querySelector('.inventory-item-template');
+ if(!itemSelect)return;
+ const category=selectEl.value||'';
+ itemSelect.innerHTML=inventoryOptionsHTML(category,true);
+ itemSelect.disabled=!category;
+ const unit=row.querySelector('.inventory-unit');
+ if(unit)unit.value='';
+ const stock=row.querySelector('.inventory-stock');
+ if(stock){
+  stock.classList.remove('stock-low','stock-empty');
+  stock.querySelector('.stock-number').textContent='—';
+  stock.querySelector('.stock-unit').textContent='';
+ }
+}
+function updateInventoryUnit(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(!row)return;
+ const opt=selectEl.options[selectEl.selectedIndex];
+ const unit=row.querySelector('.inventory-unit');
+ if(unit)unit.value=opt?.dataset?.unit||'';
+ const stock=row.querySelector('.inventory-stock');
+ if(stock){
+  const n=toNumberClient(opt?.dataset?.stock||0);
+  const qty=row.querySelector('.inventory-qty');
+  const requested=toNumberClient(qty?.value||0);
+  const display=Number.isInteger(n)?String(n):n.toLocaleString('th-TH',{maximumFractionDigits:2});
+  stock.querySelector('.stock-number').textContent=opt?.value?display:'—';
+  stock.querySelector('.stock-unit').textContent=opt?.value?(opt?.dataset?.unit||''):'';
+  stock.classList.toggle('stock-empty',!!opt?.value && n<=0);
+  stock.classList.toggle('stock-low',!!opt?.value && n>0 && requested>n);
+ }
+}
+function refreshInventoryRowOptions(){
+ document.querySelectorAll('#withdrawRows .inventory-entry-row').forEach(row=>{
+  const cat=row.querySelector('.inventory-category');
+  const item=row.querySelector('.inventory-item-template');
+  if(!cat||!item)return;
+  const currentCategory=cat.value;
+  const currentItem=item.value;
+  cat.innerHTML=inventoryCategoryOptionsHTML(currentCategory);
+  const categoryStillExists=inventoryCategories().some(c=>String(c)===String(currentCategory));
+  if(!categoryStillExists){
+   cat.value='';
+   updateInventoryCategory(cat);
+   return;
+  }
+  updateInventoryCategory(cat);
+  const stillExists=[...item.options].some(o=>o.value===currentItem);
+  if(stillExists){item.value=currentItem;updateInventoryUnit(item);}
+ });
 }
 function ensureInventoryRow(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
@@ -693,15 +801,19 @@ function resetInventoryRows(){
  if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
  if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
 }
-function updateInventoryUnit(selectEl){
- const row=selectEl.closest('.inventory-entry-row');
- if(row)row.querySelector('.inventory-unit').value=selectEl.options[selectEl.selectedIndex]?.dataset?.unit||'';
-}
+document.addEventListener('input',ev=>{
+ if(ev.target?.classList?.contains('inventory-qty')){
+  const row=ev.target.closest('.inventory-entry-row');
+  const item=row?.querySelector('.inventory-item-template');
+  if(item)updateInventoryUnit(item);
+ }
+});
 function collectInventoryRows(kind){
  const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
  return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
   const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
-  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
+  const category=row.querySelector('.inventory-category')?.value||'';
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||'',category};
  }).filter(x=>x.id||x.qty);
 }
 function clearWorkPhoto(){
