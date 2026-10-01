@@ -71,8 +71,14 @@
 .work-history-meta>div{padding:9px 10px;border-top:1px solid #c4a66d}
 .work-history-meta small{display:block;margin-bottom:4px;font-size:10px;letter-spacing:.8px;color:#806333}
 .work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
-.work-history-stock{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.work-history-stock span{padding:5px 8px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
+.work-history-stock{display:flex;flex-direction:column;gap:7px;margin-top:12px;padding:10px 12px;border:1px solid #c4a66d;background:#f4e4bf}
+.work-history-stock-label{font-size:11px;font-weight:700;letter-spacing:.5px;color:#765727;margin-bottom:1px}
+.work-history-stock-list{display:flex;flex-direction:column;gap:5px}
+.work-history-stock-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 9px;background:#ead7ad;border:1px solid #c4a66d;font-size:12px;color:#5d421e}
+.work-history-stock-item .stock-item-name{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.work-history-stock-item .stock-item-qty{font-weight:700;white-space:nowrap}
+.work-history-stock-receive{margin-top:3px}
+.work-history-stock-receive .work-history-stock-item{background:#efe2c5}
 .work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
 .history-icon{font-size:28px;color:#a17a38}
 .work-history-empty h3{margin:8px 0 4px;font-size:20px}
@@ -404,8 +410,18 @@ function renderWorkHistory(rows, allowDelete=true){
   const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
   const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
   const stock=[];
-  if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
-  if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
+  if(withdrawal){
+   const names=String(withdrawal).split('\|').map(v=>v.trim()).filter(Boolean);
+   const qtys=String(withdrawQty||'').split('\|').map(v=>v.trim());
+   const items=names.map((name,idx)=>{
+    const qty=qtys[idx]!==undefined && qtys[idx]!=='' ? qtys[idx] : '';
+    return `<div class="work-history-stock-item"><span class="stock-item-name">${esc(name)}</span><span class="stock-item-qty">${qty?`เบิก ${esc(qty)} รายการ`:''}</span></div>`;
+   }).join('');
+   stock.push(`<div class="work-history-stock"><div class="work-history-stock-label">รายการที่เบิก</div><div class="work-history-stock-list">${items}</div></div>`);
+  }
+  if(receiveQty){
+   stock.push(`<div class="work-history-stock work-history-stock-receive"><div class="work-history-stock-label">รายการที่รับเข้า</div><div class="work-history-stock-list"><div class="work-history-stock-item"><span class="stock-item-name">${esc(receiveQty)}</span></div></div></div>`);
+  }
   const cancelled=status.toLowerCase()==='cancelled';
   const pendingDelete=deleteRequests.some(q=>String(getFirstValue(q,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(q,['Status'])||'').trim()==='PENDING');
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
