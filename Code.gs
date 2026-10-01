@@ -96,6 +96,25 @@ function doPost(e) {
   }
 }
 
+function formatMuggleDateForSheet_(value) {
+  const raw = String(value || '').trim();
+  let m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+      return String(d).padStart(2, '0') + '/' + String(mo).padStart(2, '0') + '/' + y;
+    }
+  }
+  m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) {
+    const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+      return String(d).padStart(2, '0') + '/' + String(mo).padStart(2, '0') + '/' + y;
+    }
+  }
+  return '';
+}
+
 function normalizeICTime_(value) {
   const raw = String(value || '').trim();
   let m = raw.match(/^(\d{1,2}):(\d{2})$/);
@@ -105,7 +124,6 @@ function normalizeICTime_(value) {
       return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
     }
   }
-
   m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (m) {
     let h = Number(m[1]), min = Number(m[2]);
@@ -117,27 +135,6 @@ function normalizeICTime_(value) {
     }
   }
   return '';
-}
-
-function parseMuggleDate_(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-
-  let m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (m) {
-    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
-    const dt = new Date(y, mo - 1, d);
-    if (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) return dt;
-  }
-
-  m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if (m) {
-    const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
-    const dt = new Date(y, mo - 1, d);
-    if (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) return dt;
-  }
-
-  return null;
 }
 
 function saveWorkLog_(data) {
@@ -164,9 +161,10 @@ function saveWorkLog_(data) {
 
     const workId = nextId_(workSheet, 'Work ID', 'W', 4);
     const now = new Date();
-    // ใช้วันที่ (มักเกิ้ล) ที่สมาชิกเลือกจากหน้า WORK LOG โดยตรง
-    // หากไม่มีวันที่ ให้ใช้วันที่ปัจจุบันเป็น fallback เท่านั้น
-    const dateValue = parseMuggleDate_(data.muggleDate) || new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // เก็บวันที่ที่สมาชิกเลือกเป็นข้อความ DD/MM/YYYY โดยตรง
+    // เพื่อไม่ให้ Google Sheets timezone เปลี่ยนวันที่ เช่น 10/01/2026 -> 30/09/2026
+    const dateValue = formatMuggleDateForSheet_(data.muggleDate);
+    if (!dateValue) throw new Error('วันที่ (มักเกิ้ล) ไม่ถูกต้อง');
     const withdrawals = normalizeItems_(data.withdrawals);
     const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
@@ -255,7 +253,7 @@ function saveWorkLog_(data) {
       inventorySheet.getRange(x.found.row, x.found.quantityCol).setValue(stock - x.qty);
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
-        txId, dateValue, time: data.icTime, type: 'เบิก', itemId: x.found.id,
+        txId, dateValue, time: icTimeValue, type: 'เบิก', itemId: x.found.id,
         name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
         note: data.workType
       });
@@ -268,7 +266,7 @@ function saveWorkLog_(data) {
       inventorySheet.getRange(x.found.row, x.found.quantityCol).setValue(stock + x.qty);
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
-        txId, dateValue, time: data.icTime, type: 'คืน', itemId: x.found.id,
+        txId, dateValue, time: icTimeValue, type: 'คืน', itemId: x.found.id,
         name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
         note: data.workType
       });
@@ -281,7 +279,7 @@ function saveWorkLog_(data) {
       inventorySheet.getRange(x.found.row, x.found.quantityCol).setValue(stock + x.qty);
       const txId = nextId_(inventoryLogSheet, 'Transaction ID', 'T', 5);
       appendInventoryLog_(inventoryLogSheet, inventoryLogHeaders, {
-        txId, dateValue, time: data.icTime, type: 'รับเข้า', itemId: x.found.id,
+        txId, dateValue, time: icTimeValue, type: 'รับเข้า', itemId: x.found.id,
         name: x.found.name, qty: x.qty, unit, workId, recorder: data.recorder,
         note: data.workType
       });
@@ -398,7 +396,7 @@ function validate_(data) {
   if (!data.photo || !data.photo.data) throw new Error('กรุณาแนบรูปการทำงาน');
   if (!data.muggleDate) throw new Error('กรุณาเลือกวันที่');
   if (!WIZARD_DAYS.includes(data.magicalDay)) throw new Error('วันผู้วิเศษไม่ถูกต้อง');
-  if (!data.icTime) throw new Error('กรุณาเลือกเวลา IC');
+  if (!normalizeICTime_(data.icTime)) throw new Error('กรุณาระบุเวลา (IC) แบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30');
 }
 
 function normalizeItems_(items) {
@@ -563,40 +561,158 @@ function rejectDeleteRequest_(data) {
   setCell_(row,rh,'Status','REJECTED'); setCell_(row,rh,'Reviewed At',new Date()); setCell_(row,rh,'Reviewed By','Admin'); setCell_(row,rh,'Admin Reason',reason);
   rs.getRange(rowNo,1,1,rh.length).setValues([row]); SpreadsheetApp.flush(); return {ok:true,requestId};
 }
+function parsePipeList_(value) {
+  return String(value || '').split('|').map(x => String(x).trim()).filter(Boolean);
+}
+
+function rollbackAmountAlreadyApplied_(logs, lh, workId, itemName, originalType) {
+  let total = 0;
+  const marker = 'ยกเลิก ' + workId + ' | ย้อนรายการ: ' + originalType;
+  for (const row of logs) {
+    if (String(valueByHeader_(row, lh, 'Work ID') || '').trim() !== workId) continue;
+    if (String(valueByHeader_(row, lh, 'รายการ') || '').trim() !== itemName) continue;
+    if (!String(valueByHeader_(row, lh, 'หมายเหตุ') || '').includes(marker)) continue;
+    total += toNumber_(valueByHeader_(row, lh, 'จำนวน'));
+  }
+  return total;
+}
+
 function cancelWorkLog_(data) {
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
-  const email='Password Admin';
-  const workId=String(data.workId||'').trim(), reason=String(data.reason||'').trim();
-  if(!workId) throw new Error('ไม่พบ Work ID'); if(!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
-  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+
+  const email = 'Password Admin';
+  const workId = String(data.workId || '').trim();
+  const reason = String(data.reason || '').trim();
+  if (!workId) throw new Error('ไม่พบ Work ID');
+  if (!reason) throw new Error('กรุณาระบุเหตุผลการยกเลิก');
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
   try {
-    const ss=SpreadsheetApp.openById(SPREADSHEET_ID), ws=ss.getSheetByName('WORK LOG'), inv=ss.getSheetByName('INVENTORY'), il=ss.getSheetByName('INVENTORY LOG');
-    if(!ws||!inv||!il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
-    let headers=ws.getRange(1,1,1,Math.max(ws.getLastColumn(),1)).getValues()[0].map(String);
-    const statusCol=ensureColumn_(ws,headers,'Status'), byCol=ensureColumn_(ws,headers,'Cancelled By'), atCol=ensureColumn_(ws,headers,'Cancelled At'), reasonCol=ensureColumn_(ws,headers,'Cancel Reason');
-    headers=ws.getRange(1,1,1,ws.getLastColumn()).getValues()[0].map(String);
-    const widCol=headers.indexOf('Work ID'), rows=ws.getLastRow()>1?ws.getRange(2,1,ws.getLastRow()-1,ws.getLastColumn()).getValues():[];
-    let rowNo=-1,row=null; for(let i=0;i<rows.length;i++){if(String(rows[i][widCol]||'').trim()===workId){rowNo=i+2;row=rows[i];break;}}
-    if(rowNo<0) throw new Error('ไม่พบ WORK ID: '+workId);
-    if(String(row[statusCol-1]||'').toLowerCase()==='cancelled') throw new Error('รายการนี้ถูกยกเลิกไปแล้ว');
-    const ih=inv.getRange(1,1,1,Math.max(inv.getLastColumn(),1)).getValues()[0].map(String), lh=il.getRange(1,1,1,Math.max(il.getLastColumn(),1)).getValues()[0].map(String);
-    const logs=il.getLastRow()>1?il.getRange(2,1,il.getLastRow()-1,il.getLastColumn()).getValues():[], reverted=[];
-    for(const lr of logs){
-      if(String(valueByHeader_(lr,lh,'Work ID')||'').trim()!==workId) continue;
-      const type=String(valueByHeader_(lr,lh,'ประเภท')||'').trim(), id=String(valueByHeader_(lr,lh,'Item ID')||'').trim(), name=String(valueByHeader_(lr,lh,'รายการ')||'').trim(), qty=toNumber_(valueByHeader_(lr,lh,'จำนวน'));
-      if(!(qty>0))continue; const found=findInventoryItem_(inv,ih,id,name); if(!found)throw new Error('ไม่พบรายการใน INVENTORY: '+name);
-      let newStock=toNumber_(found.quantity), rollback=''; if(type==='เบิก'){newStock+=qty;rollback='ปรับเพิ่ม';} else if(type==='รับเข้า'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: '+found.name);newStock-=qty;rollback='ปรับลด';} else if(type==='คืน'){if(newStock<qty)throw new Error('จำนวนในคลังไม่พอสำหรับย้อนการคืน: '+found.name);newStock-=qty;rollback='ปรับลด';} else continue;
-      inv.getRange(found.row,found.quantityCol).setValue(newStock);
-      const txId=nextId_(il,'Transaction ID','T',5);
-      const reverseOf=type==='เบิก'?'เบิก':type==='คืน'?'คืน':type==='รับเข้า'?'รับเข้า':type;
-      appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:qty,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | ย้อนรายการ: '+reverseOf+' | '+reason});
-      reverted.push({item:found.name,quantity:qty,unit:found.unit,type:rollback});
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ws = ss.getSheetByName('WORK LOG');
+    const inv = ss.getSheetByName('INVENTORY');
+    const il = ss.getSheetByName('INVENTORY LOG');
+    if (!ws || !inv || !il) throw new Error('ไม่พบแท็บฐานข้อมูลที่จำเป็น');
+
+    let headers = ws.getRange(1, 1, 1, Math.max(ws.getLastColumn(), 1)).getValues()[0].map(String);
+    const statusCol = ensureColumn_(ws, headers, 'Status');
+    const byCol = ensureColumn_(ws, headers, 'Cancelled By');
+    const atCol = ensureColumn_(ws, headers, 'Cancelled At');
+    const reasonCol = ensureColumn_(ws, headers, 'Cancel Reason');
+
+    headers = ws.getRange(1, 1, 1, ws.getLastColumn()).getValues()[0].map(String);
+    const widCol = headers.indexOf('Work ID');
+    const rows = ws.getLastRow() > 1
+      ? ws.getRange(2, 1, ws.getLastRow() - 1, ws.getLastColumn()).getValues()
+      : [];
+
+    let rowNo = -1, row = null;
+    for (let i = 0; i < rows.length; i++) {
+      if (String(rows[i][widCol] || '').trim() === workId) {
+        rowNo = i + 2;
+        row = rows[i];
+        break;
+      }
     }
-    // เก็บสำเนาไว้ใน DELETED WORK LOG ก่อนลบจริง เพื่อให้ ADMIN ยังดูประวัติย้อนหลังได้
-    const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
-    const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason','Delete Source','Delete Request ID']));
-    const deletedRow=blankRow_(deletedHeaders.length);
-    headers.forEach((h,i)=>{ if(i<row.length) deletedRow[i]=row[i]; });
+    if (rowNo < 0) throw new Error('ไม่พบ WORK ID: ' + workId);
+    if (String(row[statusCol - 1] || '').toLowerCase() === 'cancelled') {
+      throw new Error('รายการนี้ถูกยกเลิกไปแล้ว');
+    }
+
+    const ih = inv.getRange(1, 1, 1, Math.max(inv.getLastColumn(), 1)).getValues()[0].map(String);
+    const lh = il.getRange(1, 1, 1, Math.max(il.getLastColumn(), 1)).getValues()[0].map(String);
+    const logs = il.getLastRow() > 1
+      ? il.getRange(2, 1, il.getLastRow() - 1, il.getLastColumn()).getValues()
+      : [];
+
+    // สำคัญ: ใช้ "รายการ + จำนวน" ที่บันทึกไว้ใน WORK LOG เป็นแหล่งอ้างอิง
+    // ไม่ไล่ย้อนทุก INVENTORY LOG ของ Work ID เพราะอาจทำให้คืนเกินจริง
+    const category = String(valueByHeader_(row, headers, 'Category') || '').trim();
+    const withdrawNames = parsePipeList_(valueByHeader_(row, headers, 'เบิกคลังชมรม'));
+    const withdrawQtys = parsePipeList_(valueByHeader_(row, headers, 'จำนวนที่เบิก')).map(toNumber_);
+    const receiveNames = parsePipeList_(valueByHeader_(row, headers, 'จำนวนที่ได้รับ'));
+    const receiveQtys = receiveNames.map(toNumber_);
+
+    // "จำนวนที่ได้รับ" ไม่มีชื่อรายการใน WORK LOG รุ่นนี้ จึงใช้ WORK LOG ITEMS/INVENTORY LOG
+    // เฉพาะกรณีเก็บผลผลิต โดยจำกัดยอดตามจำนวนที่ได้รับของ WORK LOG
+    const reverted = [];
+
+    function applyRollback(itemName, expectedQty, originalType) {
+      if (!itemName || !(expectedQty > 0)) return;
+
+      const already = rollbackAmountAlreadyApplied_(logs, lh, workId, itemName, originalType);
+      const remaining = Math.max(0, expectedQty - already);
+      if (!(remaining > 0)) return;
+
+      const found = findInventoryItem_(inv, ih, '', itemName);
+      if (!found) throw new Error('ไม่พบรายการใน INVENTORY: ' + itemName);
+
+      const stock = toNumber_(found.quantity);
+      let newStock, rollbackType;
+      if (originalType === 'เบิก') {
+        newStock = stock + remaining;
+        rollbackType = 'ปรับเพิ่ม';
+      } else if (originalType === 'รับเข้า') {
+        if (stock < remaining) throw new Error('จำนวนในคลังไม่พอสำหรับย้อนผลผลิต: ' + found.name);
+        newStock = stock - remaining;
+        rollbackType = 'ปรับลด';
+      } else {
+        return;
+      }
+
+      inv.getRange(found.row, found.quantityCol).setValue(newStock);
+
+      const txId = nextId_(il, 'Transaction ID', 'T', 5);
+      appendInventoryLog_(il, lh, {
+        txId,
+        dateValue: formatMuggleDateForSheet_(valueByHeader_(row, headers, 'วันที่ (มักเกิ้ล)')) || new Date(),
+        time: normalizeICTime_(valueByHeader_(row, headers, 'เวลา (IC)')) || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'HH:mm'),
+        type: rollbackType,
+        itemId: found.id,
+        name: found.name,
+        qty: remaining,
+        unit: found.unit,
+        workId,
+        recorder: email,
+        note: 'ยกเลิก ' + workId + ' | ย้อนรายการ: ' + originalType + ' | ' + reason
+      });
+
+      reverted.push({
+        item: found.name,
+        quantity: remaining,
+        unit: found.unit,
+        type: rollbackType
+      });
+    }
+
+    if (category === 'งานทั่วไป') {
+      for (let i = 0; i < withdrawNames.length; i++) {
+        applyRollback(withdrawNames[i], withdrawQtys[i] || 0, 'เบิก');
+      }
+    } else if (category === 'เก็บผลผลิต') {
+      // สำหรับรับผลผลิต ให้หา "ชื่อรายการ" จาก INVENTORY LOG ของ Work ID
+      // แล้วจำกัดยอดที่ย้อนตามธุรกรรมรับเข้าจริงของ Work ID นั้น
+      const receiveByItem = {};
+      for (const lr of logs) {
+        if (String(valueByHeader_(lr, lh, 'Work ID') || '').trim() !== workId) continue;
+        if (String(valueByHeader_(lr, lh, 'ประเภท') || '').trim() !== 'รับเข้า') continue;
+        const name = String(valueByHeader_(lr, lh, 'รายการ') || '').trim();
+        const qty = toNumber_(valueByHeader_(lr, lh, 'จำนวน'));
+        if (name && qty > 0) receiveByItem[name] = (receiveByItem[name] || 0) + qty;
+      }
+      Object.keys(receiveByItem).forEach(name => applyRollback(name, receiveByItem[name], 'รับเข้า'));
+    }
+
+    // เก็บสำเนา WORK LOG เดิมก่อนลบจริง
+    const deletedSheet = getOrCreateSheet_(ss, 'DELETED WORK LOG');
+    const deletedHeaders = ensureHeaders_(
+      deletedSheet,
+      headers.concat(['Deleted At', 'Deleted By', 'Delete Reason', 'Delete Source', 'Delete Request ID'])
+    );
+    const deletedRow = blankRow_(deletedHeaders.length);
+    headers.forEach((h, i) => { if (i < row.length) deletedRow[i] = row[i]; });
     setCell_(deletedRow, deletedHeaders, 'Deleted At', new Date());
     setCell_(deletedRow, deletedHeaders, 'Deleted By', email);
     setCell_(deletedRow, deletedHeaders, 'Delete Reason', reason);
@@ -604,8 +720,11 @@ function cancelWorkLog_(data) {
     setCell_(deletedRow, deletedHeaders, 'Delete Request ID', data.requestId || '');
     deletedSheet.appendRow(deletedRow);
 
-    // ลบรายการ WORK LOG ออกจากฐานข้อมูลจริง หลังย้อนรายการคลังและเก็บประวัติแล้ว
-    ws.deleteRow(rowNo); SpreadsheetApp.flush();
-    return {ok:true,workId:workId,deleted:true,cancelledBy:email,reverted:reverted};
-  } finally { lock.releaseLock(); }
+    ws.deleteRow(rowNo);
+    SpreadsheetApp.flush();
+
+    return { ok: true, workId, deleted: true, cancelledBy: email, reverted };
+  } finally {
+    lock.releaseLock();
+  }
 }

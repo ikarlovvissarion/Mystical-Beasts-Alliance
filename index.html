@@ -183,10 +183,10 @@
     <div class="section-title">✦ บันทึกการทำงาน ✦</div>
     <form id="workLogForm" onsubmit="submitWorkLog(event)">
       <div class="form-grid">
-        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required></label>
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" required></label>
         <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
         <label><span>เวลา (IC)</span><input id="wlTime" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="00:00" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeICTimeInput(this)" required></label>
-        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>หมวดหมู่การทำงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">โปรดเลือกรายการนี้ก่อนประเภทการทำงาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
         <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
         <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
         <div id="targetFields" class="target-fields form-grid-span-2">
@@ -631,35 +631,29 @@ function localTime24(d=new Date()){
 }
 function normalizeICTimeInput(input){
  const raw=String(input.value||'').replace(/[^0-9]/g,'').slice(0,4);
- if(raw.length<=2){
-   input.value=raw;
-   return;
- }
- input.value=raw.slice(0,2)+':'+raw.slice(2,4);
+ input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
 }
 function normalizeICTimeValue(value){
  const raw=String(value||'').trim();
- const m24=raw.match(/^(\d{1,2}):(\d{2})$/);
- if(m24){
-   const h=Number(m24[1]),m=Number(m24[2]);
-   if(h>=0&&h<=23&&m>=0&&m<=59)return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+ let m=raw.match(/^(\d{1,2}):(\d{2})$/);
+ if(m){
+   const h=Number(m[1]),min=Number(m[2]);
+   if(h>=0&&h<=23&&min>=0&&min<=59)return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
  }
- const mampm=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
- if(mampm){
-   let h=Number(mampm[1]),m=Number(mampm[2]);
-   if(h>=1&&h<=12&&m>=0&&m<=59){
-     const ap=mampm[3].toUpperCase();
-     if(ap==='AM'&&h===12)h=0;
-     if(ap==='PM'&&h!==12)h+=12;
-     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+ m=raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+ if(m){
+   let h=Number(m[1]),min=Number(m[2]);
+   if(h>=1&&h<=12&&min>=0&&min<=59){
+     if(m[3].toUpperCase()==='AM'&&h===12)h=0;
+     if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;
+     return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
    }
  }
- return raw;
+ return '';
 }
 function formatICTime(value){
- const normalized=normalizeICTimeValue(value);
- if(/^\d{2}:\d{2}$/.test(normalized))return normalized+' น.';
- return String(value||'-').trim()||'-';
+ const t=normalizeICTimeValue(value);
+ return /^\d{2}:\d{2}$/.test(t)?t+' น.':(String(value||'-').trim()||'-');
 }
 function initWorkLogForm(){
  const d=document.getElementById('wlDate'); if(d && !d.value)d.value=localDateISO();
@@ -758,13 +752,23 @@ async function submitWorkLog(ev){
  const icTime=normalizeICTimeValue(document.getElementById('wlTime').value);
  const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
  const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(!cat){
+   status.textContent='กรุณาเลือกหมวดหมู่การทำงานก่อนประเภทการทำงาน';
+   status.className='form-status error';
+   return;
+ }
+ if(!wt){
+   status.textContent='กรุณาเลือกประเภทการทำงาน';
+   status.className='form-status error';
+   return;
+ }
  if(!muggleDate){
    status.textContent='กรุณาเลือกวันที่ (มักเกิ้ล)';
    status.className='form-status error';
    return;
  }
  if(!/^\d{2}:\d{2}$/.test(icTime)){
-   status.textContent='กรุณาระบุเวลา (IC) เป็นรูปแบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
+   status.textContent='กรุณาระบุเวลา (IC) แบบ 24 ชั่วโมง เช่น 09:05 หรือ 21:30';
    status.className='form-status error';
    return;
  }
