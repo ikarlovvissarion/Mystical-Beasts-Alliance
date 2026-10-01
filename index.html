@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mystical Beasts Alliance — Central Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261001">
+<style id="embedded-styles">
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Prompt,sans-serif;color:#4b3519;background:#ead9b5;background-image:radial-gradient(circle at 20% 20%,#fff6 0 8%,transparent 30%),radial-gradient(circle at 80% 70%,#643f1414 0 8%,transparent 35%)}button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}.topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:14px 5vw;background:#f4e7c9f2;border-bottom:1px solid #9c712c;box-shadow:0 2px 14px #442a0c29}.brand{display:flex;gap:10px;align-items:center;text-align:left}.brand b{display:block;font-size:13px;letter-spacing:1.2px}.brand small{display:block;font-size:9px;letter-spacing:2px}.seal{display:grid;place-items:center;width:38px;height:38px;border:1px solid #9c712c;border-radius:50%;font-size:18px}nav{display:flex;gap:20px}nav button{font-size:11px;letter-spacing:1.2px}main{max-width:1000px;margin:auto;padding:0 22px 60px}.page{display:none}.page.active{display:block}.hero{text-align:center;padding:75px 10px 45px}.ornament{letter-spacing:5px;color:#a97920;margin-bottom:18px}.eyebrow{font-size:10px;letter-spacing:2px;margin:0 0 8px;color:#8a652a}.hero h1{font-size:clamp(38px,8vw,72px);line-height:.95;margin:0;font-weight:500;letter-spacing:-2px}.hero h1 em{font-weight:300}.intro{margin-top:22px}.summary-grid,.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:700px;margin:auto}.summary-card{padding:28px 15px;border:1px solid #a17a38;background:#f8edd3a8;box-shadow:inset 0 0 0 5px #a77e3714,0 8px 20px #4b351919}.summary-card b{display:block;font-size:30px;font-weight:500}.summary-card small{letter-spacing:2px;font-size:10px}.card-icon{font-size:30px}.section-title{text-align:center;margin:55px 0 20px;font-size:11px;letter-spacing:3px}.quick-grid button{padding:20px;border:1px solid #7e5b2480;background:#fff8e473;display:flex;justify-content:center;gap:10px}.page-heading{display:flex;justify-content:space-between;align-items:end;padding:50px 0 25px;border-bottom:1px solid #a17a38;margin-bottom:24px}.page-heading h2{font-size:34px;font-weight:500;margin:0}.count-badge{border:1px solid #a17a38;border-radius:50%;min-width:38px;height:38px;display:grid;place-items:center}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.creature-card{text-align:left;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;overflow:hidden;transition:.2s}.creature-card:hover{transform:translateY(-4px)}.card-image{aspect-ratio:1/1;background:#d8c49b;overflow:hidden}.card-image img,.modal-image img{width:100%;height:100%;object-fit:cover}.placeholder{width:100%;height:100%;display:grid;place-items:center;font-size:58px;background:linear-gradient(135deg,#d9c69e,#eee1c1)}.card-body{padding:17px}.tag{display:inline-block;font-size:13px;line-height:1;font-weight:700;letter-spacing:1.8px;color:#4b3519;background:#ead7ad;border:1px solid #a17a38;padding:7px 11px;border-radius:3px;box-shadow:inset 0 0 0 1px #fff4,0 2px 5px #4b351918}.card-body h3{font-size:21px;margin:3px 0 0;font-weight:500}.card-body p{font-size:11px;margin:2px 0 12px}.status{font-size:10px;letter-spacing:.7px;color:#617447}.modal{position:fixed;inset:0;background:#26190a94;z-index:20;display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modal-card{position:relative;width:min(640px,100%);height:min(94vh,900px);max-height:94vh;overflow:auto;background:#f3e5c6;border:1px solid #a17a38;padding:24px;box-shadow:0 20px 60px #0005}.close{position:absolute;right:12px;top:8px;font-size:30px}.modal-image{aspect-ratio:1/1;height:auto;background:#d8c49b;margin-bottom:22px;overflow:hidden}.modal-id{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;color:#6f4c1b}.modal-id-label{font-size:12px;letter-spacing:2.5px;font-weight:800;color:#8a652a}.modal-id strong{font-size:34px;line-height:1;letter-spacing:2.5px;font-weight:800;color:#3f2a12;text-shadow:0 1px 0 #fff6}.modal-species{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.75;margin-left:2px}.modal-card h2{font-size:42px;margin:0 0 20px;font-weight:500}.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid #c4a66d;border-left:1px solid #c4a66d}.detail-grid div{padding:13px;border-right:1px solid #c4a66d;border-bottom:1px solid #c4a66d}.detail-grid small,.detail-grid b{display:block}.detail-grid small{font-size:8px;letter-spacing:1.5px;color:#927026}.detail-grid b{font-size:13px;margin-top:2px}.description{font-size:13px;line-height:1.8;margin-top:22px}@media(max-width:700px){.topbar{padding:12px 16px}.brand b{font-size:10px}.brand small{font-size:7px}nav{gap:9px}nav button{font-size:8px}.hero{padding:50px 5px 32px}.summary-grid,.quick-grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr);gap:12px}.card-body{padding:12px}.tag{font-size:12px;padding:6px 9px}.card-body h3{font-size:17px}.page-heading h2{font-size:27px}.modal-image{height:260px}.modal-card{height:94vh;max-height:94vh}.modal-id strong{font-size:29px}}@media(max-width:420px){.cards{grid-template-columns:1fr}}
+/* Beast category sections */
+.category-section{margin:34px 0 58px}.category-heading{position:relative;display:flex;align-items:center;gap:18px;padding:18px 8px 20px;margin-bottom:24px;border-top:1px solid #a17a38;border-bottom:1px solid #a17a38;background:linear-gradient(90deg,transparent,#f8edd366 18%,#f8edd366 82%,transparent)}.category-heading:before,.category-heading:after{content:"✦";position:absolute;top:-9px;font-size:12px;color:#a17a38;background:#ead9b5;padding:0 8px}.category-heading:before{left:16%}.category-heading:after{right:16%}.category-mark{width:62px;height:62px;flex:0 0 62px;display:grid;place-items:center;border:1px solid #a17a38;border-radius:50%;background:#f8edd3;box-shadow:inset 0 0 0 5px #a77e3714,0 4px 12px #4b351919}.category-mark span{font-size:27px;font-weight:600;letter-spacing:1px}.category-title{flex:1}.category-title h3{margin:0;font-size:clamp(21px,3vw,30px);font-weight:500;line-height:1.2}.category-title p{margin:4px 0 0;font-size:11px;letter-spacing:3px;color:#8a652a}.category-count{min-width:38px;height:38px;padding:0 10px;display:grid;place-items:center;border:1px solid #a17a38;border-radius:50%;font-size:12px;background:#f8edd3}.category-section .cards{margin:0}.category-section:first-child{margin-top:28px}@media(max-width:700px){.category-heading{gap:12px;padding:15px 4px 17px}.category-mark{width:52px;height:52px;flex-basis:52px}.category-mark span{font-size:22px}.category-title h3{font-size:20px}.category-title p{font-size:9px;letter-spacing:2px}.category-count{min-width:34px;height:34px}}
+
+/* ===== INVENTORY — LARGE ARCHIVE VIEW ===== */
+#inventory .page-heading{align-items:center}
+#inventoryGrid{width:100%}
+#inventoryGrid .inventory-large-list{display:flex;flex-direction:column;gap:14px;width:100%}
+#inventoryGrid .inventory-large-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) minmax(90px,140px);align-items:center;min-height:92px;padding:18px 24px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;position:relative}
+#inventoryGrid .inventory-large-row:before{content:"✦";position:absolute;left:8px;color:#a17a38;font-size:12px}
+#inventoryGrid .inventory-large-name{font-size:25px;font-weight:500;line-height:1.25;padding-left:10px}
+#inventoryGrid .inventory-large-qty{font-size:38px;font-weight:800;line-height:1;text-align:center;letter-spacing:.3px}
+#inventoryGrid .inventory-large-unit{font-size:22px;font-weight:500;text-align:center;line-height:1.2}
+#inventoryGrid .inventory-large-empty{text-align:center;padding:44px 20px;border:1px solid #a17a38;background:#f8edd3b8;font-size:17px}
+
+/* ===== LAST UPDATED — CENTERED ===== */
+.sync-info{display:block;width:100%;text-align:center;font-style:normal;font-size:13px;line-height:1.5;letter-spacing:.15px;color:#795b2b;margin:22px auto 0;padding:8px 12px}
+
+@media(max-width:700px){
+ #inventoryGrid .inventory-large-row{grid-template-columns:minmax(0,1fr) 100px 70px;min-height:82px;padding:15px 14px}
+ #inventoryGrid .inventory-large-name{font-size:20px;padding-left:7px}
+ #inventoryGrid .inventory-large-qty{font-size:31px}
+ #inventoryGrid .inventory-large-unit{font-size:17px}
+ .sync-info{font-size:12px}
+}
+@media(max-width:420px){
+ #inventoryGrid .inventory-large-row{grid-template-columns:minmax(0,1fr) 82px 58px;padding:13px 10px;gap:4px}
+ #inventoryGrid .inventory-large-name{font-size:18px}
+ #inventoryGrid .inventory-large-qty{font-size:27px}
+ #inventoryGrid .inventory-large-unit{font-size:15px}
+}
+
+
+/* ===== WORK LOG PHOTO + HISTORY ===== */
+.work-photo-field{margin-top:2px}
+.work-photo-field label{display:flex;flex-direction:column;gap:7px}
+.work-photo-field label>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e}
+.work-photo-field label>span small{font-weight:400;color:#85672f}
+.work-photo-field input[type=file]{padding:10px;background:#fff9e9;border:1px dashed #a17a38;cursor:pointer}
+.work-photo-preview{margin-top:10px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.work-photo-preview img{width:180px;height:120px;object-fit:cover;border:1px solid #a17a38;background:#efe1bf}
+.work-photo-preview button{min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#4b3519}
+.work-history{margin-top:6px}
+.history-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:0 0 14px;padding:4px 2px 12px;border-bottom:1px solid #a17a38}
+.history-heading .eyebrow{margin:0 0 4px;font-size:10px;letter-spacing:2px;color:#765727}
+.history-heading h3{margin:0;font-size:24px;font-weight:600}
+.history-count{font-size:13px;color:#765727}
+.history-list{display:flex;flex-direction:column;gap:14px}
+.work-history-card{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;padding:16px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 7px 18px #4b351914}
+.work-history-photo{position:relative;display:block;width:180px;height:135px;border:1px solid #a17a38;background:#ead7ad;overflow:hidden;text-decoration:none}
+.work-history-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.work-history-photo span{position:absolute;right:6px;bottom:6px;padding:4px 7px;background:#4b351dcc;color:#fff8e7;font-size:10px}
+.work-history-photo.empty-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8b6b32}
+.work-history-photo.empty-photo span{position:static;background:none;color:#8b6b32;font-size:28px}
+.work-history-photo.empty-photo small{font-size:11px}
+.work-history-main{min-width:0}
+.work-history-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.work-id,.work-category{padding:4px 8px;border:1px solid #b28b4b;background:#f1dfb9;font-size:11px;color:#5d421e}
+.work-date{margin-left:auto;font-size:12px;color:#765727}
+.work-history-main h4{margin:0 0 14px;font-size:21px;font-weight:600;color:#3e2c16}
+.work-history-meta{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:12px}
+.work-history-meta>div{padding:9px 10px;border-top:1px solid #c4a66d}
+.work-history-meta small{display:block;margin-bottom:4px;font-size:10px;letter-spacing:.8px;color:#806333}
+.work-history-meta b{display:block;font-size:13px;font-weight:500;white-space:normal;line-height:1.4}
+.work-history-stock{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.work-history-stock span{padding:5px 8px;background:#ead7ad;border:1px solid #c4a66d;font-size:11px;color:#5d421e}
+.work-history-empty{padding:50px 20px;text-align:center;border:1px solid #a17a38;background:#f8edd3b8}
+.history-icon{font-size:28px;color:#a17a38}
+.work-history-empty h3{margin:8px 0 4px;font-size:20px}
+.work-history-empty p{margin:0;color:#765727;font-size:13px}
+@media(max-width:700px){
+ .work-history-card{grid-template-columns:1fr;gap:12px}
+ .work-history-photo{width:100%;height:190px}
+ .work-date{margin-left:0;width:100%}
+ .work-history-meta{grid-template-columns:1fr}
+ .history-heading h3{font-size:20px}
+}
+
+/* ===== WORK LOG — ARCHIVE FORM ===== */
+.worklog-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+.worklog-form-card{border:1px solid #a17a38;background:#f8edd3b8;box-shadow:inset 0 0 0 5px #a77e3714,0 10px 28px #4b35191c;padding:28px 30px 30px}
+.worklog-form-card .section-title{margin:0 0 24px;padding-bottom:14px;border-bottom:1px solid #c4a66d;font-size:14px;letter-spacing:2.5px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.form-grid>label,.target-fields>label{display:flex;flex-direction:column;gap:7px;min-width:0}
+.form-grid label>span,.target-fields label>span{font-size:13px;font-weight:600;letter-spacing:.4px;color:#5d421e}
+.form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{width:100%;min-height:46px;padding:9px 12px;border:1px solid #a17a38;background:#fff9e9;color:#4b3519;border-radius:3px;font:inherit;font-size:14px;outline:none}
+.form-grid input:focus,.form-grid select:focus,.inventory-entry-row select:focus,.inventory-entry-row input:focus{border-color:#6e4b16;box-shadow:0 0 0 3px #a17a3820}
+.form-grid input[readonly]{background:#efe1bf}
+.form-grid-span-2{grid-column:1/-1}
+.target-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+[hidden]{display:none!important}
+.conditional-fields{margin-top:22px;padding:18px;border:1px dashed #a17a38;background:#fff8e44d}
+.field-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#5d421e}
+.field-title small{font-size:11px;font-weight:400;color:#85672f}
+.inventory-entry-list{display:flex;flex-direction:column;gap:10px}
+.inventory-entry-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 90px auto;gap:10px;align-items:center}
+.inventory-entry-row .entry-unit{font-size:13px;text-align:center;color:#765727;font-weight:500}
+.remove-item-btn{min-height:44px;padding:0 12px;border:1px solid #a17a38;background:#f1dfb9;font-size:18px}
+.add-item-btn{margin-top:12px;padding:9px 14px;border:1px solid #a17a38;background:#f4e6c8;font-size:13px}
+.add-item-btn:hover,.remove-item-btn:hover{background:#ead5a6}
+.primary-action{width:100%;margin-top:24px;min-height:52px;padding:12px 18px;border:1px solid #7e5b24;background:#5c421d;color:#fff8e7;font-size:15px;font-weight:600;letter-spacing:1px;box-shadow:0 5px 14px #4b351926}
+.primary-action:disabled{opacity:.55;cursor:wait}
+.form-status{min-height:24px;margin-top:14px;text-align:center;font-size:13px}
+.form-status.success{color:#4f6d36}.form-status.error{color:#9a3e2b}
+.table-wrap{width:100%;overflow-x:auto}
+#workLogGrid{margin-top:4px}
+#workLogGrid table{width:100%;min-width:900px;border-collapse:collapse;background:#f8edd3b8;border:1px solid #a17a38}
+#workLogGrid th,#workLogGrid td{padding:12px 10px;border-right:1px solid #c4a66d;border-bottom:1px solid #c4a66d;text-align:left;font-size:12px;white-space:nowrap}
+#workLogGrid th{background:#ead7ad;font-size:11px;letter-spacing:.7px}
+#workLogGrid tr:last-child td{border-bottom:0}
+#workLogGrid th:last-child,#workLogGrid td:last-child{border-right:0}
+@media(max-width:700px){
+ .worklog-form-card{padding:20px 16px 22px}
+ .form-grid{grid-template-columns:1fr;gap:15px}
+ .form-grid-span-2{grid-column:auto}
+ .target-fields{grid-template-columns:1fr;gap:15px}
+ .inventory-entry-row{grid-template-columns:minmax(0,1fr) 78px 62px auto;gap:6px}
+ .form-grid input,.form-grid select,.inventory-entry-row select,.inventory-entry-row input{font-size:13px;min-height:44px}
+}
+
+
+.admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}.admin-inventory-status{margin-top:22px}.admin-inventory-status h4,.admin-deleted-title{margin:0 0 12px;font-size:16px;font-weight:500}.admin-deleted{margin-top:28px;padding-top:22px;border-top:1px solid #c4a66d}.admin-empty{padding:24px;border:1px solid #c4a66d;background:#fff8e44d;text-align:center;font-size:13px}
+.delete-request-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#fff8e4;color:#6a281d;font-weight:600;cursor:pointer}.delete-request-btn:hover{background:#f0dfbb}.delete-request-pending{margin-top:12px;padding:9px 11px;border-left:3px solid #a17a38;background:#f4e6c7;color:#684d1e;font-size:12px}.admin-request-list{display:grid;gap:12px}.admin-request-card{padding:16px;border:1px solid #c4a66d;background:#fff8e44d}.admin-request-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.admin-request-id{font-weight:700}.admin-request-status{padding:3px 8px;border:1px solid #a17a38;background:#f1dfb9;font-size:10px;font-weight:700}.admin-request-card h4{margin:5px 0 8px;font-size:17px}.admin-request-card p{margin:5px 0;font-size:13px;line-height:1.6}.admin-request-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.admin-request-meta div{padding:8px;border:1px solid #d4bc8a;background:#fffdf5}.admin-request-meta small{display:block;font-size:10px;color:#7a6745}.admin-request-meta b{display:block;margin-top:3px;font-size:12px}.admin-approve-btn{margin-top:12px;padding:9px 14px;border:1px solid #7b6330;background:#e7d29e;color:#4f3a17;font-weight:700;cursor:pointer}.admin-approve-btn:hover{background:#dbc183}@media(max-width:700px){.admin-request-meta{grid-template-columns:1fr}.admin-request-card{padding:13px}}
+
+.admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+<button class="brand" onclick="showPage('home')"><span class="seal">✦</span><span><b>MYSTICAL BEASTS ALLIANCE</b><small>ALLIANCE DATABASE</small></span></button>
+<nav>
+<button onclick="showPage('home')">HOME</button>
+<button onclick="showPage('beasts')">BEASTS</button>
+<button onclick="showPage('garden')">GARDEN PLOT</button>
+<button onclick="showPage('worklog')">WORK LOG</button>
+<button onclick="showPage('inventory')">INVENTORY</button>
+<button onclick="openAdmin()">ADMIN</button>
+</nav>
+</header>
+
+<main>
+<section id="home" class="page active">
+<div class="hero"><div class="ornament">✦ ───────── ✦</div><p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p>
+<h1>Mystical Beasts<br><em>Alliance</em></h1>
+<p>ฐานข้อมูลกลางสำหรับสัตว์วิเศษ พืช งานของชมรม และคลังชมรม</p></div>
+<div class="summary-grid summary-grid-3">
+<button class="summary-card" onclick="showPage('beasts')">🐾<b id="creatureCount">0</b><small>BEASTS</small></button>
+<button class="summary-card" onclick="showPage('garden')">🌿<b id="plantCount">0</b><small>GARDEN PLOT</small></button>
+<button class="summary-card" onclick="showPage('inventory')">📦<b id="inventoryCount">0</b><small>INVENTORY ITEMS</small></button>
+</div>
+<div class="section-title">✦ QUICK ACCESS ✦</div>
+<div class="quick-grid quick-grid-4">
+<button onclick="showPage('beasts')">🐾 <span>ดูสัตว์วิเศษ</span></button>
+<button onclick="showPage('garden')">🌿 <span>ดูพืชในแปลง</span></button>
+<button onclick="showPage('worklog')">📜 <span>บันทึก WORK LOG</span></button>
+<button onclick="showPage('inventory')">📦 <span>ดูคลังชมรม</span></button>
+</div>
+<div id="syncInfo" class="sync-info">กำลังเชื่อมต่อฐานข้อมูล…</div>
+</section>
+
+<section id="beasts" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Beasts</h2></div><span id="creatureTotal" class="count-badge">0</span></div>
+<div id="creatureGrid"></div>
+</section>
+
+<section id="garden" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Garden Plot</h2></div><span id="plantTotal" class="count-badge">0</span></div>
+<div id="plantGrid" class="cards"></div>
+</section>
+
+<section id="worklog" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Work Log</h2></div><span id="workTotal" class="count-badge">0</span></div>
+<div class="worklog-layout">
+  <div class="worklog-form-card">
+    <div class="section-title">✦ บันทึกการทำงาน ✦</div>
+    <form id="workLogForm" onsubmit="submitWorkLog(event)">
+      <div class="form-grid">
+        <label><span>วันที่ (มักเกิ้ล)</span><input id="wlDate" type="date" lang="en-GB" required readonly></label>
+        <label><span>วันผู้วิเศษ</span><select id="wlMagicalDay" required></select></label>
+        <label><span>เวลา (IC)</span><input id="wlTime" type="time" lang="en-GB" step="60" required></label>
+        <label><span>ประเภทงาน</span><select id="wlCategory" required onchange="updateWorkTypeFields()"><option value="">เลือกหมวดหมู่งาน</option><option>งานทั่วไป</option><option>เก็บผลผลิต</option></select></label>
+        <label><span>ประเภทการทำงาน</span><select id="wlWorkType" required onchange="updateWorkTypeFields()"><option value="">เลือกประเภทงาน</option></select></label>
+        <label><span>ผู้ลงบันทึก</span><select id="wlRecorder" required><option value="">กำลังโหลดสมาชิก…</option></select></label>
+        <div id="targetFields" class="target-fields form-grid-span-2">
+          <label><span>สัตว์วิเศษ/พืชผัก</span><select id="wlTargetId" onchange="updateTargetName()"><option value="">เลือกสัตว์วิเศษ/พืชผัก</option></select></label>
+          <label><span>ชื่อสัตว์วิเศษ/พืชผัก</span><input id="wlTargetName" type="text" readonly></label>
+        </div>
+        <div class="work-photo-field form-grid-span-2">
+          <label><span>รูปการทำงาน <small>(จำเป็น • JPG / PNG / WEBP)</small></span><input id="wlPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewWorkPhoto(event)" required></label>
+          <div id="workPhotoPreview" class="work-photo-preview" hidden></div>
+        </div>
+      </div>
+      <div id="withdrawFields" class="conditional-fields" hidden>
+        <div class="field-title">เบิกคลังชมรม <small>(ไม่บังคับ • เพิ่มได้หลายรายการ • แสดงเฉพาะชื่อรายการ)</small></div>
+        <div id="withdrawRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('withdraw')">＋ เพิ่มรายการที่เบิก</button>
+      </div>
+      <div id="receiveFields" class="conditional-fields" hidden>
+        <div class="field-title">รับผลผลิตเข้าคลัง <small>(เพิ่มได้หลายรายการ)</small></div>
+        <div id="receiveRows" class="inventory-entry-list"></div>
+        <button type="button" class="add-item-btn" onclick="addInventoryRow('receive')">＋ เพิ่มรายการที่รับเข้า</button>
+      </div>
+      <div id="workLogStatus" class="form-status" role="status"></div>
+      <button class="primary-action" type="submit" id="workLogSubmit">บันทึก WORK LOG</button>
+    </form>
+  </div>
+  <div id="workLogGrid" class="table-wrap"></div>
+</div>
+</section>
+
+<section id="admin" class="page">
+<div class="page-heading"><div><p class="eyebrow">CONTROL ARCHIVE</p><h2>Admin</h2></div><span class="count-badge">✦</span></div>
+<div class="admin-page-card">
+  <h3>ผู้ดูแลระบบ</h3>
+  <p>ภาพรวม WORK LOG, INVENTORY และประวัติรายการที่ลบออกจากระบบ</p>
+  <div class="admin-summary-grid">
+    <div class="admin-summary-box"><b id="adminWorkCount">0</b><small>WORK LOG</small></div>
+    <div class="admin-summary-box"><b id="adminInventoryCount">0</b><small>INVENTORY ITEMS</small></div>
+    <div class="admin-summary-box"><b id="adminDeletedCount">0</b><small>ลบแล้ว</small></div>
+  </div>
+  <div class="admin-actions" style="margin-top:18px">
+    <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
+    <button class="admin-action-btn" type="button" onclick="showPage('inventory')">📦 ดูคลังชมรม</button>
+  </div>
+  <div class="admin-deleted" style="margin-top:22px;padding-top:22px;border-top:1px solid #c4a66d">
+    <h4 class="admin-deleted-title">🔔 คำขอลบ WORK LOG <span id="adminRequestBadge" class="admin-request-status">0</span></h4>
+    <div id="adminDeletionRequests"></div>
+  </div>
+  <div class="admin-deleted">
+    <h4 class="admin-deleted-title">ประวัติรายการที่ลบ</h4>
+    <div id="adminDeletedHistory"></div>
+  </div>
+</div>
+</section>
+
+<section id="inventory" class="page">
+<div class="page-heading"><div><p class="eyebrow">CENTRAL ARCHIVE</p><h2>Inventory</h2></div><span id="inventoryTotal" class="count-badge">0</span></div>
+<div id="inventoryGrid" class="table-wrap"></div>
+</section>
+</main>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal-card"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div>
+</div>
+
+<script>
+/* ============================================================
+   MYSTICAL BEASTS ALLIANCE — CURRENT DATA CONFIG
+   Google Sheet ID supplied for the current database.
+   The app reads each tab through Google Sheets gviz CSV.
+   If a tab is unavailable, that section simply shows no data.
+   ============================================================ */
+const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
+const SYNC_MS=15000;
+// หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
+const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
+// Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
+const ADMIN_PASSWORD="Meduza2014";
+let isGoogleAdmin=false;
+
+const FALLBACK_BEASTS = [
+{"ID":"A001","Name":"Lumi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"12 พฤษภาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A002","Name":"Clover","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"7","Color":"สีฟ้าอมเทา","Date of Birth":"24 มกราคม 2007","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A003","Name":"Bramble","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"8","Color":"สีฟ้าอมเทา","Date of Birth":"7 กันยายน 2006","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A004","Name":"Mallow","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"18 มีนาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A005","Name":"Truffle","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"2","Color":"สีฟ้าอมเทา","Date of Birth":"29 ตุลาคม 2012","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A006","Name":"Mochi","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Female","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"5 มิถุนายน 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""},
+{"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
+];
+
+let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[], deletionRequests=[];
+let targetMap=new Map();
+
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const img=(src,label,emoji)=>src?`<img src="${esc(src)}" alt="${esc(label)}">`:`<div class="placeholder">${emoji}</div>`;
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ scrollTo({top:0,behavior:"smooth"});
+}
+
+function categoryMeta(code){
+ const meta={
+ A:{th:"สัตว์เลี้ยงลูกด้วยนม",en:"MAMMALS"},
+ B:{th:"สัตว์ปีกและแมลง",en:"BIRDS & INSECTS"},
+ C:{th:"สัตว์น้ำ สัตว์ครึ่งบกครึ่งน้ำ และสัตว์เลื้อยคลาน",en:"AQUATIC, AMPHIBIANS & REPTILES"}
+ };
+ return meta[String(code||"").trim().toUpperCase()]||{th:"อื่น ๆ",en:"OTHER BEASTS"};
+}
+function normalizeCategory(value, creature){
+ const v=String(value??"").trim().toUpperCase();
+ if(/^A(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์เลี้ยงลูกด้วยนม")||v.includes("MAMMAL"))return"A";
+ if(/^B(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์ปีกและแมลง")||v.includes("BIRD")||v.includes("INSECT"))return"B";
+ if(/^C(?:\s*[-—:.)]|\s*$)/.test(v)||v.includes("สัตว์น้ำ")||v.includes("สัตว์ครึ่งบกครึ่งน้ำ")||v.includes("สัตว์เลื้อยคลาน")||v.includes("AQUATIC")||v.includes("AMPHIB")||v.includes("REPTIL"))return"C";
+ if(!v&&creature){
+  const s=String(creature.Species||"").toUpperCase();
+  if(["MOONCALF","PUFFSKEIN","NIFFLER","KNEAZLE","BADGER"].some(x=>s.includes(x)))return"A";
+  if(["FWOOPER","OWL","FAIRY","PIXIE"].some(x=>s.includes(x)))return"B";
+ }
+ return"";
+}
+
+function render(){
+ creatureCount.textContent=beasts.length; creatureTotal.textContent=beasts.length;
+ plantCount.textContent=plants.length; plantTotal.textContent=plants.length;
+ inventoryCount.textContent=inventory.length; inventoryTotal.textContent=inventory.length;
+ workTotal.textContent=worklogs.length;
+ const adminWorkCount=document.getElementById('adminWorkCount');
+ const adminInventoryCount=document.getElementById('adminInventoryCount');
+ const adminDeletedCount=document.getElementById('adminDeletedCount');
+ const adminDeletedHistory=document.getElementById('adminDeletedHistory');
+ const adminDeletionRequests=document.getElementById('adminDeletionRequests');
+ const adminRequestBadge=document.getElementById('adminRequestBadge');
+ if(adminWorkCount)adminWorkCount.textContent=worklogs.length;
+ if(adminInventoryCount)adminInventoryCount.textContent=inventory.length;
+ if(adminDeletedCount)adminDeletedCount.textContent=deletedWorklogs.length;
+ if(adminDeletedHistory)adminDeletedHistory.innerHTML=renderDeletedHistory(deletedWorklogs);
+ const pendingRequests=deletionRequests.filter(r=>String(getFirstValue(r,['Status'])||'').trim().toUpperCase()==='PENDING');
+ if(adminRequestBadge)adminRequestBadge.textContent=String(pendingRequests.length);
+ if(adminDeletionRequests)adminDeletionRequests.innerHTML=renderDeletionRequests(pendingRequests);
+ const order=["A","B","C"];
+ const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
+ const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
+ if(other.length)groups.push({code:"OTHER",items:other});
+ creatureGrid.innerHTML=groups.map(g=>{
+  const m=categoryMeta(g.code);
+  return `<section class="category-section"><header class="category-heading"><div class="category-mark"><span>${esc(g.code)}</span></div><div class="category-title"><h3>${esc(m.th)}</h3><p>${esc(m.en)}</p></div><span class="category-count">${g.items.length}</span></header><div class="cards">${g.items.map(({c,i})=>`<button class="creature-card" onclick="openCreature(${i})"><div class="card-image">${img(c.Image,c.Name,"🐾")}</div><div class="card-body"><span class="tag">${esc(c.ID)}</span><h3>${esc(c.Name)}</h3><p>${esc(c.Species)} · ${esc(c.Breed)}</p><span class="status">${esc(c.Classification||"Mystical Beast")}</span></div></button>`).join("")}</div></section>`;
+ }).join("") || `<div class="empty">🐾<br><br>ยังไม่มีข้อมูลสัตว์วิเศษ</div>`;
+
+ plantGrid.innerHTML=plants.length?plants.map((p,i)=>`<button class="creature-card" onclick="openPlant(${i})"><div class="card-image">${img(p.Image,p["พืช/ผัก"]||p.Name||p.ID,"🌿")}</div><div class="card-body"><span class="tag">${esc(p.ID||"")}</span><h3>${esc(p["พืช/ผัก"]||p.Name||"-")}</h3><p>${esc(p.Species||p.Type||"")}</p></div></button>`).join(""):`<div class="empty">🌿<br><br>ยังไม่มีข้อมูลพืชในแท็บ PLANTS</div>`;
+
+ workLogGrid.innerHTML=renderWorkHistory(worklogs);
+ inventoryGrid.innerHTML=renderInventoryLarge(inventory);
+}
+
+function formatInventoryTotal(rows){
+ const total=rows.reduce((sum,r)=>sum+toNumberClient(getFirstValue(r,['จำนวน','Quantity'])),0);
+ return Number.isInteger(total)?String(total):total.toLocaleString('th-TH',{maximumFractionDigits:2});
+}
+function toNumberClient(value){
+ const n=Number(String(value??'').replace(/,/g,'').trim());
+ return Number.isFinite(n)?n:0;
+}
+
+function renderInventoryLarge(rows){
+ if(!rows.length)return `<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
+ return `<div class="inventory-large-list">${rows.map(r=>{
+  const name=getFirstValue(r,['รายการ','Name','Item'])||'-';
+  const qty=getFirstValue(r,['จำนวน','Quantity'])||'0';
+  const unit=getFirstValue(r,['หน่วย','Unit'])||'';
+  return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
+ }).join('')}</div>`;
+}
+
+function formatWorkDate(value){
+ const raw=String(value||'').trim();
+ if(!raw)return '-';
+ // Google Sheets / gviz อาจส่งวันที่พร้อมเวลา เช่น 30/9/2026, 10:00:00
+ // ประวัติการทำงานต้องแสดงเฉพาะ วัน/เดือน/ปี เท่านั้น
+ const m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+ if(m)return `${Number(m[1])}/${Number(m[2])}/${m[3]}`;
+ const iso=raw.match(/^(\d{4})[\-](\d{1,2})[\-](\d{1,2})/);
+ if(iso)return `${Number(iso[3])}/${Number(iso[2])}/${iso[1]}`;
+ const parsed=new Date(raw);
+ if(!Number.isNaN(parsed.getTime()))return `${parsed.getDate()}/${parsed.getMonth()+1}/${parsed.getFullYear()}`;
+ return raw.split(/[ ,T]/)[0]||'-';
+}
+
+function renderWorkHistory(rows, allowDelete=true){
+ if(!rows.length)return `<div class="work-history-empty"><div class="history-icon">✦</div><h3>ยังไม่มีประวัติการทำงาน</h3><p>เมื่อมีการบันทึก WORK LOG รายการจะปรากฏที่นี่โดยอัตโนมัติ</p></div>`;
+ const newest=[...rows].reverse();
+ return `<div class="work-history"><div class="history-heading"><div><span class="eyebrow">WORK ARCHIVE</span><h3>ประวัติการทำงาน</h3></div><span class="history-count">${newest.length} รายการ</span></div><div class="history-list">${newest.map(r=>{
+  const workId=getFirstValue(r,["Work ID"])||"-";
+  const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
+  const day=getFirstValue(r,["วันผู้วิเศษ"])||"-";
+  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const category=getFirstValue(r,["Category"])||"-";
+  const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
+  const targetId=getFirstValue(r,["Target ID"])||"";
+  const targetName=getFirstValue(r,["Target Name"])||"";
+  const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
+  const photo=getFirstValue(r,["รูปการทำงาน","Work Photo","Photo","Image"]);
+  const status=getFirstValue(r,["Status"])||"";
+  const cancelBy=getFirstValue(r,["Cancel By"]);
+  const cancelReason=getFirstValue(r,["Cancel Reason"]);
+  const withdrawal=getFirstValue(r,["เบิกคลังชมรม"]);
+  const withdrawQty=getFirstValue(r,["จำนวนที่เบิก"]);
+  const receiveQty=getFirstValue(r,["จำนวนที่ได้รับ"]);
+  const target=(targetId||targetName)?`${esc(targetId)}${targetName?` · ${esc(targetName)}`:''}`:'ไม่ระบุ';
+  const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
+  const stock=[];
+  if(withdrawal)stock.push(`<span>เบิก: ${esc(withdrawal)}${withdrawQty?` (${esc(withdrawQty)})`:''}</span>`);
+  if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
+  const cancelled=status.toLowerCase()==='cancelled';
+  const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
+  const pendingRequest=deletionRequests.find(x=>String(getFirstValue(x,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(x,['Status'])||'').trim().toUpperCase()==='PENDING');
+  const requesterAction=!isGoogleAdmin&&!cancelled?(pendingRequest?`<div class="delete-request-pending">🔔 ส่งคำขอลบแล้ว • รอ Admin อนุมัติ</div>`:`<button class="delete-request-btn" type="button" onclick="requestDeleteWorkLog('${esc(workId)}')">📝 ขอให้ Admin ลบรายการ</button>`):'';
+  const adminAction='';
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${requesterAction}</div></div></article>`;
+ }).join('')}</div></div>`;
+}
+
+function renderDeletionRequests(rows){
+ if(!rows.length)return `<div class="admin-empty">ไม่มีคำขอลบที่รออนุมัติ</div>`;
+ const newest=[...rows].reverse();
+ return `<div class="admin-request-list">${newest.map(r=>{
+  const requestId=getFirstValue(r,['Request ID'])||'-';
+  const workId=getFirstValue(r,['Work ID'])||'-';
+  const requester=getFirstValue(r,['ผู้ขอลบ'])||'-';
+  const reason=getFirstValue(r,['เหตุผล'])||'-';
+  const requestedAt=getFirstValue(r,['Requested At'])||'-';
+  return `<article class="admin-request-card"><div class="admin-request-top"><span class="admin-request-id">${esc(requestId)}</span><span class="admin-request-status">รออนุมัติ</span></div><h4>WORK ID: ${esc(workId)}</h4><p><b>เหตุผล:</b> ${esc(reason)}</p><div class="admin-request-meta"><div><small>ผู้ขอลบ</small><b>${esc(requester)}</b></div><div><small>วันที่ขอ</small><b>${esc(requestedAt)}</b></div><div><small>สถานะ</small><b>รอ Admin อนุมัติ</b></div></div><button class="admin-approve-btn" type="button" onclick="approveDeleteRequest('${esc(requestId)}')">✓ อนุมัติและลบรายการ</button></article>`;
+ }).join('')}</div>`;
+}
+
+function renderDeletedHistory(rows){
+ if(!rows.length)return `<div class="admin-empty">ยังไม่มีประวัติรายการที่ลบ</div>`;
+ const newest=[...rows].reverse();
+ return `<div class="history-list">${newest.map(r=>{
+  const workId=getFirstValue(r,["Work ID"])||"-";
+  const date=formatWorkDate(getFirstValue(r,["วันที่ (มักเกิ้ล)"]));
+  const time=getFirstValue(r,["เวลา (IC)"])||"-";
+  const type=getFirstValue(r,["ประเภทการทำงาน"])||"-";
+  const recorder=getFirstValue(r,["ผู้ลงบันทึก"])||"-";
+  const deletedAt=getFirstValue(r,["Deleted At","วันที่ลบ"])||"-";
+  const reason=getFirstValue(r,["Delete Reason","Cancel Reason"])||"-";
+  const photo=getFirstValue(r,["รูปการทำงาน","Work Photo","Photo","Image"]);
+  const photoHtml=photo?`<a class="work-history-photo" href="${esc(photo)}" target="_blank" rel="noopener"><img src="${esc(photo)}" alt="รูปการทำงาน ${esc(workId)}" loading="lazy"><span>เปิดรูป</span></a>`:`<div class="work-history-photo empty-photo"><span>✦</span><small>ไม่มีรูป</small></div>`;
+  return `<article class="work-history-card is-cancelled">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-status-cancelled">ลบแล้ว</span><span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div><div><small>วันที่ลบ</small><b>${esc(deletedAt)}</b></div><div><small>เหตุผล</small><b>${esc(reason)}</b></div></div></div></article>`;
+ }).join('')}</div>`;
+}
+
+function openAdmin(){
+ if(!isGoogleAdmin){
+   const password=prompt('กรุณาใส่ Password เพื่อเข้าสู่โซน Admin:');
+   if(password===null)return;
+   if(password!==ADMIN_PASSWORD){alert('Password ไม่ถูกต้อง');return;}
+   isGoogleAdmin=true;
+ }
+ showPage('admin');
+ render();
+}
+
+async function requestDeleteWorkLog(workId){
+ const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
+ if(!row)return;
+ const requester=getFirstValue(row,['ผู้ลงบันทึก'])||'ไม่ระบุ';
+ const reason=prompt(`เหตุผลที่ต้องการให้ Admin ลบ WORK ID ${workId}:`, 'กรอกเหตุผลการลบ');
+ if(!reason || !reason.trim())return;
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){alert('ยังไม่ได้ตั้งค่า Apps Script Web App URL');return;}
+ try{
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'requestDelete',workId:String(workId),requester,reason:reason.trim()})})});
+   alert(`ส่งคำขอลบ ${workId} ไปยัง Admin แล้ว\n\nเหตุผล: ${reason.trim()}`);
+   setTimeout(syncData,1500);
+ }catch(err){alert('ส่งคำขอลบไม่สำเร็จ: '+err.message);}
+}
+
+async function approveDeleteRequest(requestId){
+ if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
+ const row=deletionRequests.find(r=>String(getFirstValue(r,['Request ID'])||'').trim()===String(requestId).trim());
+ if(!row)return;
+ const workId=getFirstValue(row,['Work ID'])||'-';
+ const reason=getFirstValue(row,['เหตุผล'])||'-';
+ const ok=confirm(`อนุมัติการลบ WORK ID ${workId} ใช่หรือไม่?\n\nเหตุผล: ${reason}\n\nเมื่ออนุมัติแล้ว WORK LOG จะถูกลบออกจากประวัติทันที และระบบจะย้อนรายการคลังที่เกี่ยวข้อง`);
+ if(!ok)return;
+ try{
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'approveDeleteRequest',requestId:String(requestId),password:ADMIN_PASSWORD})})});
+   alert(`อนุมัติและลบ ${workId} แล้ว`);
+   setTimeout(syncData,1500);
+ }catch(err){alert('อนุมัติไม่สำเร็จ: '+err.message);}
+}
+
+async function syncData(){
+ try{
+  const [b,p,w,inv,mem,del,req]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG"),fetchSheetOptional("DELETION REQUESTS")
+  ]);
+  if(b.length)beasts=b;
+  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deletionRequests=req||[];
+  rebuildWorkLogLookups();
+  const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
+  render();
+  syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
+ }catch(e){
+  if(!beasts.length)beasts=FALLBACK_BEASTS;
+  render();
+  syncInfo.textContent="ใช้ข้อมูลสำรอง • ไม่สามารถอ่าน Google Sheets ได้ในขณะนี้";
+  console.warn("Google Sheets sync:",e);
+ }
+}
+render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS);
+</script>
+</body>
+</html>
