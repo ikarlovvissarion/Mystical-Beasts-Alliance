@@ -554,6 +554,10 @@ function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
 function deleteInventoryHistory_(data) {
+  // ประวัติ Inventory ผูกกับ WORK LOG โดยตรงและไม่อนุญาตให้ลบแยกอีกต่อไป
+  // จะหายจากหน้า Inventory ก็ต่อเมื่อ Admin ลบ WORK LOG ที่เป็นต้นทางเท่านั้น
+  throw new Error('ประวัติการเบิก/รับผูกกับ WORK LOG และไม่สามารถลบแยกจาก WORK LOG ได้');
+  /*
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
   const workId = String(data.workId || '').trim();
   const reason = String(data.reason || '').trim();
@@ -605,6 +609,7 @@ function deleteInventoryHistory_(data) {
   } finally {
     lock.releaseLock();
   }
+  */
 }
 
 function requestDeleteWork_(data) {
