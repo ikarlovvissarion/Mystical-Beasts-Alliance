@@ -362,7 +362,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
    If a tab is unavailable, that section simply shows no data.
    ============================================================ */
 const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
-const DATE_DISPLAY_VERSION="muggle-date-v2";
+const DATE_DISPLAY_VERSION="muggle-date-v3";
 const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
@@ -1228,6 +1228,42 @@ function hideUploadProcessing(){
  document.documentElement.classList.remove('upload-locked');document.body.classList.remove('upload-locked');
 }
 
+async function waitForSubmittedWorkLogVisible(expected){
+ const maxAttempts=30;
+ const delayMs=1500;
+ for(let attempt=1;attempt<=maxAttempts;attempt++){
+  try{
+   const rows=await fetchSheet("WORK LOG");
+   worklogs=rows;
+   render();
+
+   const found=rows.length>Number(expected.previousCount||0) && rows.some(r=>{
+    const rowCategory=getFirstValue(r,["Category"]).trim();
+    const rowType=getFirstValue(r,["ประเภทการทำงาน"]).trim();
+    const rowRecorder=getFirstValue(r,["ผู้ลงบันทึก"]).trim();
+    const rowDate=getFirstValue(r,["วันที่ (มักเกิ้ล)"]).trim();
+    const rowTime=normalizeICTimeValue(getFirstValue(r,["เวลา (IC)"]));
+    return rowCategory===String(expected.category||"").trim()
+      && rowType===String(expected.workType||"").trim()
+      && rowRecorder===String(expected.recorder||"").trim()
+      && formatWorkDate(rowDate)===formatWorkDate(expected.muggleDate)
+      && rowTime===normalizeICTimeValue(expected.icTime);
+   });
+
+   if(found){
+    // render() ด้านบนแสดงประวัติใหม่ลง DOM แล้ว
+    return true;
+   }
+  }catch(e){
+   console.warn("รอประวัติ WORK LOG:",e);
+  }
+
+  updateUploadProcessing(`อัปโหลดสำเร็จ • กำลังรอประวัติการทำงาน (${attempt}/${maxAttempts})…`);
+  await new Promise(resolve=>setTimeout(resolve,delayMs));
+ }
+ return false;
+}
+
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
@@ -1283,6 +1319,7 @@ async function submitWorkLog(ev){
   updateUploadProcessing(`กำลังเตรียมรูป 0/${files.length}…`);
   for(const file of files){const photo=await prepareWorkPhoto(file);if(!photo||!photo.data)throw new Error('เตรียมรูปไม่สำเร็จ');photos.push(photo);status.textContent=`กำลังเตรียมรูป ${photos.length}/${files.length}…`;updateUploadProcessing(`กำลังเตรียมรูป ${photos.length}/${files.length}…`);}
  }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';hideUploadProcessing();btn.dataset.submitting='0';btn.disabled=false;return;}
+ const previousWorkLogCount=worklogs.length;
  const clientRequestId = (window.crypto && crypto.randomUUID)
   ? crypto.randomUUID()
   : ('REQ-' + Date.now() + '-' + Math.random().toString(36).slice(2));
@@ -1294,10 +1331,34 @@ async function submitWorkLog(ev){
  btn.disabled=true;status.textContent='กำลังบันทึก WORK LOG และอัปโหลดรูป…';status.className='form-status';updateUploadProcessing('กำลังอัปโหลด WORK LOG และรูปภาพ…');
  try{
   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
-  status.textContent='ส่ง WORK LOG และรูปแล้ว • กำลังซิงก์ประวัติ…';status.className='form-status success';updateUploadProcessing('อัปโหลดเสร็จสิ้น กำลังเตรียมหน้าประวัติ…');
-  hideUploadProcessing();
+  status.textContent='ส่ง WORK LOG และรูปแล้ว • กำลังซิงก์ประวัติ…';status.className='form-status success';
+  updateUploadProcessing('อัปโหลดเสร็จสิ้น • กำลังรอให้ประวัติการทำงานแสดงบนเว็บ…');
+
+  // สำคัญ: ห้ามปิด Popup ก่อนที่รายการใหม่จะถูกอ่านกลับจาก Google Sheets
+  // และ render() แสดงลงหน้าเว็บเรียบร้อยแล้ว
+  const historyReady=await waitForSubmittedWorkLogVisible({
+    previousCount:previousWorkLogCount,
+    category:cat,
+    workType:wt,
+    muggleDate,
+    icTime,
+    recorder
+  });
+
+  if(historyReady){
+    updateUploadProcessing('บันทึกสำเร็จ • ประวัติการทำงานแสดงบนเว็บแล้ว');
+    // ให้ browser วาด DOM ที่ render() เพิ่งอัปเดตก่อน แล้วจึงค่อยปิด Popup
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    hideUploadProcessing();
+  }else{
+    status.textContent='อัปโหลดสำเร็จแล้ว แต่ยังไม่พบรายการใหม่ในประวัติ • ระบบจะลองซิงก์ต่ออัตโนมัติ';
+    status.className='form-status error';
+    updateUploadProcessing('อัปโหลดสำเร็จแล้ว • กำลังรอประวัติการทำงานจาก Google Sheets…');
+    // ตั้งใจไม่ซ่อน Popup เพราะเงื่อนไขคือประวัติต้องแสดงบนเว็บก่อนเท่านั้น
+    return;
+  }
+
   document.getElementById('workLogForm').reset();clearWorkPhoto();clearTargetSelection();initWorkLogForm();rebuildWorkLogLookups();
-  setTimeout(syncData,4000);
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';hideUploadProcessing();}
  finally{btn.dataset.submitting='0';btn.disabled=false;}
 }
