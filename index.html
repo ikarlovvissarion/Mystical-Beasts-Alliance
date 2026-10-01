@@ -129,7 +129,6 @@
 
 
 .admin-cancel-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#f1dfb9;color:#6a281d;font-weight:600;cursor:pointer}.admin-cancel-btn:hover{background:#e8cf9b}.work-history-actions{display:flex;justify-content:flex-end}.work-status-cancelled{padding:4px 8px;border:1px solid #9b4d3e;background:#ead0c8;color:#6a281d;font-size:11px;font-weight:600}.work-history-card.is-cancelled{opacity:.82}.work-cancelled{margin-top:12px;padding:9px 11px;border-left:3px solid #9b4d3e;background:#f0ddd7;color:#6a281d;font-size:12px}.work-cancelled small{font-size:11px}.admin-inventory-status{margin-top:22px}.admin-inventory-status h4,.admin-deleted-title{margin:0 0 12px;font-size:16px;font-weight:500}.admin-deleted{margin-top:28px;padding-top:22px;border-top:1px solid #c4a66d}.admin-empty{padding:24px;border:1px solid #c4a66d;background:#fff8e44d;text-align:center;font-size:13px}
-.delete-request-btn{margin-top:12px;min-height:38px;padding:7px 12px;border:1px solid #a17a38;background:#fff8e4;color:#6a281d;font-weight:600;cursor:pointer}.delete-request-btn:hover{background:#f0dfbb}.delete-request-pending{margin-top:12px;padding:9px 11px;border-left:3px solid #a17a38;background:#f4e6c7;color:#684d1e;font-size:12px}.admin-request-list{display:grid;gap:12px}.admin-request-card{padding:16px;border:1px solid #c4a66d;background:#fff8e44d}.admin-request-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.admin-request-id{font-weight:700}.admin-request-status{padding:3px 8px;border:1px solid #a17a38;background:#f1dfb9;font-size:10px;font-weight:700}.admin-request-card h4{margin:5px 0 8px;font-size:17px}.admin-request-card p{margin:5px 0;font-size:13px;line-height:1.6}.admin-request-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.admin-request-meta div{padding:8px;border:1px solid #d4bc8a;background:#fffdf5}.admin-request-meta small{display:block;font-size:10px;color:#7a6745}.admin-request-meta b{display:block;margin-top:3px;font-size:12px}.admin-approve-btn{margin-top:12px;padding:9px 14px;border:1px solid #7b6330;background:#e7d29e;color:#4f3a17;font-weight:700;cursor:pointer}.admin-approve-btn:hover{background:#dbc183}@media(max-width:700px){.admin-request-meta{grid-template-columns:1fr}.admin-request-card{padding:13px}}
 
 .admin-page-card{padding:22px;border:1px solid #a17a38;background:#f8edd3b8;box-shadow:0 8px 20px #4b351917;margin-bottom:20px}.admin-page-card h3{margin:0 0 8px;font-size:24px;font-weight:500}.admin-page-card p{margin:5px 0;font-size:13px;line-height:1.7}.admin-actions{display:flex;gap:10px;flex-wrap:wrap}.admin-action-btn{padding:10px 15px;border:1px solid #a17a38;background:#f1dfb9;font-size:12px}.admin-action-btn:hover{background:#e8cf9b}.admin-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.admin-summary-box{border:1px solid #c4a66d;padding:16px;text-align:center;background:#fff8e44d}.admin-summary-box b{display:block;font-size:28px}.admin-summary-box small{font-size:10px;letter-spacing:1px}@media(max-width:700px){.admin-summary-grid{grid-template-columns:1fr}.admin-page-card{padding:16px}}
 </style>
@@ -231,10 +230,6 @@
     <button class="admin-action-btn" type="button" onclick="showPage('worklog')">📜 ดู WORK LOG</button>
     <button class="admin-action-btn" type="button" onclick="showPage('inventory')">📦 ดูคลังชมรม</button>
   </div>
-  <div class="admin-deleted" style="margin-top:22px;padding-top:22px;border-top:1px solid #c4a66d">
-    <h4 class="admin-deleted-title">🔔 คำขอลบ WORK LOG <span id="adminRequestBadge" class="admin-request-status">0</span></h4>
-    <div id="adminDeletionRequests"></div>
-  </div>
   <div class="admin-deleted">
     <h4 class="admin-deleted-title">ประวัติรายการที่ลบ</h4>
     <div id="adminDeletedHistory"></div>
@@ -277,7 +272,7 @@ const FALLBACK_BEASTS = [
 {"ID":"A007","Name":"Pippin","Species":"Mooncalf","Category":"A","Breed":"Daylight Mooncalf","Classification":"XX","Sex":"Male","Age":"3","Color":"สีฟ้าอมเทา","Date of Birth":"21 ธันวาคม 2011","Origin/Native Habitat":"ฝรั่งเศส","Other Characteristics":"-","Owner":"Prof. Meduza Rose SaintRosaria","Image":""}
 ];
 
-let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[], deletionRequests=[];
+let beasts=[], plants=[], worklogs=[], inventory=[], members=[], deletedWorklogs=[];
 let targetMap=new Map();
 
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -319,15 +314,10 @@ function render(){
  const adminInventoryCount=document.getElementById('adminInventoryCount');
  const adminDeletedCount=document.getElementById('adminDeletedCount');
  const adminDeletedHistory=document.getElementById('adminDeletedHistory');
- const adminDeletionRequests=document.getElementById('adminDeletionRequests');
- const adminRequestBadge=document.getElementById('adminRequestBadge');
  if(adminWorkCount)adminWorkCount.textContent=worklogs.length;
  if(adminInventoryCount)adminInventoryCount.textContent=inventory.length;
  if(adminDeletedCount)adminDeletedCount.textContent=deletedWorklogs.length;
  if(adminDeletedHistory)adminDeletedHistory.innerHTML=renderDeletedHistory(deletedWorklogs);
- const pendingRequests=deletionRequests.filter(r=>String(getFirstValue(r,['Status'])||'').trim().toUpperCase()==='PENDING');
- if(adminRequestBadge)adminRequestBadge.textContent=String(pendingRequests.length);
- if(adminDeletionRequests)adminDeletionRequests.innerHTML=renderDeletionRequests(pendingRequests);
  const order=["A","B","C"];
  const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
  const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
@@ -403,24 +393,9 @@ function renderWorkHistory(rows, allowDelete=true){
   if(receiveQty)stock.push(`<span>รับ: ${esc(receiveQty)}</span>`);
   const cancelled=status.toLowerCase()==='cancelled';
   const cancelInfo=cancelled?`<div class="work-cancelled"><b>ยกเลิกแล้ว</b>${cancelBy?` · โดย ${esc(cancelBy)}`:''}${cancelReason?`<br><small>เหตุผล: ${esc(cancelReason)}</small>`:''}</div>`:'';
-  const pendingRequest=deletionRequests.find(x=>String(getFirstValue(x,['Work ID'])||'').trim()===String(workId).trim() && String(getFirstValue(x,['Status'])||'').trim().toUpperCase()==='PENDING');
-  const requesterAction=!isGoogleAdmin&&!cancelled?(pendingRequest?`<div class="delete-request-pending">🔔 ส่งคำขอลบแล้ว • รอ Admin อนุมัติ</div>`:`<button class="delete-request-btn" type="button" onclick="requestDeleteWorkLog('${esc(workId)}')">📝 ขอให้ Admin ลบรายการ</button>`):'';
-  const adminAction='';
-  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${requesterAction}</div></div></article>`;
+  const adminAction=allowDelete&&!cancelled?`<button class="admin-cancel-btn" type="button" onclick="cancelWorkLog('${esc(workId)}')">🗑 ลบรายการ</button>`:'';
+  return `<article class="work-history-card ${cancelled?'is-cancelled':''}">${photoHtml}<div class="work-history-main"><div class="work-history-top"><span class="work-id">${esc(workId)}</span><span class="work-category">${esc(category)}</span>${cancelled?'<span class="work-status-cancelled">ยกเลิกแล้ว</span>':''}<span class="work-date">${esc(date)} · ${esc(time)}</span></div><h4>${esc(type)}</h4><div class="work-history-meta"><div><small>วันผู้วิเศษ</small><b>${esc(day)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${target}</b></div><div><small>ผู้ลงบันทึก</small><b>${esc(recorder)}</b></div></div>${stock.length?`<div class="work-history-stock">${stock.join('')}</div>`:''}${cancelInfo}<div class="work-history-actions">${adminAction}</div></div></article>`;
  }).join('')}</div></div>`;
-}
-
-function renderDeletionRequests(rows){
- if(!rows.length)return `<div class="admin-empty">ไม่มีคำขอลบที่รออนุมัติ</div>`;
- const newest=[...rows].reverse();
- return `<div class="admin-request-list">${newest.map(r=>{
-  const requestId=getFirstValue(r,['Request ID'])||'-';
-  const workId=getFirstValue(r,['Work ID'])||'-';
-  const requester=getFirstValue(r,['ผู้ขอลบ'])||'-';
-  const reason=getFirstValue(r,['เหตุผล'])||'-';
-  const requestedAt=getFirstValue(r,['Requested At'])||'-';
-  return `<article class="admin-request-card"><div class="admin-request-top"><span class="admin-request-id">${esc(requestId)}</span><span class="admin-request-status">รออนุมัติ</span></div><h4>WORK ID: ${esc(workId)}</h4><p><b>เหตุผล:</b> ${esc(reason)}</p><div class="admin-request-meta"><div><small>ผู้ขอลบ</small><b>${esc(requester)}</b></div><div><small>วันที่ขอ</small><b>${esc(requestedAt)}</b></div><div><small>สถานะ</small><b>รอ Admin อนุมัติ</b></div></div><button class="admin-approve-btn" type="button" onclick="approveDeleteRequest('${esc(requestId)}')">✓ อนุมัติและลบรายการ</button></article>`;
- }).join('')}</div>`;
 }
 
 function renderDeletedHistory(rows){
@@ -451,42 +426,300 @@ function openAdmin(){
  render();
 }
 
-async function requestDeleteWorkLog(workId){
+async function cancelWorkLog(workId){
  const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
  if(!row)return;
- const requester=getFirstValue(row,['ผู้ลงบันทึก'])||'ไม่ระบุ';
- const reason=prompt(`เหตุผลที่ต้องการให้ Admin ลบ WORK ID ${workId}:`, 'กรอกเหตุผลการลบ');
+ const ok=confirm(`ต้องการลบ WORK ID ${workId} ใช่หรือไม่?\n\nระบบจะย้อนรายการคลังที่เกี่ยวข้อง และเก็บประวัติรายการที่ลบไว้ใน ADMIN`);
+ if(!ok)return;
+ const reason=prompt('กรุณาระบุเหตุผลการลบ:', 'กรอกข้อมูลผิด / รายการซ้ำ');
  if(!reason || !reason.trim())return;
- if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){alert('ยังไม่ได้ตั้งค่า Apps Script Web App URL');return;}
+ if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
  try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'requestDelete',workId:String(workId),requester,reason:reason.trim()})})});
-   alert(`ส่งคำขอลบ ${workId} ไปยัง Admin แล้ว\n\nเหตุผล: ${reason.trim()}`);
-   setTimeout(syncData,1500);
- }catch(err){alert('ส่งคำขอลบไม่สำเร็จ: '+err.message);}
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
+   alert('ลบ WORK LOG สำเร็จแล้ว และบันทึกประวัติการลบไว้ใน ADMIN');
+   await syncData();
+ }catch(e){alert('ลบรายการไม่สำเร็จ: '+e.message);}
 }
 
-async function approveDeleteRequest(requestId){
- if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
- const row=deletionRequests.find(r=>String(getFirstValue(r,['Request ID'])||'').trim()===String(requestId).trim());
- if(!row)return;
- const workId=getFirstValue(row,['Work ID'])||'-';
- const reason=getFirstValue(row,['เหตุผล'])||'-';
- const ok=confirm(`อนุมัติการลบ WORK ID ${workId} ใช่หรือไม่?\n\nเหตุผล: ${reason}\n\nเมื่ออนุมัติแล้ว WORK LOG จะถูกลบออกจากประวัติทันที และระบบจะย้อนรายการคลังที่เกี่ยวข้อง`);
- if(!ok)return;
+function renderTable(rows,preferred){
+ if(!rows.length)return `<div class="empty">ยังไม่มีข้อมูลในแท็บนี้</div>`;
+ const keys=preferred.filter(k=>rows.some(r=>Object.prototype.hasOwnProperty.call(r,k)));
+ const cols=keys.length?keys:Object.keys(rows[0]).slice(0,10);
+ return `<div class="table-scroll"><table><thead><tr>${cols.map(k=>`<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(k=>`<td>${esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function openCreature(i){
+ const c=beasts[i];
+ modalContent.innerHTML=`<div class="modal-image">${img(c.Image,c.Name,"🐾")}</div><div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(c.ID)}</strong><span class="modal-species">${esc(c.Species)}</span></div><h2>${esc(c.Name)}</h2><div class="detail-grid">
+ <div><small>CATEGORY</small><b>${esc(categoryMeta(normalizeCategory(c.Category,c)).en)}</b></div>
+ <div><small>BREED</small><b>${esc(c.Breed)}</b></div><div><small>SEX</small><b>${esc(c.Sex)}</b></div>
+ <div><small>AGE</small><b>${esc(c.Age)} years</b></div><div><small>COLOR</small><b>${esc(c.Color)}</b></div>
+ <div><small>DATE OF BIRTH</small><b>${esc(c["Date of Birth"])}</b></div><div><small>ORIGIN / HABITAT</small><b>${esc(c["Origin/Native Habitat"])}</b></div>
+ <div><small>OWNER</small><b>${esc(c.Owner)}</b></div><div><small>CLASSIFICATION</small><b>${esc(c.Classification)}</b></div>
+ </div><p class="description">${esc(c["Other Characteristics"])}</p>`;
+ modal.classList.add("open");
+}
+function openPlant(i){
+ const p=plants[i];
+ modalContent.innerHTML=`<div class="modal-id"><span class="modal-id-label">ID</span><strong>${esc(p.ID||"")}</strong></div><h2>${esc(p["พืช/ผัก"]||p.Name||"-")}</h2><div class="detail-grid">${Object.entries(p).filter(([k])=>!["ID","พืช/ผัก","Name","Image"].includes(k)).map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join("")}</div>`;
+ modal.classList.add("open");
+}
+function closeModal(){modal.classList.remove("open")}
+
+function parseCSV(text){
+ const lines=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];
+  if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(ch===','&&!quoted){row.push(cell);cell=""}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);lines.push(row);row=[];cell=""}
+  else cell+=ch;
+ }
+ if(cell!==""||row.length){row.push(cell);lines.push(row)}
+ if(!lines.length)return[];
+ const headers=lines.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,""):x).trim());
+ return lines.filter(r=>r.some(x=>x.trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+
+async function fetchSheet(sheetName){
+ const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&cb=${Date.now()}`;
+ const r=await fetch(url,{cache:"no-store"});
+ if(!r.ok)throw new Error(sheetName+" HTTP "+r.status);
+ return parseCSV(await r.text());
+}
+
+async function fetchSheetOptional(sheetName){
+ try{return await fetchSheet(sheetName);}catch(e){return [];}
+}
+
+function getFirstValue(row, keys){
+ for(const k of keys){ if(Object.prototype.hasOwnProperty.call(row,k) && String(row[k]??'').trim()!=='') return String(row[k]).trim(); }
+ return '';
+}
+function rebuildWorkLogLookups(){
+ // IMPORTANT: This function may run every 15 seconds. Never rebuild/reset the form.
+ // Preserve every value the user is currently entering and only refresh lookup options.
+ const currentTarget=document.getElementById('wlTargetId')?.value || '';
+ const currentRecorder=document.getElementById('wlRecorder')?.value || '';
+ targetMap=new Map();
+ [...beasts,...plants].forEach(x=>{
+  const id=getFirstValue(x,['ID','Target ID']);
+  const name=getFirstValue(x,['Name','Target Name','พืช/ผัก','รายการ']);
+  if(id) targetMap.set(id,{id,name});
+ });
+ const target=document.getElementById('wlTargetId');
+ if(target){
+  target.innerHTML='<option value="">เลือกสัตว์วิเศษ/พืชผัก</option>'+[...targetMap.values()].map(x=>`<option value="${esc(x.id)}">${esc(x.id)}</option>`).join('');
+  if(currentTarget && targetMap.has(currentTarget)) target.value=currentTarget;
+  updateTargetName();
+ }
+ const rec=document.getElementById('wlRecorder');
+ if(rec){
+  rec.innerHTML='<option value="">เลือกผู้ลงบันทึก</option>'+members.map(x=>{
+   const id=getFirstValue(x,['ID','Member ID','รหัสสมาชิก']); const name=getFirstValue(x,['ชื่อ - นามสกุล']) || id;
+   return `<option value="${esc(name)}" data-id="${esc(id)}">${esc(name)}</option>`;
+  }).join('');
+  if(currentRecorder) rec.value=currentRecorder;
+ }
+ const invOptions='<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
+ // Refresh only the option lists. Existing rows, quantities, and selected items stay in place.
+ document.querySelectorAll('.inventory-item-template').forEach(sel=>{
+   const current=sel.value;
+   const row=sel.closest('.inventory-entry-row');
+   const qty=row?.querySelector('.inventory-qty')?.value || '';
+   sel.innerHTML=invOptions;
+   if(current && [...sel.options].some(o=>o.value===current)) sel.value=current;
+   const unitInput=row?.querySelector('.inventory-unit');
+   if(unitInput){
+     const opt=sel.options[sel.selectedIndex];
+     unitInput.value=opt?.dataset?.unit || unitInput.value || '';
+   }
+   const qtyInput=row?.querySelector('.inventory-qty');
+   if(qtyInput) qtyInput.value=qty;
+ });
+ // Do NOT call resetInventoryRows() or updateWorkTypeFields() here.
+ // Those functions intentionally change the form when the user changes Category/Work Type,
+ // but must never run just because background data synchronization occurred.
+}
+
+const WIZARD_DAYS=[
+ 'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
+ 'วันที่ 2 ผู้วิเศษ | 06.00 - 09.59 น.',
+ 'วันที่ 3 ผู้วิเศษ | 10.00 - 13.59 น.',
+ 'วันที่ 4 ผู้วิเศษ | 14.00 - 17.59 น.',
+ 'วันที่ 5 ผู้วิเศษ | 18.00 - 21.59 น.',
+ 'วันที่ 6 ผู้วิเศษ | 22.00 - 01.59 น.'
+];
+
+function updateWorkTypeFields(){
+ const cat=document.getElementById('wlCategory')?.value||'';
+ const wt=document.getElementById('wlWorkType');
+ const options={
+  'งานทั่วไป':['การทำความสะอาด','การให้อาหารสัตว์วิเศษ','การรดน้ำพืชผัก'],
+  'เก็บผลผลิต':['การเก็บผลผลิตพืชผัก','การรับผลผลิตจากสัตว์วิเศษ']
+ };
+ const current=wt?.value||'';
+ if(wt)wt.innerHTML='<option value="">เลือกประเภทงาน</option>'+(options[cat]||[]).map(x=>`<option>${esc(x)}</option>`).join('');
+ if(wt && options[cat]?.includes(current))wt.value=current;
+ const cleaning=cat==='งานทั่วไป' && wt?.value==='การทำความสะอาด';
+ const targetWrap=document.getElementById('targetFields');
+ const targetId=document.getElementById('wlTargetId');
+ if(targetWrap)targetWrap.hidden=cleaning;
+ if(targetId)targetId.required=!cleaning;
+ if(cleaning){
+   targetId.value=''; document.getElementById('wlTargetName').value='';
+ }
+ document.getElementById('withdrawFields').hidden=cat!=='งานทั่วไป';
+ document.getElementById('receiveFields').hidden=cat!=='เก็บผลผลิต';
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+ if(cat!=='งานทั่วไป')clearInventoryRows('withdraw');
+ if(cat!=='เก็บผลผลิต')clearInventoryRows('receive');
+}
+function updateTargetName(){
+ const id=document.getElementById('wlTargetId').value;
+ document.getElementById('wlTargetName').value=targetMap.get(id)?.name||'';
+}
+function localDateISO(d=new Date()){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+}
+function localTime24(d=new Date()){
+ return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function initWorkLogForm(){
+ const d=document.getElementById('wlDate'); if(d){d.value=localDateISO(); d.readOnly=true;}
+ const t=document.getElementById('wlTime'); if(t)t.value=localTime24();
+ const md=document.getElementById('wlMagicalDay');
+ if(md){md.innerHTML='<option value="">เลือกวันผู้วิเศษ</option>'+WIZARD_DAYS.map(x=>`<option>${x}</option>`).join('');}
+ resetInventoryRows();
+}
+function inventoryOptionsHTML(){
+ return '<option value="">เลือกรายการ</option>'+inventory.map((x,i)=>{
+  const id=getFirstValue(x,['ID','Item ID']); const name=getFirstValue(x,['รายการ','Name','Item']); const unit=getFirstValue(x,['หน่วย','Unit']);
+  return `<option value="${esc(id || name)}" data-name="${esc(name)}" data-unit="${esc(unit)}" data-index="${i}">${esc(name)}</option>`;
+ }).join('');
+}
+function addInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(!list)return;
+ const row=document.createElement('div'); row.className='inventory-entry-row';
+ const label=kind==='withdraw'?'รายการที่เบิก':'รายการที่รับเข้า';
+ row.innerHTML=`<label><span>${label}</span><select class="inventory-item-template" data-kind="${kind}" onchange="updateInventoryUnit(this)">${inventoryOptionsHTML()}</select></label>
+ <label><span>จำนวน</span><input class="inventory-qty" type="number" min="0" step="any" placeholder="0"></label>
+ <label><span>หน่วย</span><input class="inventory-unit" type="text" readonly></label>
+ <button type="button" class="remove-item-btn" onclick="this.closest('.inventory-entry-row').remove()" aria-label="ลบรายการ">×</button>`;
+ list.appendChild(row);
+}
+function ensureInventoryRow(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ if(list && !list.children.length)addInventoryRow(kind);
+}
+function clearInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows'); if(list)list.innerHTML='';
+}
+function resetInventoryRows(){
+ clearInventoryRows('withdraw'); clearInventoryRows('receive');
+ const cat=document.getElementById('wlCategory')?.value||'';
+ if(cat==='งานทั่วไป')ensureInventoryRow('withdraw');
+ if(cat==='เก็บผลผลิต')ensureInventoryRow('receive');
+}
+function updateInventoryUnit(selectEl){
+ const row=selectEl.closest('.inventory-entry-row');
+ if(row)row.querySelector('.inventory-unit').value=selectEl.options[selectEl.selectedIndex]?.dataset?.unit||'';
+}
+function collectInventoryRows(kind){
+ const list=document.getElementById(kind==='withdraw'?'withdrawRows':'receiveRows');
+ return [...(list?.querySelectorAll('.inventory-entry-row')||[])].map(row=>{
+  const sel=row.querySelector('.inventory-item-template'); const opt=sel?.options[sel.selectedIndex];
+  return {id:sel?.value||'',name:opt?.dataset?.name||'',unit:row.querySelector('.inventory-unit')?.value||'',qty:row.querySelector('.inventory-qty')?.value||''};
+ }).filter(x=>x.id||x.qty);
+}
+function clearWorkPhoto(){
+ const input=document.getElementById('wlPhoto');
+ const preview=document.getElementById('workPhotoPreview');
+ if(input)input.value='';
+ if(preview){preview.hidden=true;preview.innerHTML='';}
+}
+function previewWorkPhoto(ev){
+ const file=ev.target.files?.[0];
+ const preview=document.getElementById('workPhotoPreview');
+ if(!file||!preview)return;
+ if(!file.type.startsWith('image/')){ev.target.value='';preview.hidden=true;preview.innerHTML='';return;}
+ const reader=new FileReader();
+ reader.onload=()=>{preview.hidden=false;preview.innerHTML=`<img src="${esc(reader.result)}" alt="ตัวอย่างรูปการทำงาน"><button type="button" onclick="clearWorkPhoto()">× ลบรูป</button>`;};
+ reader.readAsDataURL(file);
+}
+function prepareWorkPhoto(file,maxSide=1280,quality=.74){
+ return new Promise((resolve,reject)=>{
+  if(!file){resolve(null);return;}
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error('อ่านรูปไม่สำเร็จ'));
+  reader.onload=()=>{
+   const image=new Image();
+   image.onerror=()=>reject(new Error('รูปภาพไม่ถูกต้อง'));
+   image.onload=()=>{
+    const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(image.width*scale));
+    canvas.height=Math.max(1,Math.round(image.height*scale));
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    const dataUrl=canvas.toDataURL('image/jpeg',quality);
+    resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',mimeType:'image/jpeg',data:dataUrl.split(',')[1],preview:dataUrl});
+   };
+   image.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+
+async function submitWorkLog(ev){
+ ev.preventDefault();
+ const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
+ if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';return;}
+ const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
+ const cleaning=cat==='งานทั่วไป' && wt==='การทำความสะอาด';
+ const withdrawals=collectInventoryRows('withdraw'), receives=collectInventoryRows('receive');
+ if(cat==='งานทั่วไป'){
+   for(const x of withdrawals){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่เบิกให้ครบทุกแถว';status.className='form-status error';return;}}
+ } else if(cat==='เก็บผลผลิต'){
+   for(const x of receives){if(!x.id||Number(x.qty)<=0){status.textContent='กรุณาเลือกรายการและจำนวนที่รับเข้าให้ครบทุกแถว';status.className='form-status error';return;}}
+   if(!receives.length){status.textContent='กรุณาเพิ่มรายการผลผลิตที่รับเข้าอย่างน้อย 1 รายการ';status.className='form-status error';return;}
+ }
+ let photo=null;
  try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'approveDeleteRequest',requestId:String(requestId),password:ADMIN_PASSWORD})})});
-   alert(`อนุมัติและลบ ${workId} แล้ว`);
-   setTimeout(syncData,1500);
- }catch(err){alert('อนุมัติไม่สำเร็จ: '+err.message);}
+  const file=document.getElementById('wlPhoto')?.files?.[0];
+  if(!file){status.textContent='กรุณาเลือกรูปการทำงานก่อนบันทึก WORK LOG';status.className='form-status error';return;}
+  if(file.size>8*1024*1024){status.textContent='รูปต้นฉบับใหญ่เกิน 8 MB กรุณาเลือกรูปที่เล็กลง';status.className='form-status error';return;}
+  status.textContent='กำลังเตรียมรูป…';
+  photo=await prepareWorkPhoto(file);
+  if(!photo || !photo.data){status.textContent='เตรียมรูปไม่สำเร็จ กรุณาเลือกรูปใหม่';status.className='form-status error';return;}
+ }catch(err){status.textContent='เตรียมรูปไม่สำเร็จ: '+err.message;status.className='form-status error';return;}
+ const payload={
+  category:cat,muggleDate:document.getElementById('wlDate').value,magicalDay:document.getElementById('wlMagicalDay').value,icTime:document.getElementById('wlTime').value,
+  workType:wt,targetId:cleaning?'':document.getElementById('wlTargetId').value,targetName:cleaning?'':document.getElementById('wlTargetName').value,recorder:document.getElementById('wlRecorder').value,recorderId:document.getElementById('wlRecorder').selectedOptions[0]?.dataset.id || '',
+  withdrawals,receives,photo
+ };
+ btn.disabled=true;status.textContent='กำลังบันทึก WORK LOG และอัปโหลดรูป…';status.className='form-status';
+ try{
+  await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
+  status.textContent='ส่ง WORK LOG และรูปแล้ว • กำลังซิงก์ประวัติ…';status.className='form-status success';
+  document.getElementById('workLogForm').reset();clearWorkPhoto();initWorkLogForm();rebuildWorkLogLookups();
+  setTimeout(syncData,4000);
+ }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';}
+ finally{btn.disabled=false;}
 }
 
 async function syncData(){
  try{
-  const [b,p,w,inv,mem,del,req]=await Promise.all([
-   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG"),fetchSheetOptional("DELETION REQUESTS")
+  const [b,p,w,inv,mem,del]=await Promise.all([
+   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG")
   ]);
   if(b.length)beasts=b;
-  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];deletionRequests=req||[];
+  plants=p;worklogs=w;inventory=inv;members=mem;deletedWorklogs=del||[];
   rebuildWorkLogLookups();
   const liveDate=document.getElementById('wlDate'); if(liveDate) liveDate.value=localDateISO();
   render();
