@@ -49,6 +49,7 @@ function setupMBA() {
   getOrCreateSheet_(ss, 'DELETED WORK LOG');
   getOrCreateSheet_(ss, 'DELETE REQUESTS');
   getOrCreateSheet_(ss, 'DELETED INVENTORY HISTORY');
+  getOrCreateSheet_(ss, 'FERMENTATION');
   try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
   return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
 }
@@ -82,6 +83,9 @@ function doPost(e) {
     const data = typeof payloadText === 'string'
       ? JSON.parse(payloadText)
       : payloadText;
+    if (data.action === 'saveFermentation') {
+      return json_(saveFermentation_(data));
+    }
     if (data.action === 'testPhoto') {
       return json_({ok:true, service:'photo-ready', spreadsheetId:SPREADSHEET_ID});
     }
@@ -99,6 +103,170 @@ function doPost(e) {
     return json_(result);
   } catch (err) {
     return json_({ ok: false, error: String(err.message || err) });
+  }
+}
+
+
+function normalizeFermentationWeekDay_(value) {
+  const raw = String(value ?? '').trim().replace(/\s+/g, ' ');
+  const m = raw.match(/^Week\s*(\d+)\s*(?:—|-|–|\/|:)?\s*วันที่\s*(\d+)$/i);
+  if (!m) return '';
+  const week = Number(m[1]);
+  const day = Number(m[2]);
+  if (!Number.isInteger(week) || week < 1 || !Number.isInteger(day) || day < 1 || day > 31) return '';
+  return `Week ${week} — วันที่ ${day}`;
+}
+
+function normalizeFermentationWeek_(value) {
+  const raw = String(value ?? '').trim();
+  if (!/^\d+$/.test(raw)) return '';
+  const week = Number(raw);
+  return Number.isInteger(week) && week >= 1 ? String(week) : '';
+}
+
+function normalizeFermentationDay_(value) {
+  const raw = String(value ?? '').trim();
+  if (!/^\d{1,2}$/.test(raw)) return '';
+  const day = Number(raw);
+  return Number.isInteger(day) && day >= 1 && day <= 31 ? String(day) : '';
+}
+
+function migrateFermentationWeekDayColumns_(sheet, headers) {
+  const combinedCol = headers.indexOf('Week / วันที่ (มักเกิ้ล)');
+  const weekCol = headers.indexOf('Week');
+  const dayCol = headers.indexOf('วันที่ (มักเกิ้ล)');
+  if (sheet.getLastRow() < 2) return;
+  if (combinedCol < 0 && (weekCol < 0 || dayCol < 0)) return;
+
+  const rows = sheet.getLastRow() - 1;
+  const width = sheet.getLastColumn();
+  const values = sheet.getRange(2, 1, rows, width).getValues();
+  let changed = false;
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    let week = weekCol >= 0 ? normalizeFermentationWeek_(row[weekCol]) : '';
+    let day = dayCol >= 0 ? normalizeFermentationDay_(row[dayCol]) : '';
+    const combined = combinedCol >= 0 ? normalizeFermentationWeekDay_(row[combinedCol]) : '';
+
+    // ข้อมูลเก่า: Week / วันที่ (มักเกิ้ล) -> แยกกลับเป็น Week + วันที่
+    if ((!week || !day) && combined) {
+      const m = combined.match(/^Week\s+(\d+)\s+—\s+วันที่\s+(\d+)$/i);
+      if (m) {
+        week = m[1];
+        day = m[2];
+        if (weekCol >= 0) { row[weekCol] = week; changed = true; }
+        if (dayCol >= 0) { row[dayCol] = day; changed = true; }
+      }
+    }
+
+    // ข้อมูลใหม่: Week + วันที่ -> สร้างค่า combined ไว้รองรับข้อมูลเดิม/ระบบอื่น
+    if (week && day && combinedCol >= 0) {
+      const normalized = `Week ${week} — วันที่ ${day}`;
+      if (String(row[combinedCol] ?? '').trim() !== normalized) {
+        row[combinedCol] = normalized;
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    sheet.getRange(2, 1, rows, width).setValues(values);
+  }
+}
+
+function saveFermentation_(data) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = getOrCreateSheet_(ss, 'FERMENTATION');
+    const headers = ensureHeaders_(sheet, [
+      'ถังใบที่', 'Week / วันที่ (มักเกิ้ล)', 'Week', 'วันที่ (มักเกิ้ล)',
+      'สถานะ', 'ปริมาณ', 'หน่วย', 'อัปเดตเมื่อ'
+    ]);
+
+    // แปลงข้อมูลเก่าให้เข้ากับโครงสร้างใหม่ โดยไม่ลบข้อมูลเดิม
+    migrateFermentationWeekDayColumns_(sheet, headers);
+
+    const barrelNo = Number(data.barrelNo);
+    const week = normalizeFermentationWeek_(data.week);
+    const muggleDate = normalizeFermentationDay_(data.muggleDate);
+    const status = String(data.status || '').trim();
+    const quantity = Number(data.quantity);
+    const allowedStatuses = [
+      'พร้อมใช้ปรุงอาหาร',
+      'ยังไม่ได้ตักฟอง',
+      'ตักฟองออกหมดแล้ว',
+      'ยังไม่กรอง',
+      'รสชาติตรงตามสูตรแล้ว',
+      'รสชาติยังไม่ตรงตามสูตร',
+      'ต้องกรองใหม่อีกครั้ง',
+      'กรองแล้ว',
+      'รสชาติตรงตามสูตรแล้ว'
+    ];
+
+    if (!(barrelNo >= 1 && barrelNo <= 8 && Number.isInteger(barrelNo))) {
+      throw new Error('ถังหมักต้องอยู่ระหว่างถังใบที่ 1–8');
+    }
+    if (!week) throw new Error('Week ต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป');
+    if (!muggleDate) throw new Error('วันที่ต้องเป็นเลข 1–31 เช่น 1, 2, 3, 4');
+    if (!allowedStatuses.includes(status)) throw new Error('สถานะถังหมักไม่ถูกต้อง');
+    if (!(Number.isFinite(quantity) && quantity >= 0 && quantity <= 3000)) {
+      throw new Error('ปริมาณต้องอยู่ระหว่าง 0–3000 G');
+    }
+
+    const tz = Session.getScriptTimeZone() || MUGGLE_TIME_ZONE;
+    const updatedAt = String(data.updatedAt || Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm'));
+    const weekDay = `Week ${week} — วันที่ ${muggleDate}`;
+
+    const lastRow = sheet.getLastRow();
+    let targetRow = -1;
+    if (lastRow > 1) {
+      const values = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+      const barrelCol = headers.indexOf('ถังใบที่');
+      for (let i = 0; i < values.length; i++) {
+        if (Number(values[i][barrelCol]) === barrelNo) {
+          targetRow = i + 2;
+          break;
+        }
+      }
+    }
+
+    const out = Array(headers.length).fill('');
+    const put = (header, value) => {
+      const col = headers.indexOf(header);
+      if (col >= 0) out[col] = value;
+    };
+    put('ถังใบที่', barrelNo);
+    put('Week / วันที่ (มักเกิ้ล)', weekDay);
+    put('Week', week);
+    put('วันที่ (มักเกิ้ล)', muggleDate);
+    put('สถานะ', status);
+    put('ปริมาณ', quantity);
+    put('หน่วย', 'G');
+    put('อัปเดตเมื่อ', updatedAt);
+
+    const range = targetRow > 0
+      ? sheet.getRange(targetRow, 1, 1, headers.length)
+      : sheet.getRange(sheet.getLastRow() + 1, 1, 1, headers.length);
+    range.setNumberFormat('@');
+    range.setValues([out]);
+    SpreadsheetApp.flush();
+
+    return {
+      ok: true,
+      barrelNo,
+      week: Number(week),
+      muggleDate: Number(muggleDate),
+      weekDay,
+      status,
+      quantity,
+      unit: 'G',
+      updatedAt
+    };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -380,52 +548,25 @@ function saveWorkPhoto_(photo, workId) {
 }
 
 function normalizeMuggleDateText_(value) {
-  const raw = String(value || '').trim();
-  const match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (!match) throw new Error('รูปแบบวันที่ไม่ถูกต้อง กรุณาเลือกวันที่จากช่องวันที่');
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const check = new Date(Date.UTC(year, month - 1, day));
-  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) {
-    throw new Error('วันที่ไม่ถูกต้อง');
+  // วันที่ (มักเกิ้ล) ในระบบนี้หมายถึง “เลขวันที่” เช่น 1, 2, 3, 4, 5
+  // ไม่ใช่วัน/เดือน/ปีปฏิทิน
+  const raw = String(value ?? '').trim();
+  if (!/^\d+$/.test(raw)) {
+    throw new Error('วันที่ (มักเกิ้ล) ต้องเป็นเลขวันที่ เช่น 1, 2, 3, 4, 5');
   }
-  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const day = Number(raw);
+  if (!Number.isInteger(day) || day < 1 || day > 31) {
+    throw new Error('วันที่ (มักเกิ้ล) ต้องอยู่ระหว่าง 1–31');
+  }
+  return String(day);
 }
 
 // ใช้สำหรับแก้ข้อมูล WORK LOG / INVENTORY LOG รุ่นเก่าที่ถูกเก็บเป็น Date object
 // และอาจแสดงย้อนหลัง 1 วันเพราะ timezone ของ Spreadsheet กับ Apps Script ไม่ตรงกัน
 function repairExistingMuggleDates_() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const result = {ok:true, workLog:0, inventoryLog:0};
-  const repairSheet = (sheetName) => {
-    const sheet = ss.getSheetByName(sheetName);
-    if (!sheet || sheet.getLastRow() < 2) return 0;
-    const headers = sheet.getRange(1,1,1,Math.max(sheet.getLastColumn(),1)).getValues()[0].map(v => String(v || '').trim());
-    const col = headers.indexOf('วันที่ (มักเกิ้ล)');
-    if (col < 0) return 0;
-    const range = sheet.getRange(2,col+1,sheet.getLastRow()-1,1);
-    const values = range.getValues();
-    const out = values.map(([v]) => {
-      if (v instanceof Date && !isNaN(v.getTime())) {
-        return [Utilities.formatDate(v, MUGGLE_TIME_ZONE, 'yyyy-MM-dd')];
-      }
-      const raw = String(v || '').trim();
-      if (!raw) return [''];
-      const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-      if (iso) return [`${iso[1]}-${String(Number(iso[2])).padStart(2,'0')}-${String(Number(iso[3])).padStart(2,'0')}`];
-      const dmy = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-      if (dmy) return [`${dmy[3]}-${String(Number(dmy[2])).padStart(2,'0')}-${String(Number(dmy[1])).padStart(2,'0')}`];
-      return [raw];
-    });
-    range.setNumberFormat('@');
-    range.setValues(out);
-    return out.length;
-  };
-  result.workLog = repairSheet('WORK LOG');
-  result.inventoryLog = repairSheet('INVENTORY LOG');
-  SpreadsheetApp.flush();
-  return result;
+  // ระบบปัจจุบันเก็บ “วันที่ (มักเกิ้ล)” เป็นเลขวันที่ 1–31 แล้ว
+  // จึงไม่แปลงข้อมูลเดิมโดยอัตโนมัติเพื่อป้องกันการตีความวันที่ปฏิทินผิด
+  return {ok:true, updated:0, message:'วันที่ (มักเกิ้ล) ปัจจุบันเป็นเลขวันที่ 1–31 แล้ว'};
 }
 
 function validate_(data) {
