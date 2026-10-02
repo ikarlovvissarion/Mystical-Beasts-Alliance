@@ -410,7 +410,8 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 .fermentation-info{position:relative;z-index:2;border-top:1px solid rgba(176,137,73,.45);padding-top:8px;margin-top:2px;display:grid;gap:5px}.fermentation-info-row{display:flex;justify-content:space-between;gap:8px;font-size:8.5px;color:#6e5535}.fermentation-info-row strong{color:#4b3519;font-weight:700;text-align:right}.fermentation-status-display{display:inline-flex;justify-content:center;align-items:center;min-height:22px;padding:4px 7px;border-radius:7px;background:#ead7ad;border:1px solid #c3a46b;color:#4f391e;font-size:8.5px;font-weight:700;line-height:1.25;text-align:center}
 /* INPUT ONLY */
 .fermentation-input-zone{position:relative;z-index:1;margin-top:20px;padding:20px;border:1px solid rgba(178,139,75,.7);border-radius:18px;background:linear-gradient(180deg,rgba(248,237,211,.72),rgba(255,250,238,.55))}.fermentation-input-heading{display:flex;align-items:center;gap:9px;margin-bottom:14px}.fermentation-input-heading h4{margin:0;font-size:15px;color:#4b3519}.fermentation-input-heading span{font-size:8px;letter-spacing:1px;color:#977033}
-.fermentation-input-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fermentation-field{display:flex;flex-direction:column;gap:4px;min-width:0}.fermentation-field>span{font-size:9px;letter-spacing:.7px;color:#806333;font-weight:600}.fermentation-field input,.fermentation-field select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #c3a46b;border-radius:6px;background:#fffaf0;color:#4b3519;font:inherit;font-size:11px;outline:none}.fermentation-field input:focus,.fermentation-field select:focus{border-color:#8f6528;box-shadow:0 0 0 3px rgba(161,122,56,.12)}.fermentation-quantity{display:grid;grid-template-columns:minmax(0,1fr) 36px;gap:6px}.fermentation-quantity small{display:flex;align-items:center;justify-content:center;border:1px solid #c3a46b;background:#ead7ad;border-radius:6px;color:#765727;font-size:10px}.fermentation-input-actions{display:flex;align-items:center;gap:10px;margin-top:12px}.fermentation-save{padding:9px 16px;border:1px solid #8f6528;border-radius:6px;background:#ead0a0;color:#4b3519;font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:.2s}.fermentation-save:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save:disabled{opacity:.55;cursor:wait;transform:none}.fermentation-status{font-size:9px;color:#765727}.fermentation-status.success{color:#5d7040}.fermentation-status.error{color:#8a3d31}
+.fermentation-entry-list{display:flex;flex-direction:column;gap:10px}.fermentation-entry{position:relative;padding:12px;border:1px solid #d3b77d;border-radius:8px;background:rgba(255,250,240,.72)}.fermentation-entry-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.fermentation-entry-title{font-size:10px;font-weight:700;letter-spacing:.5px;color:#6e4b20}.fermentation-entry-remove{width:26px;height:26px;border:1px solid #b98d57;border-radius:50%;background:#fffaf0;color:#7d4f2b;font-size:17px;line-height:1;cursor:pointer}.fermentation-entry-remove:hover{background:#ead7ad}.fermentation-add{width:28px;height:28px;border:1px solid #8f6528;border-radius:50%;background:#ead0a0;color:#4b3519;font-size:20px;line-height:1;cursor:pointer;font-weight:700}.fermentation-add:hover{background:#dfbf7e;transform:translateY(-1px)}
+.fermentation-input-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fermentation-field{display:flex;flex-direction:column;gap:4px;min-width:0}.fermentation-field>span{font-size:9px;letter-spacing:.7px;color:#806333;font-weight:600}.fermentation-field input,.fermentation-field select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #c3a46b;border-radius:6px;background:#fffaf0;color:#4b3519;font:inherit;font-size:11px;outline:none}.fermentation-field input:focus,.fermentation-field select:focus{border-color:#8f6528;box-shadow:0 0 0 3px rgba(161,122,56,.12)}.fermentation-quantity{display:grid;grid-template-columns:minmax(0,1fr) 36px;gap:6px}.fermentation-quantity small{display:flex;align-items:center;justify-content:center;border:1px solid #c3a46b;background:#ead7ad;border-radius:6px;color:#765727;font-size:10px}.fermentation-input-actions{display:flex;align-items:center;gap:10px;margin-top:12px}.fermentation-add-bottom{height:36px;min-width:110px;padding:0 16px;border:1px solid #8f6528;border-radius:6px;background:#ead0a0;color:#4b3519;font-size:11px;line-height:1;font-weight:700;letter-spacing:.1px;white-space:nowrap;cursor:pointer;transition:.2s}.fermentation-add-bottom:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save{padding:9px 16px;border:1px solid #8f6528;border-radius:6px;background:#ead0a0;color:#4b3519;font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:.2s}.fermentation-save:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save:disabled{opacity:.55;cursor:wait;transform:none}.fermentation-status{font-size:9px;color:#765727}.fermentation-status.success{color:#5d7040}.fermentation-status.error{color:#8a3d31}
 @keyframes bubbleUp{0%{opacity:0;transform:translateY(12px) scale(.6)}25%{opacity:.8}80%{opacity:.35}100%{opacity:0;transform:translateY(-55px) scale(1.15)}}@keyframes barrelBreathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(.2deg)}}
 @media(max-width:1050px){.fermentation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fermentation-input-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.fermentation-zone{padding:22px 14px}.fermentation-heading{align-items:center}.fermentation-heading h3{font-size:25px}.fermentation-display-zone,.fermentation-input-zone{padding:14px}.fermentation-grid{grid-template-columns:1fr}.fermentation-input-form{grid-template-columns:1fr}.fermentation-barrel-stage{height:150px}}
@@ -542,17 +543,9 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
       <div id="fermentationGrid" class="fermentation-grid"></div>
     </div>
     <div class="fermentation-input-zone">
-      <div class="fermentation-input-heading"><h4>กรอกข้อมูลถังหมัก</h4><span>UPDATE DATA</span></div>
-      <div class="fermentation-input-form">
-        <label class="fermentation-field"><span>ถัง</span><select id="ferBarrelSelect"></select></label>
-        <label class="fermentation-field"><span>Week</span><input id="ferWeekInput" type="number" min="1" step="1" placeholder="เช่น 1"></label>
-        <label class="fermentation-field"><span>วันที่</span><input id="ferDateInput" type="number" min="1" max="31" step="1" inputmode="numeric" placeholder="เช่น 1, 2, 3, 4"></label>
-        <label class="fermentation-field"><span>วันที่ลงบันทึก</span><input id="ferCalendarDateInput" type="date" required></label>
-        <label class="fermentation-field"><span>เวลาที่ลงบันทึก</span><input id="ferTimeInput" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="เช่น 14:30" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeFerTimeInput(this)" required></label>
-        <label class="fermentation-field"><span>สถานะที่พบ</span><select id="ferStatusInput"></select></label>
-        <label class="fermentation-field"><span>ปริมาณ</span><div class="fermentation-quantity"><input id="ferQtyInput" type="number" min="0" max="3000" step="1" placeholder="0"><small>G</small></div></label>
-      </div>
-      <div class="fermentation-input-actions"><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกข้อมูล</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
+      <div class="fermentation-input-heading"><h4>กรอกข้อมูลถังหมัก</h4></div>
+      <div id="fermentationEntryList" class="fermentation-entry-list"></div>
+      <div class="fermentation-input-actions"><button type="button" class="fermentation-add fermentation-add-bottom" onclick="addFermentationEntry()" title="เพิ่มรายการ">เพิ่มรายการ</button><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกข้อมูลทั้งหมด</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
     </div>
   </section>
 </section>
@@ -673,7 +666,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
    ============================================================ */
 const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
 const DATE_DISPLAY_VERSION="muggle-date-v3";
-const SYNC_MS=8000;
+const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
@@ -759,7 +752,7 @@ function render(){
  workLogGrid.innerHTML=renderWorkHistory(worklogs);
  inventoryGrid.innerHTML=renderInventoryLarge(inventory, deletedInventoryHistory);
  const fermentationGrid=document.getElementById("fermentationGrid");
- if(fermentationGrid){ fermentationGrid.innerHTML=renderFermentation(); populateFermentationForm(document.getElementById('ferBarrelSelect')?.value||'1'); }
+ if(fermentationGrid){ fermentationGrid.innerHTML=renderFermentation(); if(!fermentationFormDirty) populateFermentationForm(); }
 }
 
 
@@ -831,65 +824,131 @@ function renderFermentation(){
  }
  return cards.join('');
 }
-function populateFermentationForm(preselect){
- const barrelSelect=document.getElementById('ferBarrelSelect');
- const statusSelect=document.getElementById('ferStatusInput');
- if(!barrelSelect||!statusSelect)return;
- const current=String(preselect||barrelSelect.value||'1');
- barrelSelect.innerHTML=Array.from({length:8},(_,i)=>`<option value="${i+1}">ถังใบที่ ${i+1}</option>`).join('');
- statusSelect.innerHTML=fermentationStatusOptions(FERMENTATION_STATUSES[0]);
- barrelSelect.value=current;
- loadFermentationForm(current);
- barrelSelect.onchange=()=>loadFermentationForm(barrelSelect.value);
+let fermentationFormDirty=false;
+let fermentationEntrySeq=0;
+
+function fermentationEntryMarkup(index, data={}){
+ const id=String(data.id||(++fermentationEntrySeq));
+ const barrel=String(data.barrelNo||data.barrel||'');
+ const week=String(data.week||'');
+ const date=String(data.date||'');
+ const calDate=String(data.calendarDate||'');
+ const time=String(data.time||'');
+ const status=String(data.status||FERMENTATION_STATUSES[0]);
+ const qty=String(data.qty??'');
+ return `<div class="fermentation-entry" data-fer-entry="${esc(id)}">
+   <div class="fermentation-entry-head"><span class="fermentation-entry-title">รายการที่ ${index}</span><button type="button" class="fermentation-entry-remove" onclick="removeFermentationEntry(this)" title="ลบรายการ">−</button></div>
+   <div class="fermentation-input-form">
+     <label class="fermentation-field"><span>ถัง</span><select data-fer-field="barrel">${Array.from({length:8},(_,i)=>`<option value="${i+1}" ${String(i+1)===barrel?'selected':''}>ถังใบที่ ${i+1}</option>`).join('')}</select></label>
+     <label class="fermentation-field"><span>Week</span><input data-fer-field="week" type="number" min="1" step="1" value="${esc(week)}" placeholder="เช่น 1"></label>
+     <label class="fermentation-field"><span>วันที่</span><input data-fer-field="date" type="number" min="1" max="31" step="1" inputmode="numeric" value="${esc(date)}" placeholder="เช่น 1, 2, 3, 4"></label>
+     <label class="fermentation-field"><span>วันที่ลงบันทึก</span><input data-fer-field="calendarDate" type="date" value="${esc(calDate)}" required></label>
+     <label class="fermentation-field"><span>เวลาที่ลงบันทึก</span><input data-fer-field="time" type="text" inputmode="numeric" autocomplete="off" maxlength="5" value="${esc(time)}" placeholder="เช่น 14:30" pattern="(?:[01]\\d|2[0-3]):[0-5]\\d" oninput="normalizeFerTimeInput(this)" required></label>
+     <label class="fermentation-field"><span>สถานะที่พบ</span><select data-fer-field="status">${fermentationStatusOptions(status)}</select></label>
+     <label class="fermentation-field"><span>ปริมาณ</span><div class="fermentation-quantity"><input data-fer-field="qty" type="number" min="0" max="3000" step="1" value="${esc(qty)}" placeholder="0"><small>G</small></div></label>
+   </div>
+ </div>`;
+}
+function markFermentationFormDirty(){ fermentationFormDirty=true; }
+function bindFermentationDirtyTracking(){
+ const list=document.getElementById('fermentationEntryList'); if(!list||list.dataset.bound==='1')return;
+ list.dataset.bound='1';
+ list.addEventListener('input',markFermentationFormDirty);
+ list.addEventListener('change',markFermentationFormDirty);
+}
+function collectFermentationEntries(){
+ const list=document.getElementById('fermentationEntryList');
+ if(!list)return [];
+ return [...list.querySelectorAll('.fermentation-entry')].map(row=>({
+   row,
+   barrelNo:Number(row.querySelector('[data-fer-field="barrel"]')?.value||0),
+   week:String(row.querySelector('[data-fer-field="week"]')?.value||'').trim(),
+   date:String(row.querySelector('[data-fer-field="date"]')?.value||'').trim(),
+   calendarDate:String(row.querySelector('[data-fer-field="calendarDate"]')?.value||'').trim(),
+   recordTime:String(row.querySelector('[data-fer-field="time"]')?.value||'').trim(),
+   status:String(row.querySelector('[data-fer-field="status"]')?.value||'').trim(),
+   qty:Number(row.querySelector('[data-fer-field="qty"]')?.value||0)
+ }));
+}
+function addFermentationEntry(data={}){
+ const list=document.getElementById('fermentationEntryList'); if(!list)return;
+ const entries=collectFermentationEntries();
+ const used=new Set(entries.map(x=>x.barrelNo).filter(Boolean));
+ if(data.barrelNo==null){ for(let i=1;i<=8;i++){if(!used.has(i)){data={...data,barrelNo:i};break;}} }
+ const index=list.querySelectorAll('.fermentation-entry').length+1;
+ list.insertAdjacentHTML('beforeend',fermentationEntryMarkup(index,data));
+ bindFermentationDirtyTracking();
+ fermentationFormDirty=true;
+ renumberFermentationEntries();
+}
+function removeFermentationEntry(button){
+ const list=document.getElementById('fermentationEntryList');
+ const row=button?.closest('.fermentation-entry');
+ if(!list||!row)return;
+ if(list.querySelectorAll('.fermentation-entry').length<=1){
+   const first=list.querySelector('.fermentation-entry');
+   if(first){ first.querySelectorAll('input').forEach(x=>x.value=''); const b=first.querySelector('[data-fer-field="barrel"]'); if(b)b.value='1'; const st=first.querySelector('[data-fer-field="status"]'); if(st)st.value=FERMENTATION_STATUSES[0]; }
+ }else row.remove();
+ renumberFermentationEntries();
+ fermentationFormDirty=true;
+}
+function renumberFermentationEntries(){
+ document.querySelectorAll('#fermentationEntryList .fermentation-entry').forEach((row,i)=>{const t=row.querySelector('.fermentation-entry-title');if(t)t.textContent=`รายการที่ ${i+1}`;});
+}
+function populateFermentationForm(){
+ const list=document.getElementById('fermentationEntryList'); if(!list)return;
+ list.innerHTML='';
+ const first=fermentationRowFor(1)||{};
+ addFermentationEntry({
+   barrelNo:1,
+   week:getFirstValue(first,['Week','สัปดาห์'])||'',
+   date:fermentationDateInput(getFirstValue(first,['วันที่ (มักเกิ้ล)','Muggle Date','วันที่'])),
+   calendarDate:getFirstValue(first,['วันเดือนปี','วันที่บันทึก','Recorded Date'])||'',
+   time:getFirstValue(first,['เวลา (น.)','เวลา','Recorded Time'])||'',
+   status:getFirstValue(first,['สถานะ','Status'])||FERMENTATION_STATUSES[0],
+   qty:getFirstValue(first,['ปริมาณ','Quantity'])||''
+ });
+ // Loading existing data is not an edit; allow the next 15-second sync to refresh again.
+ fermentationFormDirty=false;
+ bindFermentationDirtyTracking();
 }
 function normalizeFerTimeInput(input){
  const raw=String(input?.value||'').replace(/[^0-9]/g,'').slice(0,4);
  if(!input)return;
  input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
 }
-
-function loadFermentationForm(barrelNo){
- const r=fermentationRowFor(barrelNo)||{};
- const week=document.getElementById('ferWeekInput'), date=document.getElementById('ferDateInput'), calDate=document.getElementById('ferCalendarDateInput'), time=document.getElementById('ferTimeInput'), status=document.getElementById('ferStatusInput'), qty=document.getElementById('ferQtyInput');
- if(week)week.value=getFirstValue(r,['Week','สัปดาห์'])||'';
- if(date)date.value=fermentationDateInput(getFirstValue(r,['วันที่ (มักเกิ้ล)','Muggle Date','วันที่']));
- if(calDate)calDate.value=getFirstValue(r,['วันเดือนปี','วันที่บันทึก','Recorded Date'])||'';
- if(time)time.value=getFirstValue(r,['เวลา (น.)','เวลา','Recorded Time'])||'';
- if(status){const saved=getFirstValue(r,['สถานะ','Status'])||FERMENTATION_STATUSES[0]; status.innerHTML=fermentationStatusOptions(saved);}
- if(qty)qty.value=getFirstValue(r,['ปริมาณ','Quantity'])||'';
- const msg=document.getElementById('fermentationFormStatus'); if(msg){msg.textContent='';msg.className='fermentation-status';}
-}
 async function saveFermentationFromForm(){
- const barrelNo=Number(document.getElementById('ferBarrelSelect')?.value||0);
- const week=String(document.getElementById('ferWeekInput')?.value||'').trim();
- const date=String(document.getElementById('ferDateInput')?.value||'').trim();
- const calendarDate=String(document.getElementById('ferCalendarDateInput')?.value||'').trim();
- const recordTime=String(document.getElementById('ferTimeInput')?.value||'').trim();
- const status=String(document.getElementById('ferStatusInput')?.value||'').trim();
- const qty=Number(document.getElementById('ferQtyInput')?.value||0);
+ const entries=collectFermentationEntries();
  const msg=document.getElementById('fermentationFormStatus');
- if(!barrelNo){if(msg){msg.textContent='กรุณาเลือกถัง';msg.className='fermentation-status error'}return;}
- if(!week||Number(week)<1){if(msg){msg.textContent='กรุณากรอก Week';msg.className='fermentation-status error'}return;}
- if(!date || !/^\d{1,2}$/.test(date) || Number(date)<1 || Number(date)>31){if(msg){msg.textContent='กรุณากรอกวันที่เป็นเลข 1–31 เช่น 1, 2, 3, 4';msg.className='fermentation-status error'}return;}
- if(!calendarDate){if(msg){msg.textContent='กรุณาเลือกวันเดือนปี';msg.className='fermentation-status error'}return;}
- if(!recordTime || !/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)){if(msg){msg.textContent='กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 14:30';msg.className='fermentation-status error'}return;}
- if(!Number.isFinite(qty)||qty<0||qty>3000){if(msg){msg.textContent='ปริมาณต้องอยู่ระหว่าง 0–3000 G';msg.className='fermentation-status error'}return;}
- if(!status){if(msg){msg.textContent='กรุณาเลือกสถานะ';msg.className='fermentation-status error'}return;}
- if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){if(msg){msg.textContent='ยังไม่ได้ตั้งค่า Apps Script URL';msg.className='fermentation-status error'}return;}
+ if(!entries.length){if(msg){msg.textContent='กรุณาเพิ่มรายการ';msg.className='fermentation-status error'}return;}
+ const seen=new Set();
+ for(let i=0;i<entries.length;i++){
+   const e=entries[i], n=i+1;
+   if(!e.barrelNo){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกถัง`;msg.className='fermentation-status error'}return;}
+   if(seen.has(e.barrelNo)){if(msg){msg.textContent=`รายการที่ ${n}: ถังใบที่ ${e.barrelNo} ซ้ำกับรายการอื่น`;msg.className='fermentation-status error'}return;}
+   seen.add(e.barrelNo);
+   if(!e.week||Number(e.week)<1){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอก Week`;msg.className='fermentation-status error'}return;}
+   if(!e.date||!/^[0-9]{1,2}$/.test(e.date)||Number(e.date)<1||Number(e.date)>31){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอกวันที่เป็นเลข 1–31`;msg.className='fermentation-status error'}return;}
+   if(!e.calendarDate){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกวันที่ลงบันทึก`;msg.className='fermentation-status error'}return;}
+   if(!e.recordTime||!/^([01]\d|2[0-3]):[0-5]\d$/.test(e.recordTime)){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 14:30`;msg.className='fermentation-status error'}return;}
+   if(!Number.isFinite(e.qty)||e.qty<0||e.qty>3000){if(msg){msg.textContent=`รายการที่ ${n}: ปริมาณต้องอยู่ระหว่าง 0–3000 G`;msg.className='fermentation-status error'}return;}
+   if(!e.status){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกสถานะ`;msg.className='fermentation-status error'}return;}
+ }
+ if(!WORKLOG_API_URL||WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){if(msg){msg.textContent='ยังไม่ได้ตั้งค่า Apps Script URL';msg.className='fermentation-status error'}return;}
  const button=document.querySelector('.fermentation-input-actions .fermentation-save'); if(button)button.disabled=true;
- if(msg){msg.textContent='กำลังบันทึก…';msg.className='fermentation-status'}
- const now=new Date();
- const pad=n=>String(n).padStart(2,'0');
- const autoDate=calendarDate;
- const autoTime=recordTime;
- const updatedAt=`${autoDate.split('-').reverse().join('/')} ${autoTime} น.`;
- const payload={action:'saveFermentation',barrelNo,week:Number(week),muggleDate:date,recordDate:autoDate,recordTime:autoTime,status,quantity:qty,updatedAt};
+ if(msg){msg.textContent=`กำลังบันทึก ${entries.length} รายการ…`;msg.className='fermentation-status'}
  try{
-  await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
-  if(msg){msg.textContent='บันทึกแล้ว • กำลังซิงก์ข้อมูล…';msg.className='fermentation-status success'}
-  setTimeout(syncData,900);
+   for(const e of entries){
+     const updatedAt=`${e.calendarDate.split('-').reverse().join('/')} ${e.recordTime} น.`;
+     const payload={action:'saveFermentation',barrelNo:e.barrelNo,week:Number(e.week),muggleDate:e.date,recordDate:e.calendarDate,recordTime:e.recordTime,status:e.status,quantity:e.qty,updatedAt};
+     await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
+   }
+   fermentationFormDirty=false;
+   if(msg){msg.textContent=`บันทึกแล้ว ${entries.length} รายการ • กำลังซิงก์ข้อมูล…`;msg.className='fermentation-status success'}
+   setTimeout(syncData,900);
+   setTimeout(()=>{if(msg){msg.textContent='';}},2500);
  }catch(e){
-  if(msg){msg.textContent='บันทึกไม่สำเร็จ: '+e.message;msg.className='fermentation-status error'}
+   if(msg){msg.textContent='บันทึกไม่สำเร็จ: '+e.message;msg.className='fermentation-status error'}
  }finally{setTimeout(()=>{if(button)button.disabled=false},900)}
 }
 
