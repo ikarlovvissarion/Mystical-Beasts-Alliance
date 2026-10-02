@@ -100,7 +100,7 @@ function doPost(e) {
       return json_(result);
     }
     if (data.action === 'deleteInventoryHistory') {
-      throw new Error('ประวัติ Inventory เชื่อมกับ WORK LOG โดยตรง และไม่สามารถลบแยกจาก WORK LOG ได้');
+      return json_(deleteInventoryHistory_(data));
     }
     if (data.action === 'deleteFermentationHistory') return json_(deleteFermentationHistory_(data));
     if (data.action === 'requestDelete') return json_(requestDeleteWork_(data));
@@ -208,7 +208,7 @@ function saveFermentationBatch_(data) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(recordDate)) throw new Error('วันเดือนปีไม่ถูกต้อง');
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)) throw new Error('เวลาต้องเป็นรูปแบบ 24 ชั่วโมง เช่น 14:30');
     if (barrels.length !== 8) throw new Error('ต้องส่งข้อมูลถังหมักครบทั้ง 8 ถัง');
-    if (!photos.length || photos.length > 5) throw new Error('กรุณาแนบรูปภาพการตรวจสอบ 1–5 รูป');
+    if (photos.length > 5) throw new Error('รูปภาพการตรวจสอบเลือกได้สูงสุด 5 รูป');
 
     const seen = new Set();
     barrels.forEach((item, index) => {
@@ -227,7 +227,7 @@ function saveFermentationBatch_(data) {
     });
     for (let n = 1; n <= 8; n++) if (!seen.has(n)) throw new Error(`ไม่มีข้อมูลถังใบที่ ${n}`);
 
-    // อัปโหลดรูป 1–5 รูป แล้วใช้ชุดรูปเดียวกันกับทั้ง 8 แถว
+    // ถ้ามีรูป ให้ อัปโหลด 1–5 รูป แล้วใช้ชุดรูปเดียวกันกับทั้ง 8 แถว; ถ้าไม่มีรูปให้บันทึกได้ตามปกติ
     const photoUrls = photos.map((photo, index) => {
       const url = saveWorkPhoto_(photo, 'FERMENTATION-' + recordDate.replace(/-/g, '') + '-' + recordTime.replace(':', '') + '-' + (index + 1));
       if (!url) throw new Error(`อัปโหลดรูปการตรวจสอบรูปที่ ${index + 1} ไม่สำเร็จ`);
@@ -895,10 +895,6 @@ function adminStatus_() { return {ok:true,isAdmin:false,auth:'password'}; }
 function ensureColumn_(sheet, headers, name) { let i=headers.indexOf(name); if(i>=0)return i+1; const c=sheet.getLastColumn()+1; sheet.getRange(1,c).setValue(name); return c; }
 function valueByHeader_(row, headers, name) { const i=headers.indexOf(name); return i>=0?row[i]:''; }
 function deleteInventoryHistory_(data) {
-  // ประวัติ Inventory ผูกกับ WORK LOG โดยตรงและไม่อนุญาตให้ลบแยกอีกต่อไป
-  // จะหายจากหน้า Inventory ก็ต่อเมื่อ Admin ลบ WORK LOG ที่เป็นต้นทางเท่านั้น
-  throw new Error('ประวัติการเบิก/รับผูกกับ WORK LOG และไม่สามารถลบแยกจาก WORK LOG ได้');
-  /*
   if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
   const workId = String(data.workId || '').trim();
   const reason = String(data.reason || '').trim();
@@ -917,6 +913,7 @@ function deleteInventoryHistory_(data) {
       ? ws.getRange(2, 1, ws.getLastRow() - 1, ws.getLastColumn()).getValues()
       : [];
     const widCol = wh.indexOf('Work ID');
+    if (widCol < 0) throw new Error('ไม่พบคอลัมน์ Work ID ใน WORK LOG');
     const row = rows.find(r => String(r[widCol] || '').trim() === workId);
     if (!row) throw new Error('ไม่พบ WORK ID: ' + workId);
 
@@ -944,13 +941,11 @@ function deleteInventoryHistory_(data) {
     ds.appendRow(out);
     SpreadsheetApp.flush();
 
-    // สำคัญ: การลบประวัติ Inventory ครั้งนี้เป็นการลบ "การแสดงประวัติ" เท่านั้น
-    // ไม่แก้จำนวนใน INVENTORY และไม่แก้/ลบ WORK LOG
-    return { ok: true, workId, action, deleted: true, stockChanged: false };
+    // ลบเฉพาะ "การแสดงผล" ของประวัติ Inventory โดยไม่แตะ Stock และไม่แตะ WORK LOG
+    return { ok: true, workId, action, deleted: true, stockChanged: false, workLogChanged: false };
   } finally {
     lock.releaseLock();
   }
-  */
 }
 
 function requestDeleteWork_(data) {
@@ -1078,6 +1073,31 @@ function cancelWorkLog_(data) {
       appendInventoryLog_(il,lh,{txId,dateValue:new Date(),time:Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'HH:mm'),type:rollback,itemId:found.id,name:found.name,qty:allowed,unit:found.unit,workId:workId,recorder:email,note:'ยกเลิก '+workId+' | ย้อนรายการ: '+reverseOf+' | '+reason});
       reverted.push({item:found.name,quantity:allowed,unit:found.unit,type:rollback});
     }
+    // เมื่อยกเลิก WORK LOG ให้ซ่อนประวัติ Inventory ที่ผูกกับ Work ID เดียวกันด้วย
+    // แต่ห้ามย้อน Stock ซ้ำจากการซ่อนประวัติ และห้ามสร้าง audit ซ้ำ
+    const deletedInventorySheet = getOrCreateSheet_(ss, 'DELETED INVENTORY HISTORY');
+    const deletedInventoryHeaders = ensureHeaders_(deletedInventorySheet, [
+      'History ID', 'Deleted At', 'Deleted By', 'Work ID', 'ประเภท', 'เหตุผล'
+    ]);
+    const deletedInventoryRows = deletedInventorySheet.getLastRow() > 1
+      ? deletedInventorySheet.getRange(2, 1, deletedInventorySheet.getLastRow() - 1, deletedInventorySheet.getLastColumn()).getValues()
+      : [];
+    const hasDeletedInventoryAudit = deletedInventoryRows.some(r => String(valueByHeader_(r, deletedInventoryHeaders, 'Work ID') || '').trim() === workId);
+    if (!hasDeletedInventoryAudit) {
+      const category = String(valueByHeader_(row, headers, 'Category') || '').trim();
+      const action = category === 'งานทั่วไป' ? 'เบิก' : category === 'เก็บผลผลิต' ? 'รับ' : '';
+      if (action) {
+        const auditRow = blankRow_(deletedInventoryHeaders.length);
+        setCell_(auditRow, deletedInventoryHeaders, 'History ID', nextId_(deletedInventorySheet, 'History ID', 'IH', 5));
+        setCell_(auditRow, deletedInventoryHeaders, 'Deleted At', new Date());
+        setCell_(auditRow, deletedInventoryHeaders, 'Deleted By', email);
+        setCell_(auditRow, deletedInventoryHeaders, 'Work ID', workId);
+        setCell_(auditRow, deletedInventoryHeaders, 'ประเภท', action);
+        setCell_(auditRow, deletedInventoryHeaders, 'เหตุผล', 'ลบพร้อม WORK LOG: ' + reason);
+        deletedInventorySheet.appendRow(auditRow);
+      }
+    }
+
     // เก็บสำเนาไว้ใน DELETED WORK LOG ก่อนลบจริง เพื่อให้ ADMIN ยังดูประวัติย้อนหลังได้
     const deletedSheet=getOrCreateSheet_(ss,'DELETED WORK LOG');
     const deletedHeaders=ensureHeaders_(deletedSheet, headers.concat(['Deleted At','Deleted By','Delete Reason','Delete Source','Delete Request ID']));
