@@ -1,4 +1,5 @@
 const SPREADSHEET_ID = '1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0';
+const MUGGLE_TIME_ZONE = 'Asia/Bangkok';
 
 const WIZARD_DAYS = [
   'วันที่ 1 ผู้วิเศษ | 02.00 - 05.59 น.',
@@ -124,9 +125,9 @@ function saveWorkLog_(data) {
     ]);
 
     const workId = nextWorkId_(ss, workSheet);
-    // ใช้วันที่ (มักเกิ้ล) ที่ผู้ใช้เลือกจากหน้าเว็บโดยตรง
-    // รูปแบบที่ส่งมาจาก <input type="date"> คือ YYYY-MM-DD
-    const dateValue = parseMuggleDate_(data.muggleDate);
+    // เก็บวันที่มักเกิ้ลเป็นข้อความ ISO โดยตรง เพื่อไม่ให้ Google Sheets/Timezone
+    // เปลี่ยนวันที่ย้อนหลังหรือเดินหน้า 1 วัน
+    const dateValue = normalizeMuggleDateText_(data.muggleDate);
     const withdrawals = normalizeItems_(data.withdrawals);
     const returns = normalizeItems_(data.returns);
     const receives = normalizeItems_(data.receives);
@@ -212,6 +213,8 @@ function saveWorkLog_(data) {
 
     // บันทึก WORK LOG หลังจากรูปพร้อมแล้ว
     workSheet.appendRow(workRow);
+    const workDateCol = workHeaders.indexOf('วันที่ (มักเกิ้ล)') + 1;
+    if (workDateCol > 0) workSheet.getRange(workSheet.getLastRow(), workDateCol).setNumberFormat('@');
 
     const transactions = [];
 
@@ -376,28 +379,53 @@ function saveWorkPhoto_(photo, workId) {
     encodeURIComponent(fileId) + '&sz=w1200';
 }
 
-function parseMuggleDate_(value) {
+function normalizeMuggleDateText_(value) {
   const raw = String(value || '').trim();
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) {
-    throw new Error('รูปแบบวันที่ไม่ถูกต้อง กรุณาเลือกวันที่จากช่องวันที่');
-  }
-
+  const match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!match) throw new Error('รูปแบบวันที่ไม่ถูกต้อง กรุณาเลือกวันที่จากช่องวันที่');
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-
-  // ป้องกันวันที่ไม่มีอยู่จริง เช่น 2026-02-31
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  const check = new Date(Date.UTC(year, month - 1, day));
+  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) {
     throw new Error('วันที่ไม่ถูกต้อง');
   }
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
 
-  return date;
+// ใช้สำหรับแก้ข้อมูล WORK LOG / INVENTORY LOG รุ่นเก่าที่ถูกเก็บเป็น Date object
+// และอาจแสดงย้อนหลัง 1 วันเพราะ timezone ของ Spreadsheet กับ Apps Script ไม่ตรงกัน
+function repairExistingMuggleDates_() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const result = {ok:true, workLog:0, inventoryLog:0};
+  const repairSheet = (sheetName) => {
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet || sheet.getLastRow() < 2) return 0;
+    const headers = sheet.getRange(1,1,1,Math.max(sheet.getLastColumn(),1)).getValues()[0].map(v => String(v || '').trim());
+    const col = headers.indexOf('วันที่ (มักเกิ้ล)');
+    if (col < 0) return 0;
+    const range = sheet.getRange(2,col+1,sheet.getLastRow()-1,1);
+    const values = range.getValues();
+    const out = values.map(([v]) => {
+      if (v instanceof Date && !isNaN(v.getTime())) {
+        return [Utilities.formatDate(v, MUGGLE_TIME_ZONE, 'yyyy-MM-dd')];
+      }
+      const raw = String(v || '').trim();
+      if (!raw) return [''];
+      const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (iso) return [`${iso[1]}-${String(Number(iso[2])).padStart(2,'0')}-${String(Number(iso[3])).padStart(2,'0')}`];
+      const dmy = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (dmy) return [`${dmy[3]}-${String(Number(dmy[2])).padStart(2,'0')}-${String(Number(dmy[1])).padStart(2,'0')}`];
+      return [raw];
+    });
+    range.setNumberFormat('@');
+    range.setValues(out);
+    return out.length;
+  };
+  result.workLog = repairSheet('WORK LOG');
+  result.inventoryLog = repairSheet('INVENTORY LOG');
+  SpreadsheetApp.flush();
+  return result;
 }
 
 function validate_(data) {
@@ -516,6 +544,8 @@ function appendInventoryLog_(sheet, headers, tx) {
   setCell_(row, headers, 'รายการ', tx.name); setCell_(row, headers, 'จำนวน', tx.qty); setCell_(row, headers, 'หน่วย', tx.unit);
   setCell_(row, headers, 'Work ID', tx.workId); setCell_(row, headers, 'ผู้ลงบันทึก', tx.recorder); setCell_(row, headers, 'หมายเหตุ', tx.note || '');
   sheet.appendRow(row);
+  const dateCol = headers.indexOf('วันที่ (มักเกิ้ล)') + 1;
+  if (dateCol > 0) sheet.getRange(sheet.getLastRow(), dateCol).setNumberFormat('@');
 }
 function nextWorkId_(ss, workSheet) {
   const values = [];

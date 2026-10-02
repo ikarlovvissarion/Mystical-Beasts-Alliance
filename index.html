@@ -581,13 +581,14 @@ function renderInventoryHistory(rows, deletedIds=new Set(), txRows=[]){
    const time=formatICTime(getFirstValue(r,['เวลา (IC)']));
    const person=getFirstValue(r,['ผู้ลงบันทึก'])||'-';
    const purpose=getFirstValue(r,['ประเภทการทำงาน'])||'-';
-   return {workId,action,date,time,person,purpose,names,qtys,units};
+   const target=getFirstValue(r,['Target Name','สัตว์วิเศษ/พืชผัก'])||'';
+   return {workId,action,date,time,person,purpose,target,names,qtys,units};
  }).filter(Boolean).reverse();
 
  const body=history.length?`<div class="inventory-history-list">${history.map(h=>{
    const personLabel=h.action==='เบิก'?'ผู้เบิก':'ผู้รับ';
    const items=h.names.map((name,i)=>`<div class="inventory-history-item"><span class="inventory-history-item-name">${esc(name)}</span><span class="inventory-history-item-qty">${esc(h.qtys[i]||'-')}</span><span class="inventory-history-item-unit">${esc(h.units[i]||'')}</span></div>`).join('');
-   return `<article class="inventory-history-card"><div class="inventory-history-top"><span class="inventory-history-badge">${esc(h.action)}</span><span class="inventory-history-date">${esc(h.date)} · ${esc(h.time)}</span></div><div class="inventory-history-purpose">${esc(h.purpose)}</div><div class="inventory-history-meta"><div><small>${personLabel}</small><b>${esc(h.person)}</b></div><div><small>Work ID</small><b>${esc(h.workId)}</b></div></div><div class="inventory-history-items">${items}</div></article>`;
+   return `<article class="inventory-history-card"><div class="inventory-history-top"><span class="inventory-history-badge">${esc(h.action)}</span><span class="inventory-history-date">${esc(h.date)} · ${esc(h.time)}</span></div><div class="inventory-history-purpose">${esc(h.purpose)}</div><div class="inventory-history-meta"><div><small>${personLabel}</small><b>${esc(h.person)}</b></div><div><small>สัตว์วิเศษ/พืชผัก</small><b>${esc(h.target||'ไม่ระบุ').replace(/\s*\|\s*/g,' • ')}</b></div></div><div class="inventory-history-items">${items}</div></article>`;
  }).join('')}</div>`:`<div class="inventory-history-empty">ยังไม่มีประวัติการเบิกหรือรับ</div>`;
  return `<section class="inventory-history-section"><div class="inventory-history-heading"><div><span class="eyebrow">INVENTORY ARCHIVE</span><h3>ประวัติการเบิกและรับ</h3></div><span class="history-count">${history.length} รายการ</span></div>${body}</section>`;
 }
