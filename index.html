@@ -406,7 +406,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
    ============================================================ */
 const SHEET_ID="1pjxixoLuVNNbbQMaUMoPj2_nF1K0Ebibg3-MyrikeO0";
 const DATE_DISPLAY_VERSION="muggle-date-v3";
-const SYNC_MS=15000;
+const SYNC_MS=8000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
@@ -425,6 +425,7 @@ const FALLBACK_BEASTS = [
 ];
 
 let beasts=[], plants=[], worklogs=[], inventory=[], inventoryLogs=[], members=[], deletedWorklogs=[], deletedInventoryHistory=[];
+let syncInFlight=false;
 let targetMap=new Map();
 let targetSelection=new Set();
 let targetDraftSelection=new Set();
@@ -501,8 +502,7 @@ function toNumberClient(value){
 }
 
 function renderInventoryLarge(rows, deletedHistory=[]){
- const deletedIds=new Set((deletedHistory||[]).map(r=>String(getFirstValue(r,['Work ID'])||'').trim()).filter(Boolean));
- const groups=[];
+  const groups=[];
  const groupMap=new Map();
  (rows||[]).forEach(r=>{
   const raw=String(getFirstValue(r,['Category','หมวดหมู่','ประเภท'])||'').trim();
@@ -516,7 +516,7 @@ function renderInventoryLarge(rows, deletedHistory=[]){
    const unit=getFirstValue(r,['หน่วย','Unit'])||'';
    return `<div class="inventory-large-row"><div class="inventory-large-name">${esc(name)}</div><div class="inventory-large-qty">${esc(qty)}</div><div class="inventory-large-unit">${esc(unit)}</div></div>`;
  }).join('')}</div></section>`).join(''):`<div class="inventory-large-empty">ยังไม่มีข้อมูลในคลังชมรม</div>`;
- return `${inventoryHtml}${renderInventoryHistory(worklogs,deletedIds,inventoryLogs)}`;
+ return `${inventoryHtml}${renderInventoryHistory(worklogs,new Set(),inventoryLogs)}`;
 }
 
 function splitPipeValues(value){
@@ -524,6 +524,12 @@ function splitPipeValues(value){
 }
 
 function renderInventoryHistory(rows, deletedIds=new Set(), txRows=[]){
+ // กฎถาวรของประวัติคลัง:
+ // 1) WORK LOG เป็นเจ้าของประวัติ (source of truth)
+ // 2) INVENTORY LOG ใช้เติมรายละเอียดรายการ/จำนวนเท่านั้น
+ // 3) ไม่อ่าน/พึ่ง DELETED INVENTORY HISTORY เพื่อซ่อนรายการ
+ // 4) ถ้า WORK LOG ยังอยู่ -> ประวัติต้องแสดงทุกครั้งที่เปิด/รีเฟรช
+ // 5) ถ้า Admin ลบ WORK LOG -> Work ID หายจากชุดข้อมูล -> ประวัติหายตามทันที
  const txByWork=new Map();
  (txRows||[]).forEach(tx=>{
    const wid=String(getFirstValue(tx,['Work ID'])||'').trim();
@@ -540,22 +546,25 @@ function renderInventoryHistory(rows, deletedIds=new Set(), txRows=[]){
 
  const history=(rows||[]).map(r=>{
    const workId=String(getFirstValue(r,['Work ID'])||'').trim();
-   const category=String(getFirstValue(r,['Category'])||'').trim();
-   if(!workId || deletedIds.has(workId))return null;
+   const status=String(getFirstValue(r,['Status'])||'').trim().toLowerCase();
+   if(!workId || status==='cancelled')return null;
 
-   // ใช้ WORK LOG เป็นแหล่งหลักของประวัติ และใช้ INVENTORY LOG
-   // เฉพาะเป็นรายละเอียดรายการ/จำนวน เพื่อรองรับทั้งข้อมูลใหม่และข้อมูลเก่า
-   let action=category==='งานทั่วไป'?'เบิก':category==='เก็บผลผลิต'?'รับ':'';
+   // Category ของ WORK LOG เป็นตัวกำหนดประเภทประวัติอย่างชัดเจน
+   const category=String(getFirstValue(r,['Category'])||'').trim();
+   const action=category==='งานทั่วไป'?'เบิก':category==='เก็บผลผลิต'?'รับ':'';
+   if(!action)return null;
+
    let names=[],qtys=[],units=[];
    const tx=txByWork.get(workId)||[];
-   if(tx.length){
-     const wanted=action==='เบิก'?'เบิก':action==='รับ'?'รับเข้า':'';
-     const matched=tx.filter(x=>x.type===wanted);
-     if(matched.length){
-       names=matched.map(x=>x.name); qtys=matched.map(x=>x.qty); units=matched.map(x=>x.unit);
-     }
+   const wanted=action==='เบิก'?'เบิก':'รับเข้า';
+   const matched=tx.filter(x=>x.type===wanted);
+   if(matched.length){
+     names=matched.map(x=>x.name);
+     qtys=matched.map(x=>x.qty);
+     units=matched.map(x=>x.unit);
    }
-   // fallback สำหรับ WORK LOG รุ่นเก่าที่ไม่มีรายการใน INVENTORY LOG
+
+   // ข้อมูลเก่าที่ไม่มี INVENTORY LOG ยังคงแสดงได้ เพราะ WORK LOG มีรายละเอียดเดิมอยู่
    if(!names.length && action==='เบิก'){
      names=splitPipeValues(getFirstValue(r,['เบิกคลังชมรม'])||'').filter(Boolean);
      qtys=splitPipeValues(getFirstValue(r,['จำนวนที่เบิก'])||'');
@@ -566,16 +575,7 @@ function renderInventoryHistory(rows, deletedIds=new Set(), txRows=[]){
      qtys=splitPipeValues(getFirstValue(r,['จำนวนที่ได้รับ'])||'');
      units=splitPipeValues(getFirstValue(r,['หน่วยที่ได้รับ'])||'');
    }
-   // ถ้า Category ไม่ตรง แต่ INVENTORY LOG มี transaction ที่ผูกกับ Work ID
-   // ให้ใช้ประเภท transaction เป็นตัวกำหนดเฉพาะกรณีที่ WORK LOG ระบุไม่ชัดเจน
-   if(!names.length && !action && tx.length){
-     const first=tx[0];
-     action=first.type==='เบิก'?'เบิก':'รับ';
-     names=tx.filter(x=>x.type===first.type).map(x=>x.name);
-     qtys=tx.filter(x=>x.type===first.type).map(x=>x.qty);
-     units=tx.filter(x=>x.type===first.type).map(x=>x.unit);
-   }
-   if(!action || !names.length)return null;
+   if(!names.length)return null;
 
    const date=formatWorkDate(getFirstValue(r,['วันที่ (มักเกิ้ล)']));
    const time=formatICTime(getFirstValue(r,['เวลา (IC)']));
@@ -583,15 +583,14 @@ function renderInventoryHistory(rows, deletedIds=new Set(), txRows=[]){
    const purpose=getFirstValue(r,['ประเภทการทำงาน'])||'-';
    return {workId,action,date,time,person,purpose,names,qtys,units};
  }).filter(Boolean).reverse();
+
  const body=history.length?`<div class="inventory-history-list">${history.map(h=>{
    const personLabel=h.action==='เบิก'?'ผู้เบิก':'ผู้รับ';
    const items=h.names.map((name,i)=>`<div class="inventory-history-item"><span class="inventory-history-item-name">${esc(name)}</span><span class="inventory-history-item-qty">${esc(h.qtys[i]||'-')}</span><span class="inventory-history-item-unit">${esc(h.units[i]||'')}</span></div>`).join('');
-   const admin=isGoogleAdmin?`<div class="inventory-history-actions"><button class="inventory-history-delete-btn" type="button" onclick="deleteInventoryHistory('${esc(h.workId)}')">🗑 ลบประวัตินี้โดย Admin</button></div>`:'';
-   return `<article class="inventory-history-card"><div class="inventory-history-top"><span class="inventory-history-badge">${esc(h.action)}</span><span class="inventory-history-date">${esc(h.date)} · ${esc(h.time)}</span></div><div class="inventory-history-purpose">${esc(h.purpose)}</div><div class="inventory-history-meta"><div><small>${personLabel}</small><b>${esc(h.person)}</b></div><div><small>Work ID</small><b>${esc(h.workId)}</b></div></div><div class="inventory-history-items">${items}</div>${admin}</article>`;
+   return `<article class="inventory-history-card"><div class="inventory-history-top"><span class="inventory-history-badge">${esc(h.action)}</span><span class="inventory-history-date">${esc(h.date)} · ${esc(h.time)}</span></div><div class="inventory-history-purpose">${esc(h.purpose)}</div><div class="inventory-history-meta"><div><small>${personLabel}</small><b>${esc(h.person)}</b></div><div><small>Work ID</small><b>${esc(h.workId)}</b></div></div><div class="inventory-history-items">${items}</div></article>`;
  }).join('')}</div>`:`<div class="inventory-history-empty">ยังไม่มีประวัติการเบิกหรือรับ</div>`;
  return `<section class="inventory-history-section"><div class="inventory-history-heading"><div><span class="eyebrow">INVENTORY ARCHIVE</span><h3>ประวัติการเบิกและรับ</h3></div><span class="history-count">${history.length} รายการ</span></div>${body}</section>`;
 }
-
 function formatWorkDate(value){
  const raw=String(value??'').trim();
  if(!raw)return '-';
@@ -730,23 +729,10 @@ function openAdmin(){
 }
 
 async function deleteInventoryHistory(workId){
- const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
- if(!row)return;
- if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
- const category=String(getFirstValue(row,['Category'])||'').trim();
- const action=category==='งานทั่วไป'?'เบิก':category==='เก็บผลผลิต'?'รับ':'';
- if(!action)return;
- const ok=confirm(`ต้องการลบประวัติ${action}ของ WORK ID ${workId} จากหน้า Inventory ใช่หรือไม่?\n\nการลบนี้จะไม่เปลี่ยนจำนวนในคลัง และจะไม่ลบ WORK LOG`);
- if(!ok)return;
- const reason=prompt('กรุณาระบุเหตุผลการลบประวัติ:', 'ลบประวัติการแสดงผล');
- if(!reason || !reason.trim())return;
- try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'deleteInventoryHistory',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
-   alert('ลบประวัติการเบิก/รับจากหน้า Inventory แล้ว โดยไม่เปลี่ยนจำนวนในคลัง');
-   await syncData();
- }catch(e){alert('ลบประวัติไม่สำเร็จ: '+e.message);}
+ // ไม่มีการลบประวัติ Inventory แยกอีกต่อไป
+ // ประวัติจะหายได้จากการลบ WORK LOG ต้นทางโดย Admin เท่านั้น
+ alert('ประวัติการเบิก/รับเชื่อมกับ WORK LOG โดยตรง\nหากต้องการให้ประวัตินี้หาย กรุณาลบ WORK LOG ต้นทางโดย Admin');
 }
-
 async function cancelWorkLog(workId){
  const row=worklogs.find(r=>String(getFirstValue(r,['Work ID'])||'').trim()===String(workId).trim());
  if(!row)return;
@@ -1427,9 +1413,10 @@ async function waitForSubmittedWorkLogVisible(expected){
  const delayMs=1000;
  for(let attempt=1;attempt<=maxAttempts;attempt++){
   try{
-   const [rows, txRows]=await Promise.all([fetchSheet("WORK LOG"), fetchSheetOptional("INVENTORY LOG")]);
+   const [rows, txRows, invRows]=await Promise.all([fetchSheet("WORK LOG"), fetchSheetOptional("INVENTORY LOG"), fetchSheet("INVENTORY")]);
    worklogs=rows;
    inventoryLogs=txRows||[];
+   if(invRows && invRows.length) inventory=invRows;
    render();
 
    const requestId=String(expected.clientRequestId||"").trim();
@@ -1565,20 +1552,59 @@ async function submitWorkLog(ev){
 }
 
 async function syncData(){
+ if(syncInFlight)return;
+ syncInFlight=true;
  try{
-  const [b,p,w,inv,invlog,mem,del,reqs,delInv]=await Promise.all([
-   fetchSheet("BEASTS"),fetchSheet("PLANTS"),fetchSheet("WORK LOG"),fetchSheet("INVENTORY"),fetchSheetOptional("INVENTORY LOG"),fetchSheet("MEMBER"),fetchSheetOptional("DELETED WORK LOG"),fetchSheetOptional("DELETE REQUESTS"),fetchSheetOptional("DELETED INVENTORY HISTORY")
-  ]);
-  if(b.length)beasts=b;
-  plants=p;worklogs=w;inventory=inv;inventoryLogs=invlog||[];members=mem;deletedWorklogs=del||[];deleteRequests=reqs||[];deletedInventoryHistory=delInv||[];
-  rebuildWorkLogLookups();
-  render();
-  syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
+   // 1) Inventory ต้องอัปเดตแยกก่อน เพื่อไม่ให้การอ่าน WORK LOG/MEMBER
+   //    ที่ช้ากว่ามาหน่วงยอดคงเหลือในคลัง
+   try{
+     const inv=await fetchSheet("INVENTORY");
+     if(inv && inv.length) inventory=inv;
+     render();
+   }catch(e){
+     console.warn("Inventory sync:",e);
+   }
+
+   // 2) ข้อมูลส่วนอื่นอ่านพร้อมกัน แต่ใช้ Promise.allSettled เพื่อให้
+   //    แท็บใดแท็บหนึ่งช้า/ล่มไม่ทำให้ Inventory หยุดอัปเดต
+   const results=await Promise.allSettled([
+     fetchSheet("BEASTS"),
+     fetchSheet("PLANTS"),
+     fetchSheet("WORK LOG"),
+     fetchSheet("MEMBER"),
+     fetchSheetOptional("DELETED WORK LOG"),
+     fetchSheetOptional("DELETE REQUESTS")
+   ]);
+
+   const [b,p,w,mem,del,reqs]=results;
+   if(b.status==='fulfilled' && b.value.length) beasts=b.value;
+   if(p.status==='fulfilled') plants=p.value;
+   if(w.status==='fulfilled') worklogs=w.value;
+   // ถ้าอ่าน WORK LOG ไม่สำเร็จ ห้ามล้างข้อมูลประวัติเดิมชั่วคราว
+   // เพื่อป้องกันประวัติหายบนหน้าจอเพียงเพราะ Google Sheets ตอบช้า/สะดุด
+   if(w.status!=='fulfilled' && worklogs.length) console.warn('รักษา WORK LOG ชุดล่าสุดไว้ชั่วคราว');
+   if(mem.status==='fulfilled') members=mem.value;
+   if(del.status==='fulfilled') deletedWorklogs=del.value||[];
+   if(reqs.status==='fulfilled') deleteRequests=reqs.value||[];
+
+   rebuildWorkLogLookups();
+   render();
+   syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
+
+   // 3) INVENTORY LOG เป็นข้อมูลรายละเอียดของประวัติ ไม่ควรขวางการแสดงยอดคลัง
+   try{
+     inventoryLogs=await fetchSheetOptional("INVENTORY LOG");
+     render();
+   }catch(e){
+     console.warn("Inventory history sync:",e);
+   }
  }catch(e){
-  if(!beasts.length)beasts=FALLBACK_BEASTS;
-  render();
-  syncInfo.textContent="ใช้ข้อมูลสำรอง • ไม่สามารถอ่าน Google Sheets ได้ในขณะนี้";
-  console.warn("Google Sheets sync:",e);
+   if(!beasts.length)beasts=FALLBACK_BEASTS;
+   render();
+   syncInfo.textContent="ใช้ข้อมูลล่าสุดที่อ่านได้ • กำลังเชื่อมต่อ Google Sheets";
+   console.warn("Google Sheets sync:",e);
+ }finally{
+   syncInFlight=false;
  }
 }
 render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS);

@@ -89,7 +89,7 @@ function doPost(e) {
       return json_(result);
     }
     if (data.action === 'deleteInventoryHistory') {
-      return json_(deleteInventoryHistory_(data));
+      throw new Error('ประวัติ Inventory เชื่อมกับ WORK LOG โดยตรง และไม่สามารถลบแยกจาก WORK LOG ได้');
     }
     if (data.action === 'requestDelete') return json_(requestDeleteWork_(data));
     if (data.action === 'approveDeleteRequest') return json_(approveDeleteRequest_(data));
