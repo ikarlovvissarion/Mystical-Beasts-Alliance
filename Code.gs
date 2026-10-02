@@ -183,7 +183,7 @@ function saveFermentation_(data) {
     const sheet = getOrCreateSheet_(ss, 'FERMENTATION');
     const headers = ensureHeaders_(sheet, [
       'ถังใบที่', 'Week / วันที่ (มักเกิ้ล)', 'Week', 'วันที่ (มักเกิ้ล)',
-      'สถานะ', 'ปริมาณ', 'หน่วย', 'อัปเดตเมื่อ'
+      'วันเดือนปี', 'เวลา (น.)', 'สถานะ', 'ปริมาณ', 'หน่วย', 'อัปเดตเมื่อ'
     ]);
 
     // แปลงข้อมูลเก่าให้เข้ากับโครงสร้างใหม่ โดยไม่ลบข้อมูลเดิม
@@ -192,6 +192,8 @@ function saveFermentation_(data) {
     const barrelNo = Number(data.barrelNo);
     const week = normalizeFermentationWeek_(data.week);
     const muggleDate = normalizeFermentationDay_(data.muggleDate);
+    const recordDate = String(data.recordDate || '').trim();
+    const recordTime = String(data.recordTime || '').trim();
     const status = String(data.status || '').trim();
     const quantity = Number(data.quantity);
     const allowedStatuses = [
@@ -211,13 +213,17 @@ function saveFermentation_(data) {
     }
     if (!week) throw new Error('Week ต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป');
     if (!muggleDate) throw new Error('วันที่ต้องเป็นเลข 1–31 เช่น 1, 2, 3, 4');
+    if (!recordDate) throw new Error('กรุณากรอกวันเดือนปี');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(recordDate)) throw new Error('วันเดือนปีไม่ถูกต้อง');
+    if (!recordTime) throw new Error('กรุณากรอกเวลา');
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)) throw new Error('เวลาต้องเป็นรูปแบบ 24 ชั่วโมง เช่น 14:30');
     if (!allowedStatuses.includes(status)) throw new Error('สถานะถังหมักไม่ถูกต้อง');
     if (!(Number.isFinite(quantity) && quantity >= 0 && quantity <= 3000)) {
       throw new Error('ปริมาณต้องอยู่ระหว่าง 0–3000 G');
     }
 
     const tz = Session.getScriptTimeZone() || MUGGLE_TIME_ZONE;
-    const updatedAt = String(data.updatedAt || Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm'));
+    const updatedAt = String(data.updatedAt || Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm') + ' น.');
     const weekDay = `Week ${week} — วันที่ ${muggleDate}`;
 
     const lastRow = sheet.getLastRow();
@@ -242,6 +248,8 @@ function saveFermentation_(data) {
     put('Week / วันที่ (มักเกิ้ล)', weekDay);
     put('Week', week);
     put('วันที่ (มักเกิ้ล)', muggleDate);
+    put('วันเดือนปี', recordDate);
+    put('เวลา (น.)', recordTime);
     put('สถานะ', status);
     put('ปริมาณ', quantity);
     put('หน่วย', 'G');
@@ -259,6 +267,8 @@ function saveFermentation_(data) {
       barrelNo,
       week: Number(week),
       muggleDate: Number(muggleDate),
+      recordDate,
+      recordTime,
       weekDay,
       status,
       quantity,

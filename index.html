@@ -544,13 +544,15 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
     <div class="fermentation-input-zone">
       <div class="fermentation-input-heading"><h4>กรอกข้อมูลถังหมัก</h4><span>UPDATE DATA</span></div>
       <div class="fermentation-input-form">
-        <label class="fermentation-field"><span>ถังใบที่</span><select id="ferBarrelSelect"></select></label>
+        <label class="fermentation-field"><span>ถัง</span><select id="ferBarrelSelect"></select></label>
         <label class="fermentation-field"><span>Week</span><input id="ferWeekInput" type="number" min="1" step="1" placeholder="เช่น 1"></label>
         <label class="fermentation-field"><span>วันที่</span><input id="ferDateInput" type="number" min="1" max="31" step="1" inputmode="numeric" placeholder="เช่น 1, 2, 3, 4"></label>
-        <label class="fermentation-field"><span>สถานะ</span><select id="ferStatusInput"></select></label>
+        <label class="fermentation-field"><span>วันที่ลงบันทึก</span><input id="ferCalendarDateInput" type="date" required></label>
+        <label class="fermentation-field"><span>เวลาที่ลงบันทึก</span><input id="ferTimeInput" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="เช่น 14:30" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeFerTimeInput(this)" required></label>
+        <label class="fermentation-field"><span>สถานะที่พบ</span><select id="ferStatusInput"></select></label>
         <label class="fermentation-field"><span>ปริมาณ</span><div class="fermentation-quantity"><input id="ferQtyInput" type="number" min="0" max="3000" step="1" placeholder="0"><small>G</small></div></label>
       </div>
-      <div class="fermentation-input-actions"><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกข้อมูลถัง</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
+      <div class="fermentation-input-actions"><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกข้อมูล</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
     </div>
   </section>
 </section>
@@ -840,11 +842,19 @@ function populateFermentationForm(preselect){
  loadFermentationForm(current);
  barrelSelect.onchange=()=>loadFermentationForm(barrelSelect.value);
 }
+function normalizeFerTimeInput(input){
+ const raw=String(input?.value||'').replace(/[^0-9]/g,'').slice(0,4);
+ if(!input)return;
+ input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
+}
+
 function loadFermentationForm(barrelNo){
  const r=fermentationRowFor(barrelNo)||{};
- const week=document.getElementById('ferWeekInput'), date=document.getElementById('ferDateInput'), status=document.getElementById('ferStatusInput'), qty=document.getElementById('ferQtyInput');
+ const week=document.getElementById('ferWeekInput'), date=document.getElementById('ferDateInput'), calDate=document.getElementById('ferCalendarDateInput'), time=document.getElementById('ferTimeInput'), status=document.getElementById('ferStatusInput'), qty=document.getElementById('ferQtyInput');
  if(week)week.value=getFirstValue(r,['Week','สัปดาห์'])||'';
  if(date)date.value=fermentationDateInput(getFirstValue(r,['วันที่ (มักเกิ้ล)','Muggle Date','วันที่']));
+ if(calDate)calDate.value=getFirstValue(r,['วันเดือนปี','วันที่บันทึก','Recorded Date'])||'';
+ if(time)time.value=getFirstValue(r,['เวลา (น.)','เวลา','Recorded Time'])||'';
  if(status){const saved=getFirstValue(r,['สถานะ','Status'])||FERMENTATION_STATUSES[0]; status.innerHTML=fermentationStatusOptions(saved);}
  if(qty)qty.value=getFirstValue(r,['ปริมาณ','Quantity'])||'';
  const msg=document.getElementById('fermentationFormStatus'); if(msg){msg.textContent='';msg.className='fermentation-status';}
@@ -853,19 +863,27 @@ async function saveFermentationFromForm(){
  const barrelNo=Number(document.getElementById('ferBarrelSelect')?.value||0);
  const week=String(document.getElementById('ferWeekInput')?.value||'').trim();
  const date=String(document.getElementById('ferDateInput')?.value||'').trim();
+ const calendarDate=String(document.getElementById('ferCalendarDateInput')?.value||'').trim();
+ const recordTime=String(document.getElementById('ferTimeInput')?.value||'').trim();
  const status=String(document.getElementById('ferStatusInput')?.value||'').trim();
  const qty=Number(document.getElementById('ferQtyInput')?.value||0);
  const msg=document.getElementById('fermentationFormStatus');
  if(!barrelNo){if(msg){msg.textContent='กรุณาเลือกถัง';msg.className='fermentation-status error'}return;}
  if(!week||Number(week)<1){if(msg){msg.textContent='กรุณากรอก Week';msg.className='fermentation-status error'}return;}
  if(!date || !/^\d{1,2}$/.test(date) || Number(date)<1 || Number(date)>31){if(msg){msg.textContent='กรุณากรอกวันที่เป็นเลข 1–31 เช่น 1, 2, 3, 4';msg.className='fermentation-status error'}return;}
+ if(!calendarDate){if(msg){msg.textContent='กรุณาเลือกวันเดือนปี';msg.className='fermentation-status error'}return;}
+ if(!recordTime || !/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)){if(msg){msg.textContent='กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 14:30';msg.className='fermentation-status error'}return;}
  if(!Number.isFinite(qty)||qty<0||qty>3000){if(msg){msg.textContent='ปริมาณต้องอยู่ระหว่าง 0–3000 G';msg.className='fermentation-status error'}return;}
  if(!status){if(msg){msg.textContent='กรุณาเลือกสถานะ';msg.className='fermentation-status error'}return;}
  if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){if(msg){msg.textContent='ยังไม่ได้ตั้งค่า Apps Script URL';msg.className='fermentation-status error'}return;}
  const button=document.querySelector('.fermentation-input-actions .fermentation-save'); if(button)button.disabled=true;
  if(msg){msg.textContent='กำลังบันทึก…';msg.className='fermentation-status'}
- const updatedAt=localDateTimeThai();
- const payload={action:'saveFermentation',barrelNo,week:Number(week),muggleDate:date,status,quantity:qty,updatedAt};
+ const now=new Date();
+ const pad=n=>String(n).padStart(2,'0');
+ const autoDate=calendarDate;
+ const autoTime=recordTime;
+ const updatedAt=`${autoDate.split('-').reverse().join('/')} ${autoTime} น.`;
+ const payload={action:'saveFermentation',barrelNo,week:Number(week),muggleDate:date,recordDate:autoDate,recordTime:autoTime,status,quantity:qty,updatedAt};
  try{
   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
   if(msg){msg.textContent='บันทึกแล้ว • กำลังซิงก์ข้อมูล…';msg.className='fermentation-status success'}
