@@ -389,15 +389,21 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 .barrel-ready-spark{position:absolute;z-index:7;opacity:0;color:#f5dfaa;font-size:12px;text-shadow:0 0 8px rgba(255,226,150,.9)}
 .barrel-ready-spark.s1{left:48px;top:38px;animation:readySpark 1.8s ease-in-out infinite}.barrel-ready-spark.s2{right:47px;top:48px;animation:readySpark 2.1s .4s ease-in-out infinite}
 /* state-specific visual language */
-.barrel.status-ready .barrel-liquid{background:linear-gradient(180deg,#e4b85e,#ad6b2c 60%,#713c1b);box-shadow:inset 0 7px 8px rgba(255,248,207,.3),inset 0 -7px 12px rgba(48,21,7,.22),0 0 10px rgba(229,184,91,.18)}
+/* STATUS COLORS — the liquid and status badge share the same visual language */
+.barrel.status-ready .barrel-liquid{background:linear-gradient(180deg,#a9e66a 0%,#4caf50 55%,#176b32 100%);box-shadow:inset 0 7px 8px rgba(236,255,208,.42),inset 0 -7px 12px rgba(8,67,28,.34),0 0 18px rgba(64,181,83,.42)}
 .barrel.status-ready .barrel-aroma{opacity:1}.barrel.status-ready .barrel-ready-spark{opacity:1}
-.barrel.status-foam .barrel-foam{opacity:1}.barrel.status-foam .barrel-liquid{filter:saturate(.92)}
-.barrel.status-skimmed .barrel-foam{opacity:.18}.barrel.status-skimmed .barrel-particles{opacity:.22}
-.barrel.status-unfiltered .barrel-particles{opacity:.78}.barrel.status-unfiltered .barrel-liquid{filter:saturate(.82) brightness(.94)}
-.barrel.status-recipe .barrel-liquid{background:linear-gradient(180deg,#d6a44f,#975928 60%,#633318)}.barrel.status-recipe .barrel-aroma{opacity:.6}
-.barrel.status-offrecipe .barrel-liquid{background:linear-gradient(180deg,#9d6b59,#6b4b42 60%,#49312b);filter:saturate(.65)}.barrel.status-offrecipe .barrel-particles{opacity:.38}
-.barrel.status-refilter .barrel-particles{opacity:.55}.barrel.status-refilter .barrel-filter-cloth{opacity:1}.barrel.status-refilter .barrel-liquid{filter:saturate(.72) brightness(.96)}
-.barrel.status-filtered .barrel-filter-cloth{opacity:.35}.barrel.status-filtered .barrel-liquid{background:linear-gradient(180deg,#d0a65d,#8f592c 60%,#5f341a);filter:saturate(.88)}.barrel.status-filtered .barrel-aroma{opacity:.35}
+.barrel.status-foam .barrel-foam{opacity:1}.barrel.status-foam .barrel-liquid{background:linear-gradient(180deg,#fff07a 0%,#e8c52f 55%,#9b7410 100%);box-shadow:inset 0 7px 8px rgba(255,255,218,.45),inset 0 -7px 12px rgba(91,65,5,.3),0 0 15px rgba(235,195,42,.34)}
+.barrel.status-skimmed .barrel-foam{opacity:.18}.barrel.status-skimmed .barrel-particles{opacity:.22}.barrel.status-skimmed .barrel-liquid{background:linear-gradient(180deg,#fff07a 0%,#e8c52f 55%,#9b7410 100%);box-shadow:inset 0 7px 8px rgba(255,255,218,.45),inset 0 -7px 12px rgba(91,65,5,.3),0 0 15px rgba(235,195,42,.34)}
+.barrel.status-unfiltered .barrel-particles{opacity:.78}.barrel.status-unfiltered .barrel-liquid{background:linear-gradient(180deg,#ff746d 0%,#e43e35 55%,#8e1715 100%);box-shadow:inset 0 7px 8px rgba(255,221,218,.35),inset 0 -7px 12px rgba(91,9,7,.34),0 0 18px rgba(224,54,48,.4)}
+.barrel.status-recipe .barrel-liquid{background:linear-gradient(180deg,#fff07a 0%,#e8c52f 55%,#9b7410 100%);box-shadow:inset 0 7px 8px rgba(255,255,218,.45),inset 0 -7px 12px rgba(91,65,5,.3),0 0 15px rgba(235,195,42,.34)}.barrel.status-recipe .barrel-aroma{opacity:.6}
+.barrel.status-offrecipe .barrel-liquid{background:linear-gradient(180deg,#ff746d 0%,#e43e35 55%,#8e1715 100%);box-shadow:inset 0 7px 8px rgba(255,221,218,.35),inset 0 -7px 12px rgba(91,9,7,.34),0 0 18px rgba(224,54,48,.4)}.barrel.status-offrecipe .barrel-particles{opacity:.38}
+.barrel.status-refilter .barrel-particles{opacity:.55}.barrel.status-refilter .barrel-filter-cloth{opacity:1}.barrel.status-refilter .barrel-liquid{background:linear-gradient(180deg,#ff746d 0%,#e43e35 55%,#8e1715 100%);box-shadow:inset 0 7px 8px rgba(255,221,218,.35),inset 0 -7px 12px rgba(91,9,7,.34),0 0 18px rgba(224,54,48,.4)}
+.barrel.status-filtered .barrel-filter-cloth{opacity:.35}.barrel.status-filtered .barrel-liquid{background:linear-gradient(180deg,#ff746d 0%,#e43e35 55%,#8e1715 100%);filter:saturate(1)}.barrel.status-filtered .barrel-aroma{opacity:.35}
+/* Large, high-contrast status badge */
+.fermentation-status-display{width:100%;box-sizing:border-box;min-height:48px;padding:9px 10px;border-radius:11px;font-size:13px;font-weight:800;letter-spacing:.1px;line-height:1.25;text-align:center;text-shadow:0 1px 0 rgba(255,255,255,.45);border-width:2px;box-shadow:0 5px 12px rgba(75,48,17,.12);transition:.25s ease}
+.fermentation-status-display.status-ready{background:#d9f5d1;border-color:#48a83f;color:#176b32;box-shadow:0 0 0 2px rgba(72,168,63,.08),0 6px 15px rgba(72,168,63,.18)}
+.fermentation-status-display.status-foam,.fermentation-status-display.status-skimmed,.fermentation-status-display.status-recipe{background:#fff4a8;border-color:#d3aa20;color:#806000;box-shadow:0 0 0 2px rgba(211,170,32,.08),0 6px 15px rgba(211,170,32,.18)}
+.fermentation-status-display.status-unfiltered,.fermentation-status-display.status-offrecipe,.fermentation-status-display.status-refilter{background:#ffd4d0;border-color:#d9473f;color:#a21e1a;box-shadow:0 0 0 2px rgba(217,71,63,.08),0 6px 15px rgba(217,71,63,.18)}
 @keyframes liquidRipple{0%,100%{transform:translateX(-1%) scaleX(1)}50%{transform:translateX(1%) scaleX(1.04)}}
 @keyframes liquidShimmer{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
 @keyframes foamPulse{0%,100%{transform:translateY(0) scale(.98)}50%{transform:translateY(-2px) scale(1.02)}}
@@ -408,10 +414,30 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 
 .fermentation-barrel-feet{position:absolute;bottom:5px;width:112px;height:18px;z-index:0}.fermentation-barrel-feet:before,.fermentation-barrel-feet:after{content:"";position:absolute;bottom:0;width:24px;height:14px;background:linear-gradient(90deg,#59331a,#8e582b,#56301a);border:1px solid #4e2d17;border-radius:3px}.fermentation-barrel-feet:before{left:15px;transform:skewX(-8deg)}.fermentation-barrel-feet:after{right:15px;transform:skewX(8deg)}
 .fermentation-info{position:relative;z-index:2;border-top:1px solid rgba(176,137,73,.45);padding-top:8px;margin-top:2px;display:grid;gap:5px}.fermentation-info-row{display:flex;justify-content:space-between;gap:8px;font-size:8.5px;color:#6e5535}.fermentation-info-row strong{color:#4b3519;font-weight:700;text-align:right}.fermentation-status-display{display:inline-flex;justify-content:center;align-items:center;min-height:22px;padding:4px 7px;border-radius:7px;background:#ead7ad;border:1px solid #c3a46b;color:#4f391e;font-size:8.5px;font-weight:700;line-height:1.25;text-align:center}
-/* INPUT ONLY */
-.fermentation-input-zone{position:relative;z-index:1;margin-top:20px;padding:20px;border:1px solid rgba(178,139,75,.7);border-radius:18px;background:linear-gradient(180deg,rgba(248,237,211,.72),rgba(255,250,238,.55))}.fermentation-input-heading{display:flex;align-items:center;gap:9px;margin-bottom:14px}.fermentation-input-heading h4{margin:0;font-size:15px;color:#4b3519}.fermentation-input-heading span{font-size:8px;letter-spacing:1px;color:#977033}
-.fermentation-entry-list{display:flex;flex-direction:column;gap:10px}.fermentation-entry{position:relative;padding:12px;border:1px solid #d3b77d;border-radius:8px;background:rgba(255,250,240,.72)}.fermentation-entry-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.fermentation-entry-title{font-size:10px;font-weight:700;letter-spacing:.5px;color:#6e4b20}.fermentation-entry-remove{width:26px;height:26px;border:1px solid #b98d57;border-radius:50%;background:#fffaf0;color:#7d4f2b;font-size:17px;line-height:1;cursor:pointer}.fermentation-entry-remove:hover{background:#ead7ad}.fermentation-add{width:28px;height:28px;border:1px solid #8f6528;border-radius:50%;background:#ead0a0;color:#4b3519;font-size:20px;line-height:1;cursor:pointer;font-weight:700}.fermentation-add:hover{background:#dfbf7e;transform:translateY(-1px)}
-.fermentation-input-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.fermentation-field{display:flex;flex-direction:column;gap:4px;min-width:0}.fermentation-field>span{font-size:9px;letter-spacing:.7px;color:#806333;font-weight:600}.fermentation-field input,.fermentation-field select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #c3a46b;border-radius:6px;background:#fffaf0;color:#4b3519;font:inherit;font-size:11px;outline:none}.fermentation-field input:focus,.fermentation-field select:focus{border-color:#8f6528;box-shadow:0 0 0 3px rgba(161,122,56,.12)}.fermentation-quantity{display:grid;grid-template-columns:minmax(0,1fr) 36px;gap:6px}.fermentation-quantity small{display:flex;align-items:center;justify-content:center;border:1px solid #c3a46b;background:#ead7ad;border-radius:6px;color:#765727;font-size:10px}.fermentation-input-actions{display:flex;align-items:center;gap:10px;margin-top:12px}.fermentation-add-bottom{height:36px;min-width:110px;padding:0 16px;border:1px solid #8f6528;border-radius:6px;background:#ead0a0;color:#4b3519;font-size:11px;line-height:1;font-weight:700;letter-spacing:.1px;white-space:nowrap;cursor:pointer;transition:.2s}.fermentation-add-bottom:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save{padding:9px 16px;border:1px solid #8f6528;border-radius:6px;background:#ead0a0;color:#4b3519;font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:.2s}.fermentation-save:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save:disabled{opacity:.55;cursor:wait;transform:none}.fermentation-status{font-size:9px;color:#765727}.fermentation-status.success{color:#5d7040}.fermentation-status.error{color:#8a3d31}
+/* INPUT ONLY — DAILY 8-BARREL CHECK */
+.fermentation-input-zone{position:relative;z-index:1;margin-top:20px;padding:20px;border:1px solid rgba(178,139,75,.7);border-radius:18px;background:linear-gradient(180deg,rgba(248,237,211,.72),rgba(255,250,238,.55))}
+.fermentation-input-heading{display:flex;align-items:center;gap:9px;margin-bottom:16px}.fermentation-input-heading h4{margin:0;font-size:16px;color:#4b3519}.fermentation-input-heading span{display:block;margin-top:3px;font-size:9px;letter-spacing:.3px;color:#977033}
+.fermentation-shared-fields{display:grid;grid-template-columns:180px 150px minmax(220px,1fr);gap:12px;margin-bottom:14px;padding:14px;border:1px solid #d3b77d;border-radius:10px;background:rgba(255,250,240,.72)}
+.fermentation-field,.fermentation-photo-field{display:flex;flex-direction:column;gap:5px;min-width:0}.fermentation-field>span,.fermentation-photo-field>span{font-size:9px;letter-spacing:.7px;color:#806333;font-weight:600}.fermentation-photo-field>span small{font-weight:400;color:#9a7843}
+.fermentation-field input,.fermentation-field select,.fermentation-photo-field input{width:100%;min-height:38px;padding:7px 9px;border:1px solid #c3a46b;border-radius:6px;background:#fffaf0;color:#4b3519;font:inherit;font-size:11px;outline:none}.fermentation-field input:focus,.fermentation-field select:focus{border-color:#8f6528;box-shadow:0 0 0 3px rgba(161,122,56,.12)}
+.fermentation-photo-field input{padding:8px;font-size:10px}.fermentation-photo-preview{margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;min-height:0}.fermentation-photo-preview .fer-photo-item{width:110px}.fermentation-photo-preview img{display:block;width:110px;height:72px;object-fit:cover;border:1px solid #a17a38;border-radius:5px}.fermentation-photo-preview small{display:block;margin-top:3px;font-size:8px;color:#765727;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fermentation-batch-table-wrap{overflow-x:auto;border:1px solid #c9a96d;border-radius:10px;background:#fffaf0}.fermentation-batch-table-head,.fermentation-entry{display:grid;grid-template-columns:70px 110px 100px minmax(250px,1fr) 130px;gap:8px;align-items:center}.fermentation-batch-table-head{padding:9px 10px;background:#ead7ad;border-bottom:1px solid #c9a96d;color:#6e4b20;font-size:9px;font-weight:700;letter-spacing:.6px}.fermentation-entry{padding:8px 10px;border-bottom:1px solid #ead7ad}.fermentation-entry:last-child{border-bottom:0}.fermentation-entry .fermentation-field{display:block}.fermentation-entry .fermentation-field>span{display:none}.fermentation-barrel-label{display:flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #c3a46b;border-radius:6px;background:#ead7ad;color:#4b3519;font-size:11px;font-weight:700}.fermentation-entry .fermentation-quantity{display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:5px}.fermentation-entry .fermentation-quantity small{display:flex;align-items:center;justify-content:center;border:1px solid #c3a46b;background:#ead7ad;border-radius:6px;color:#765727;font-size:9px}.fermentation-entry input,.fermentation-entry select{width:100%;min-height:38px;padding:7px 8px;border:1px solid #c3a46b;border-radius:6px;background:#fffaf0;color:#4b3519;font:inherit;font-size:10px;outline:none}.fermentation-entry input:focus,.fermentation-entry select:focus{border-color:#8f6528;box-shadow:0 0 0 3px rgba(161,122,56,.12)}
+.fermentation-history-zone{position:relative;z-index:1;margin-top:20px;padding:20px;border:1px solid rgba(178,139,75,.7);border-radius:18px;background:rgba(255,250,238,.58)}
+.fermentation-history-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(197,167,108,.7)}
+.fermentation-history-heading h4{margin:0;font-size:18px;color:#493117}.fermentation-history-heading span{display:block;margin-top:4px;font-size:10px;color:#7c6240}
+.fermentation-history-list{display:grid;gap:12px}.fermentation-history-empty{padding:26px 16px;text-align:center;border:1px dashed #c9ae78;border-radius:14px;color:#806b4d;background:rgba(255,252,244,.7)}
+.fermentation-history-card{border:1px solid #c9aa70;border-radius:16px;background:linear-gradient(180deg,rgba(255,252,244,.98),rgba(245,231,201,.82));padding:14px;box-shadow:0 7px 18px rgba(75,48,17,.08)}
+.fermentation-history-card.is-deleted{opacity:.65}.fermentation-history-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.fermentation-history-date{font-size:15px;font-weight:700;color:#4b3519}.fermentation-history-time{font-size:11px;color:#806744;margin-top:3px}
+.fermentation-history-badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#f1dfb9;border:1px solid #c7a66a;color:#6f5229;font-size:9px;font-weight:700}
+.fermentation-history-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.fermentation-history-barrel{padding:8px;border:1px solid #d7bf8d;border-radius:10px;background:rgba(255,255,255,.58)}
+.fermentation-history-barrel b{display:block;font-size:10px;color:#4b3519;margin-bottom:4px}.fermentation-history-barrel span{display:block;font-size:9px;color:#745d3e;line-height:1.45}
+.fermentation-history-status{font-weight:700;margin-top:4px}.fermentation-history-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.fermentation-history-photo{display:block;width:94px;height:66px;border-radius:9px;overflow:hidden;border:1px solid #c5a46b;background:#ead8b4}.fermentation-history-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.fermentation-history-actions{display:flex;justify-content:flex-end;margin-top:10px}.fermentation-history-delete{min-height:34px;padding:6px 12px;border:1px solid #8e5b4f;border-radius:8px;background:#f5d8d2;color:#702b20;font-weight:700;cursor:pointer}
+@media(max-width:900px){.fermentation-history-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.fermentation-history-grid{grid-template-columns:1fr}.fermentation-history-card-head{flex-direction:column}}
+.fermentation-input-actions{display:flex;align-items:center;gap:12px;margin-top:14px}.fermentation-save{padding:10px 18px;border:1px solid #8f6528;border-radius:7px;background:#ead0a0;color:#4b3519;font-size:11px;font-weight:700;letter-spacing:.4px;cursor:pointer;transition:.2s}.fermentation-save:hover{background:#dfbf7e;transform:translateY(-1px)}.fermentation-save:disabled{opacity:.55;cursor:wait;transform:none}.fermentation-status{font-size:9px;color:#765727}.fermentation-status.success{color:#5d7040}.fermentation-status.error{color:#8a3d31}
 @keyframes bubbleUp{0%{opacity:0;transform:translateY(12px) scale(.6)}25%{opacity:.8}80%{opacity:.35}100%{opacity:0;transform:translateY(-55px) scale(1.15)}}@keyframes barrelBreathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(.2deg)}}
 @media(max-width:1050px){.fermentation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fermentation-input-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.fermentation-zone{padding:22px 14px}.fermentation-heading{align-items:center}.fermentation-heading h3{font-size:25px}.fermentation-display-zone,.fermentation-input-zone{padding:14px}.fermentation-grid{grid-template-columns:1fr}.fermentation-input-form{grid-template-columns:1fr}.fermentation-barrel-stage{height:150px}}
@@ -543,9 +569,26 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
       <div id="fermentationGrid" class="fermentation-grid"></div>
     </div>
     <div class="fermentation-input-zone">
-      <div class="fermentation-input-heading"><h4>กรอกข้อมูลถังหมัก</h4></div>
-      <div id="fermentationEntryList" class="fermentation-entry-list"></div>
-      <div class="fermentation-input-actions"><button type="button" class="fermentation-add fermentation-add-bottom" onclick="addFermentationEntry()" title="เพิ่มรายการ">เพิ่มรายการ</button><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกข้อมูลทั้งหมด</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
+      <div class="fermentation-input-heading">
+        <div><h4>ตรวจสอบถังหมักประจำวัน</h4><span></span></div>
+      </div>
+      <div class="fermentation-shared-fields">
+        <label class="fermentation-field"><span>วันที่ลงบันทึก</span><input id="ferBatchDate" type="text" inputmode="numeric" placeholder="วัน/เดือน/ปี" required></label>
+        <label class="fermentation-field"><span>เวลาที่ลงบันทึก</span><input id="ferBatchTime" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="เช่น 14:30" pattern="(?:[01]\d|2[0-3]):[0-5]\d" oninput="normalizeFerTimeInput(this)" required></label>
+        <div class="fermentation-photo-field"><span>รูปภาพการตรวจสอบ</span><input id="fermentationPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewFermentationPhoto(this)"><div id="fermentationPhotoPreview" class="fermentation-photo-preview"></div></div>
+      </div>
+      <div class="fermentation-batch-table-wrap">
+        <div class="fermentation-batch-table-head"><span>ถัง</span><span>WEEK</span><span>วันที่</span><span>สถานะที่พบ</span><span>ปริมาณ</span></div>
+        <div id="fermentationEntryList" class="fermentation-entry-list"></div>
+      </div>
+      <div class="fermentation-input-actions"><button type="button" class="fermentation-save" onclick="saveFermentationFromForm()">บันทึกการตรวจสอบ</button><span id="fermentationFormStatus" class="fermentation-status" aria-live="polite"></span></div>
+    </div>
+
+    <div class="fermentation-history-zone">
+      <div class="fermentation-history-heading">
+        <div><p class="fermentation-kicker">RECORD HISTORY</p><h4>ประวัติการตรวจสอบถังหมัก</h4><span>แสดงประวัติการบันทึกแต่ละครั้ง พร้อมรูปการทำงาน</span></div>
+      </div>
+      <div id="fermentationHistoryList" class="fermentation-history-list"></div>
     </div>
   </section>
 </section>
@@ -670,7 +713,7 @@ const SYNC_MS=15000;
 // หลัง Deploy Apps Script แล้ว ให้นำ Web App URL มาใส่ตรงนี้
 const WORKLOG_API_URL="https://script.google.com/macros/s/AKfycbwagv-2_2y6ODt24aaxn-fK-qO8fTGw7Q9IzekJn2G2eGSQ9tvDX-4abvMV4uRrHXg/exec";
 // Web App deployment แยกสำหรับ Admin: Execute as "User accessing the web app"
-const ADMIN_PASSWORD="Meduza2014";
+let ADMIN_PASSWORD_SESSION="";
 let isGoogleAdmin=false;
 let deleteRequests=[];
 
@@ -685,8 +728,11 @@ const FALLBACK_BEASTS = [
 ];
 
 let beasts=[], plants=[], worklogs=[], inventory=[], inventoryLogs=[], members=[], deletedWorklogs=[], deletedInventoryHistory=[];
-let fermentationRows=[];
+let fermentationRows=[], fermentationHistoryRows=[];
 let syncInFlight=false;
+let workLogFormDirty=false;
+let workLogEditVersion=0;
+let workLogSaveInFlight=false;
 let targetMap=new Map();
 let targetSelection=new Set();
 let targetDraftSelection=new Set();
@@ -738,6 +784,8 @@ function render(){
  if(adminDeletedHistory)adminDeletedHistory.innerHTML=renderDeletedHistory(deletedWorklogs);
  const adminDeleteRequests=document.getElementById('adminDeleteRequests');
  if(adminDeleteRequests)adminDeleteRequests.innerHTML=renderDeleteRequests(deleteRequests);
+ const fermentationHistoryList=document.getElementById('fermentationHistoryList');
+ if(fermentationHistoryList)fermentationHistoryList.innerHTML=renderFermentationHistory(fermentationHistoryRows);
  const order=["A","B","C"];
  const groups=order.map(code=>({code,items:beasts.map((c,i)=>({c,i})).filter(x=>normalizeCategory(x.c.Category,x.c)===code)})).filter(g=>g.items.length);
  const other=beasts.map((c,i)=>({c,i})).filter(x=>!order.includes(normalizeCategory(x.c.Category,x.c)));
@@ -764,8 +812,6 @@ const FERMENTATION_STATUSES=[
  'รสชาติตรงตามสูตรแล้ว',
  'รสชาติยังไม่ตรงตามสูตร',
  'ต้องกรองใหม่อีกครั้ง',
- 'กรองแล้ว',
- 'รสชาติตรงตามสูตรแล้ว'
 ];
 
 function fermentationRowFor(barrelNo){
@@ -795,9 +841,52 @@ function fermentationVisualClass(status){
  if(s==='รสชาติตรงตามสูตรแล้ว') return 'status-recipe';
  if(s==='รสชาติยังไม่ตรงตามสูตร') return 'status-offrecipe';
  if(s==='ต้องกรองใหม่อีกครั้ง') return 'status-refilter';
- if(s==='กรองแล้ว') return 'status-filtered';
  return 'status-recipe';
 }
+
+function fermentationHistoryDateDisplay(value){
+  const s=String(value??'').trim();
+  if(!s)return '-';
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m)return `${m[3]}/${m[2]}/${m[1]}`;
+  const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if(d)return `${String(d[1]).padStart(2,'0')}/${String(d[2]).padStart(2,'0')}/${d[3]}`;
+  return s;
+}
+function fermentationHistoryPhotoUrls(row){
+  return [1,2,3,4,5].map(n=>getFirstValue(row,[n===1?'รูปการทำงาน':'รูปการทำงาน '+n])).filter(Boolean);
+}
+function renderFermentationHistory(rows){
+  const all=Array.isArray(rows)?rows:[];
+  if(!all.length)return `<div class="fermentation-history-empty"><div class="history-icon">✦</div><h3>ยังไม่มีประวัติการตรวจสอบ</h3><p>เมื่อบันทึกการตรวจสอบถังทั้ง 8 ใบ ประวัติจะปรากฏที่นี่</p></div>`;
+  const groups=new Map();
+  all.forEach(r=>{
+    const batch=String(getFirstValue(r,['Batch ID','รหัสชุด'])||'').trim() || `${getFirstValue(r,['วันเดือนปี'])||''}|${getFirstValue(r,['เวลา (น.)'])||''}`;
+    if(!groups.has(batch))groups.set(batch,[]);
+    groups.get(batch).push(r);
+  });
+  const newest=[...groups.entries()].reverse();
+  return newest.map(([batch,items])=>{
+    const first=items[0]||{};
+    const date=fermentationHistoryDateDisplay(getFirstValue(first,['วันเดือนปี','วันที่บันทึก']));
+    const time=String(getFirstValue(first,['เวลา (น.)','เวลา'])||'-').trim();
+    const updated=String(getFirstValue(first,['บันทึกเมื่อ','อัปเดตเมื่อ'])||'').trim();
+    const photos=fermentationHistoryPhotoUrls(first);
+    const barrels=[...items].sort((a,b)=>Number(getFirstValue(a,['ถังใบที่']))-Number(getFirstValue(b,['ถังใบที่'])));
+    const barrelHtml=barrels.map(r=>{
+      const n=getFirstValue(r,['ถังใบที่'])||'-';
+      const week=getFirstValue(r,['Week','สัปดาห์'])||'-';
+      const day=getFirstValue(r,['วันที่ (มักเกิ้ล)','วันที่'])||'-';
+      const status=getFirstValue(r,['สถานะ','Status'])||'-';
+      const qty=getFirstValue(r,['ปริมาณ','Quantity']);
+      return `<div class="fermentation-history-barrel"><b>ถังใบที่ ${esc(n)}</b><span>Week ${esc(week)} • วันที่ ${esc(day)}</span><span class="fermentation-history-status">${esc(status)}</span><span>${esc(qty===''||qty==null?'0':Number(qty).toLocaleString('th-TH'))} G</span></div>`;
+    }).join('');
+    const photoHtml=photos.length?`<div class="fermentation-history-photos">${photos.map((u,i)=>`<a class="fermentation-history-photo" href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="รูปการตรวจสอบถังหมัก ${i+1}" loading="lazy"></a>`).join('')}</div>`:'';
+    const adminDelete=isGoogleAdmin?`<div class="fermentation-history-actions"><button type="button" class="fermentation-history-delete" onclick="deleteFermentationHistory('${esc(batch)}')">🗑 ลบประวัติชุดนี้โดย Admin</button></div>`:'';
+    return `<article class="fermentation-history-card"><div class="fermentation-history-card-head"><div><div class="fermentation-history-date">ตรวจสอบวันที่ ${esc(date)}</div><div class="fermentation-history-time">เวลา ${esc(time)}${updated?` • บันทึกเมื่อ ${esc(updated)}`:''}</div></div><span class="fermentation-history-badge">ตรวจครบ 8 ถัง</span></div><div class="fermentation-history-grid">${barrelHtml}</div>${photoHtml}${adminDelete}</article>`;
+  }).join('');
+}
+
 function renderFermentation(){
  const cards=[];
  for(let i=1;i<=8;i++){
@@ -816,7 +905,7 @@ function renderFermentation(){
       <div class="fermentation-barrel-feet"></div>
     </div>
     <div class="fermentation-info">
-      <div class="fermentation-status-display">${esc(status)}</div>
+      <div class="fermentation-status-display ${fermentationVisualClass(status)}">${esc(status)}</div>
       <div class="fermentation-info-row"><span>ปริมาณ</span><strong>${esc(qtyDisplay)} / 3,000 G</strong></div>
       <div class="fermentation-info-row"><span>อัปเดตล่าสุด</span><strong>${esc(updated)}</strong></div>
     </div>
@@ -825,131 +914,210 @@ function renderFermentation(){
  return cards.join('');
 }
 let fermentationFormDirty=false;
+let fermentationEditVersion=0;
+let fermentationSaveInFlight=false;
 let fermentationEntrySeq=0;
 
+function formatThaiDateForInput(d) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function parseThaiDateInput(value) {
+    const m = String(value || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = Number(m[3]);
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  function fermentationBatchDateTimeDefaults(){
+ const now=new Date();
+ const date=document.getElementById('ferBatchDate');
+ const time=document.getElementById('ferBatchTime');
+ if(date && !date.value) date.value=formatThaiDateForInput(now);
+ if(time && !time.value) time.value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
 function fermentationEntryMarkup(index, data={}){
- const id=String(data.id||(++fermentationEntrySeq));
- const barrel=String(data.barrelNo||data.barrel||'');
+ const barrel=Number(data.barrelNo||index);
  const week=String(data.week||'');
  const date=String(data.date||'');
- const calDate=String(data.calendarDate||'');
- const time=String(data.time||'');
  const status=String(data.status||FERMENTATION_STATUSES[0]);
  const qty=String(data.qty??'');
- return `<div class="fermentation-entry" data-fer-entry="${esc(id)}">
-   <div class="fermentation-entry-head"><span class="fermentation-entry-title">รายการที่ ${index}</span><button type="button" class="fermentation-entry-remove" onclick="removeFermentationEntry(this)" title="ลบรายการ">−</button></div>
-   <div class="fermentation-input-form">
-     <label class="fermentation-field"><span>ถัง</span><select data-fer-field="barrel">${Array.from({length:8},(_,i)=>`<option value="${i+1}" ${String(i+1)===barrel?'selected':''}>ถังใบที่ ${i+1}</option>`).join('')}</select></label>
-     <label class="fermentation-field"><span>Week</span><input data-fer-field="week" type="number" min="1" step="1" value="${esc(week)}" placeholder="เช่น 1"></label>
-     <label class="fermentation-field"><span>วันที่</span><input data-fer-field="date" type="number" min="1" max="31" step="1" inputmode="numeric" value="${esc(date)}" placeholder="เช่น 1, 2, 3, 4"></label>
-     <label class="fermentation-field"><span>วันที่ลงบันทึก</span><input data-fer-field="calendarDate" type="date" value="${esc(calDate)}" required></label>
-     <label class="fermentation-field"><span>เวลาที่ลงบันทึก</span><input data-fer-field="time" type="text" inputmode="numeric" autocomplete="off" maxlength="5" value="${esc(time)}" placeholder="เช่น 14:30" pattern="(?:[01]\\d|2[0-3]):[0-5]\\d" oninput="normalizeFerTimeInput(this)" required></label>
-     <label class="fermentation-field"><span>สถานะที่พบ</span><select data-fer-field="status">${fermentationStatusOptions(status)}</select></label>
-     <label class="fermentation-field"><span>ปริมาณ</span><div class="fermentation-quantity"><input data-fer-field="qty" type="number" min="0" max="3000" step="1" value="${esc(qty)}" placeholder="0"><small>G</small></div></label>
-   </div>
+ return `<div class="fermentation-entry" data-fer-entry="${barrel}">
+   <div class="fermentation-barrel-label">ถัง ${barrel}</div>
+   <label class="fermentation-field"><span>Week</span><input data-fer-field="week" type="number" min="1" step="1" value="${esc(week)}" placeholder="เช่น 1" required></label>
+   <label class="fermentation-field"><span>วันที่</span><input data-fer-field="date" type="number" min="1" max="31" step="1" inputmode="numeric" value="${esc(date)}" placeholder="1–31" required></label>
+   <label class="fermentation-field"><span>สถานะที่พบ</span><select data-fer-field="status">${fermentationStatusOptions(status)}</select></label>
+   <label class="fermentation-field"><span>ปริมาณ</span><div class="fermentation-quantity"><input data-fer-field="qty" type="number" min="0" max="3000" step="1" value="${esc(qty)}" placeholder="0" required><small>G</small></div></label>
  </div>`;
 }
-function markFermentationFormDirty(){ fermentationFormDirty=true; }
+function markFermentationFormDirty(){ fermentationFormDirty=true; fermentationEditVersion++; }
 function bindFermentationDirtyTracking(){
- const list=document.getElementById('fermentationEntryList'); if(!list||list.dataset.bound==='1')return;
- list.dataset.bound='1';
- list.addEventListener('input',markFermentationFormDirty);
- list.addEventListener('change',markFermentationFormDirty);
+ const list=document.getElementById('fermentationEntryList');
+ if(list && list.dataset.bound!=='1'){
+   list.dataset.bound='1';
+   list.addEventListener('input',markFermentationFormDirty);
+   list.addEventListener('change',markFermentationFormDirty);
+ }
+ const sharedIds=['ferBatchDate','ferBatchTime','fermentationPhotoInput'];
+ sharedIds.forEach(id=>{
+   const el=document.getElementById(id); if(!el||el.dataset.dirtyBound==='1')return;
+   el.dataset.dirtyBound='1';
+   el.addEventListener('input',markFermentationFormDirty);
+   el.addEventListener('change',markFermentationFormDirty);
+ });
 }
 function collectFermentationEntries(){
  const list=document.getElementById('fermentationEntryList');
  if(!list)return [];
- return [...list.querySelectorAll('.fermentation-entry')].map(row=>({
-   row,
-   barrelNo:Number(row.querySelector('[data-fer-field="barrel"]')?.value||0),
+ return [...list.querySelectorAll('.fermentation-entry')].map((row,i)=>({
+   row, barrelNo:i+1,
    week:String(row.querySelector('[data-fer-field="week"]')?.value||'').trim(),
    date:String(row.querySelector('[data-fer-field="date"]')?.value||'').trim(),
-   calendarDate:String(row.querySelector('[data-fer-field="calendarDate"]')?.value||'').trim(),
-   recordTime:String(row.querySelector('[data-fer-field="time"]')?.value||'').trim(),
    status:String(row.querySelector('[data-fer-field="status"]')?.value||'').trim(),
    qty:Number(row.querySelector('[data-fer-field="qty"]')?.value||0)
  }));
 }
-function addFermentationEntry(data={}){
- const list=document.getElementById('fermentationEntryList'); if(!list)return;
- const entries=collectFermentationEntries();
- const used=new Set(entries.map(x=>x.barrelNo).filter(Boolean));
- if(data.barrelNo==null){ for(let i=1;i<=8;i++){if(!used.has(i)){data={...data,barrelNo:i};break;}} }
- const index=list.querySelectorAll('.fermentation-entry').length+1;
- list.insertAdjacentHTML('beforeend',fermentationEntryMarkup(index,data));
- bindFermentationDirtyTracking();
- fermentationFormDirty=true;
- renumberFermentationEntries();
+function previewFermentationPhoto(input){
+  const wrap=document.getElementById('fermentationPhotoPreview'); if(!wrap)return;
+  wrap.innerHTML='';
+  const files=Array.from(input?.files||[]);
+  if(files.length>5){
+    input.value='';
+    wrap.innerHTML='<small class="fermentation-status error">อัปโหลดรูปได้สูงสุด 5 รูป</small>';
+    return;
+  }
+  for(const file of files){
+    if(!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)){
+      input.value='';
+      wrap.innerHTML='<small class="fermentation-status error">รองรับเฉพาะ JPG, PNG หรือ WEBP</small>';
+      return;
+    }
+    const url=URL.createObjectURL(file);
+    const item=document.createElement('div');
+    item.className='fer-photo-item';
+    item.innerHTML=`<img src="${url}" alt="รูปการตรวจสอบถังหมัก"><small title="${esc(file.name)}">${esc(file.name)}</small>`;
+    wrap.appendChild(item);
+  }
 }
-function removeFermentationEntry(button){
- const list=document.getElementById('fermentationEntryList');
- const row=button?.closest('.fermentation-entry');
- if(!list||!row)return;
- if(list.querySelectorAll('.fermentation-entry').length<=1){
-   const first=list.querySelector('.fermentation-entry');
-   if(first){ first.querySelectorAll('input').forEach(x=>x.value=''); const b=first.querySelector('[data-fer-field="barrel"]'); if(b)b.value='1'; const st=first.querySelector('[data-fer-field="status"]'); if(st)st.value=FERMENTATION_STATUSES[0]; }
- }else row.remove();
- renumberFermentationEntries();
- fermentationFormDirty=true;
-}
-function renumberFermentationEntries(){
- document.querySelectorAll('#fermentationEntryList .fermentation-entry').forEach((row,i)=>{const t=row.querySelector('.fermentation-entry-title');if(t)t.textContent=`รายการที่ ${i+1}`;});
+function readFermentationPhotos(){
+  return new Promise((resolve,reject)=>{
+    const input=document.getElementById('fermentationPhotoInput');
+    const files=Array.from(input?.files||[]);
+    if(files.length===0){resolve([]);return;}
+    if(files.length>5){reject(new Error('อัปโหลดรูปได้สูงสุด 5 รูป'));return;}
+    const invalid=files.find(file=>!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type));
+    if(invalid){reject(new Error('รองรับเฉพาะ JPG, PNG หรือ WEBP'));return;}
+    Promise.all(files.map(file=>new Promise((res,rej)=>{
+      const reader=new FileReader();
+      reader.onload=()=>res({name:file.name,mimeType:file.type||'image/jpeg',data:String(reader.result||'')});
+      reader.onerror=()=>rej(new Error('อ่านรูปภาพไม่สำเร็จ'));
+      reader.readAsDataURL(file);
+    }))).then(resolve).catch(reject);
+  });
 }
 function populateFermentationForm(){
  const list=document.getElementById('fermentationEntryList'); if(!list)return;
+ const existing=[];
+ for(let i=1;i<=8;i++) existing.push(fermentationRowFor(i)||{});
+ const first=existing[0]||{};
  list.innerHTML='';
- const first=fermentationRowFor(1)||{};
- addFermentationEntry({
-   barrelNo:1,
-   week:getFirstValue(first,['Week','สัปดาห์'])||'',
-   date:fermentationDateInput(getFirstValue(first,['วันที่ (มักเกิ้ล)','Muggle Date','วันที่'])),
-   calendarDate:getFirstValue(first,['วันเดือนปี','วันที่บันทึก','Recorded Date'])||'',
-   time:getFirstValue(first,['เวลา (น.)','เวลา','Recorded Time'])||'',
-   status:getFirstValue(first,['สถานะ','Status'])||FERMENTATION_STATUSES[0],
-   qty:getFirstValue(first,['ปริมาณ','Quantity'])||''
- });
- // Loading existing data is not an edit; allow the next 15-second sync to refresh again.
- fermentationFormDirty=false;
+ for(let i=1;i<=8;i++){
+   const r=existing[i-1]||{};
+   list.insertAdjacentHTML('beforeend',fermentationEntryMarkup(i,{
+     barrelNo:i,
+     week:getFirstValue(r,['Week','สัปดาห์'])||'',
+     date:fermentationDateInput(getFirstValue(r,['วันที่ (มักเกิ้ล)','Muggle Date','วันที่']))||'',
+     status:getFirstValue(r,['สถานะ','Status'])||FERMENTATION_STATUSES[0],
+     qty:getFirstValue(r,['ปริมาณ','Quantity'])||''
+   }));
+ }
+ const sharedDate=getFirstValue(first,['วันเดือนปี','วันที่บันทึก','Recorded Date'])||'';
+ const sharedTime=getFirstValue(first,['เวลา (น.)','เวลา','Recorded Time'])||'';
+ const dateEl=document.getElementById('ferBatchDate');
+  if(dateEl){
+    const isoMatch=String(sharedDate||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    dateEl.value=isoMatch ? `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}` : (sharedDate||'');
+  }
+ const timeEl=document.getElementById('ferBatchTime'); if(timeEl) timeEl.value=sharedTime||'';
+ fermentationBatchDateTimeDefaults();
+ if(!fermentationSaveInFlight) fermentationFormDirty=false;
  bindFermentationDirtyTracking();
 }
 function normalizeFerTimeInput(input){
  const raw=String(input?.value||'').replace(/[^0-9]/g,'').slice(0,4);
  if(!input)return;
  input.value=raw.length>2?raw.slice(0,2)+':'+raw.slice(2):raw;
+ markFermentationFormDirty();
 }
+async function waitForSubmittedFermentationVisible(batchId){
+ const maxAttempts=12, delayMs=1000;
+ for(let attempt=1;attempt<=maxAttempts;attempt++){
+  try{
+   const rows=await fetchSheetOptional('FERMENTATION HISTORY');
+   if(Array.isArray(rows)){
+    fermentationHistoryRows=rows;
+    const found=rows.some(r=>String(getFirstValue(r,['Batch ID'])||'').trim()===String(batchId).trim());
+    render();
+    if(found) return true;
+   }
+  }catch(e){ console.warn('รอประวัติถังหมัก:',e); }
+  const msg=document.getElementById('fermentationFormStatus');
+  if(msg){msg.textContent=`บันทึกแล้ว • กำลังรอประวัติการตรวจสอบ (${attempt}/${maxAttempts})…`;msg.className='fermentation-status';}
+  await new Promise(resolve=>setTimeout(resolve,delayMs));
+ }
+ return false;
+}
+
 async function saveFermentationFromForm(){
  const entries=collectFermentationEntries();
  const msg=document.getElementById('fermentationFormStatus');
- if(!entries.length){if(msg){msg.textContent='กรุณาเพิ่มรายการ';msg.className='fermentation-status error'}return;}
- const seen=new Set();
+ const recordDateInput=String(document.getElementById('ferBatchDate')?.value||'').trim();
+  const recordDate=parseThaiDateInput(recordDateInput);
+ const recordTime=String(document.getElementById('ferBatchTime')?.value||'').trim();
+ if(entries.length!==8){if(msg){msg.textContent='ต้องมีข้อมูลถังครบทั้ง 8 ถังก่อนบันทึก';msg.className='fermentation-status error'}return;}
+ if(!recordDate){if(msg){msg.textContent='กรุณากรอกวันที่ลงบันทึกเป็น วัน/เดือน/ปี เช่น 03/10/2026';msg.className='fermentation-status error'}return;}
+ if(!recordTime||!/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)){if(msg){msg.textContent='กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 14:30';msg.className='fermentation-status error'}return;}
  for(let i=0;i<entries.length;i++){
    const e=entries[i], n=i+1;
-   if(!e.barrelNo){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกถัง`;msg.className='fermentation-status error'}return;}
-   if(seen.has(e.barrelNo)){if(msg){msg.textContent=`รายการที่ ${n}: ถังใบที่ ${e.barrelNo} ซ้ำกับรายการอื่น`;msg.className='fermentation-status error'}return;}
-   seen.add(e.barrelNo);
-   if(!e.week||Number(e.week)<1){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอก Week`;msg.className='fermentation-status error'}return;}
-   if(!e.date||!/^[0-9]{1,2}$/.test(e.date)||Number(e.date)<1||Number(e.date)>31){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอกวันที่เป็นเลข 1–31`;msg.className='fermentation-status error'}return;}
-   if(!e.calendarDate){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกวันที่ลงบันทึก`;msg.className='fermentation-status error'}return;}
-   if(!e.recordTime||!/^([01]\d|2[0-3]):[0-5]\d$/.test(e.recordTime)){if(msg){msg.textContent=`รายการที่ ${n}: กรุณากรอกเวลาแบบ 24 ชั่วโมง เช่น 14:30`;msg.className='fermentation-status error'}return;}
-   if(!Number.isFinite(e.qty)||e.qty<0||e.qty>3000){if(msg){msg.textContent=`รายการที่ ${n}: ปริมาณต้องอยู่ระหว่าง 0–3000 G`;msg.className='fermentation-status error'}return;}
-   if(!e.status){if(msg){msg.textContent=`รายการที่ ${n}: กรุณาเลือกสถานะ`;msg.className='fermentation-status error'}return;}
+   if(!e.week||Number(e.week)<1){if(msg){msg.textContent=`ถังใบที่ ${n}: กรุณากรอก Week`;msg.className='fermentation-status error'}return;}
+   if(!e.date||!/^[0-9]{1,2}$/.test(e.date)||Number(e.date)<1||Number(e.date)>31){if(msg){msg.textContent=`ถังใบที่ ${n}: กรุณากรอกวันที่เป็นเลข 1–31`;msg.className='fermentation-status error'}return;}
+   if(!e.status){if(msg){msg.textContent=`ถังใบที่ ${n}: กรุณาเลือกสถานะ`;msg.className='fermentation-status error'}return;}
+   if(!Number.isFinite(e.qty)||e.qty<0||e.qty>3000){if(msg){msg.textContent=`ถังใบที่ ${n}: ปริมาณต้องอยู่ระหว่าง 0–3000 G`;msg.className='fermentation-status error'}return;}
  }
+ let photos=[];
+ try{ photos=await readFermentationPhotos(); }catch(err){if(msg){msg.textContent=err.message;msg.className='fermentation-status error'}return;}
+ if(!photos.length){if(msg){msg.textContent='กรุณาแนบรูปภาพการตรวจสอบอย่างน้อย 1 รูป';msg.className='fermentation-status error'}return;}
  if(!WORKLOG_API_URL||WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){if(msg){msg.textContent='ยังไม่ได้ตั้งค่า Apps Script URL';msg.className='fermentation-status error'}return;}
- const button=document.querySelector('.fermentation-input-actions .fermentation-save'); if(button)button.disabled=true;
- if(msg){msg.textContent=`กำลังบันทึก ${entries.length} รายการ…`;msg.className='fermentation-status'}
+ const button=document.querySelector('.fermentation-input-actions .fermentation-save');
+ const editVersionAtSaveStart=fermentationEditVersion;
+ fermentationSaveInFlight=true;
+ document.querySelectorAll('#ferBatchDate,#ferBatchTime,#fermentationPhotoInput,#fermentationEntryList input,#fermentationEntryList select').forEach(el=>el.disabled=true);
+ if(button)button.disabled=true;
+ if(msg){msg.textContent='กำลังบันทึกข้อมูลถังทั้ง 8 ใบ…';msg.className='fermentation-status'}
  try{
-   for(const e of entries){
-     const updatedAt=`${e.calendarDate.split('-').reverse().join('/')} ${e.recordTime} น.`;
-     const payload={action:'saveFermentation',barrelNo:e.barrelNo,week:Number(e.week),muggleDate:e.date,recordDate:e.calendarDate,recordTime:e.recordTime,status:e.status,quantity:e.qty,updatedAt};
-     await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
+   const batchId='FER-'+Date.now().toString(36).toUpperCase();
+   const payload={action:'saveFermentationBatch',batchId,recordDate,recordTime,updatedAt:`${recordDate.split('-').reverse().join('/')} ${recordTime} น.`,photos,barrels:entries.map(e=>({barrelNo:e.barrelNo,week:Number(e.week),muggleDate:e.date,status:e.status,quantity:e.qty}))};
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify(payload)})});
+   const historyReady=await waitForSubmittedFermentationVisible(batchId);
+   if(historyReady){
+     if(fermentationEditVersion===editVersionAtSaveStart) fermentationFormDirty=false;
+     const input=document.getElementById('fermentationPhotoInput'); if(input)input.value='';
+     const preview=document.getElementById('fermentationPhotoPreview'); if(preview)preview.innerHTML='';
+     if(msg){msg.textContent='บันทึกการตรวจสอบถังทั้ง 8 ใบเรียบร้อย';msg.className='fermentation-status success'}
+     setTimeout(()=>{if(msg)msg.textContent='';},3000);
+   }else{
+     if(msg){msg.textContent='ส่งข้อมูลแล้ว แต่ยังไม่พบประวัติการตรวจสอบจาก Google Sheets • ระบบจะซิงก์ต่ออัตโนมัติ';msg.className='fermentation-status error'}
+     setTimeout(syncData,1000);
    }
-   fermentationFormDirty=false;
-   if(msg){msg.textContent=`บันทึกแล้ว ${entries.length} รายการ • กำลังซิงก์ข้อมูล…`;msg.className='fermentation-status success'}
-   setTimeout(syncData,900);
-   setTimeout(()=>{if(msg){msg.textContent='';}},2500);
- }catch(e){
-   if(msg){msg.textContent='บันทึกไม่สำเร็จ: '+e.message;msg.className='fermentation-status error'}
- }finally{setTimeout(()=>{if(button)button.disabled=false},900)}
+ }catch(e){if(msg){msg.textContent='บันทึกไม่สำเร็จ: '+e.message;msg.className='fermentation-status error'}}
+ finally{fermentationSaveInFlight=false; setTimeout(()=>{document.querySelectorAll('#ferBatchDate,#ferBatchTime,#fermentationPhotoInput,#fermentationEntryList input,#fermentationEntryList select').forEach(el=>el.disabled=false); if(button)button.disabled=false},900)}
 }
 
 function formatInventoryTotal(rows){
@@ -1171,24 +1339,38 @@ async function requestDeleteWork(workId){
 }
 async function approveDeleteRequest(requestId){
  const reason=prompt('เหตุผล/หมายเหตุของแอดมิน:', 'อนุมัติคำขอลบ'); if(reason===null)return;
- try{await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'approveDeleteRequest',requestId,password:ADMIN_PASSWORD,reason})})});alert('อนุมัติและลบรายการแล้ว');setTimeout(syncData,1200);}catch(e){alert('ดำเนินการไม่สำเร็จ: '+e.message);}
+ try{await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'approveDeleteRequest',requestId,password:ADMIN_PASSWORD_SESSION,reason})})});alert('อนุมัติและลบรายการแล้ว');setTimeout(syncData,1200);}catch(e){alert('ดำเนินการไม่สำเร็จ: '+e.message);}
 }
 async function rejectDeleteRequest(requestId){
  const reason=prompt('เหตุผลที่ไม่อนุมัติ:', 'ไม่อนุมัติ'); if(reason===null)return;
- try{await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'rejectDeleteRequest',requestId,password:ADMIN_PASSWORD,reason})})});alert('ไม่อนุมัติคำขอแล้ว');setTimeout(syncData,1200);}catch(e){alert('ดำเนินการไม่สำเร็จ: '+e.message);}
+ try{await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'rejectDeleteRequest',requestId,password:ADMIN_PASSWORD_SESSION,reason})})});alert('ไม่อนุมัติคำขอแล้ว');setTimeout(syncData,1200);}catch(e){alert('ดำเนินการไม่สำเร็จ: '+e.message);}
 }
 
 function openAdmin(){
  if(!isGoogleAdmin){
    const password=prompt('กรุณาใส่ Password เพื่อเข้าสู่โซน Admin:');
    if(password===null)return;
-   if(password!==ADMIN_PASSWORD){alert('Password ไม่ถูกต้อง');return;}
+   if(!password.trim())return;
+   ADMIN_PASSWORD_SESSION=password.trim();
    isGoogleAdmin=true;
  }
  showPage('admin');
  render();
 }
 
+async function deleteFermentationHistory(batchId){
+ if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
+ const id=String(batchId||'').trim(); if(!id)return;
+ const ok=confirm(`ต้องการลบประวัติการตรวจสอบชุด ${id} ใช่หรือไม่?\n\nการลบนี้จะลบเฉพาะประวัติการบันทึก ไม่กระทบสถานะปัจจุบันของถังหมัก`);
+ if(!ok)return;
+ const reason=prompt('กรุณาระบุเหตุผลการลบ:', 'บันทึกข้อมูลผิด / รายการซ้ำ');
+ if(!reason || !reason.trim())return;
+ try{
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'deleteFermentationHistory',batchId:id,password:ADMIN_PASSWORD_SESSION,reason:reason.trim()})})});
+   alert('ลบประวัติการตรวจสอบเรียบร้อยแล้ว');
+   setTimeout(syncData,900);
+ }catch(e){alert('ลบประวัติไม่สำเร็จ: '+e.message);}
+}
 async function deleteInventoryHistory(workId){
  // ไม่มีการลบประวัติ Inventory แยกอีกต่อไป
  // ประวัติจะหายได้จากการลบ WORK LOG ต้นทางโดย Admin เท่านั้น
@@ -1203,7 +1385,7 @@ async function cancelWorkLog(workId){
  if(!reason || !reason.trim())return;
  if(!isGoogleAdmin){alert('กรุณาเข้าสู่โซน Admin ก่อน');return;}
  try{
-   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD})})});
+   await fetch(WORKLOG_API_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({payload:JSON.stringify({action:'cancelWork',workId:String(workId),reason:reason.trim(),password:ADMIN_PASSWORD_SESSION})})});
    alert('ลบ WORK LOG สำเร็จแล้ว และบันทึกประวัติการลบไว้ใน ADMIN');
    await syncData();
  }catch(e){alert('ลบรายการไม่สำเร็จ: '+e.message);}
@@ -1912,11 +2094,27 @@ async function waitForSubmittedWorkLogVisible(expected){
  return false;
 }
 
+function markWorkLogFormDirty(){
+ workLogFormDirty=true; workLogEditVersion++;
+}
+function bindWorkLogDirtyTracking(){
+ const form=document.getElementById('workLogForm'); if(!form||form.dataset.dirtyBound==='1')return;
+ form.dataset.dirtyBound='1';
+ form.addEventListener('input',ev=>{ if(ev.target?.type!=='file') markWorkLogFormDirty(); });
+ form.addEventListener('change',markWorkLogFormDirty);
+ form.addEventListener('click',ev=>{
+   if(ev.target.closest('button[type="submit"]')) return;
+   if(ev.target.closest('button')) markWorkLogFormDirty();
+ });
+ const photo=document.getElementById('wlPhoto');
+ if(photo) photo.addEventListener('change',markWorkLogFormDirty);
+}
+
 async function submitWorkLog(ev){
  ev.preventDefault();
  const status=document.getElementById('workLogStatus'); const btn=document.getElementById('workLogSubmit');
  if(btn.dataset.submitting==='1') return;
- btn.dataset.submitting='1'; btn.disabled=true;
+ btn.dataset.submitting='1'; btn.disabled=true; workLogSaveInFlight=true; const workEditVersionAtSaveStart=workLogEditVersion;
  if(!WORKLOG_API_URL || WORKLOG_API_URL.includes('PASTE_APPS_SCRIPT')){status.textContent='กรุณาใส่ Apps Script Web App URL ใน index.html ก่อน';status.className='form-status error';btn.dataset.submitting='0';btn.disabled=false;return;}
  const cat=document.getElementById('wlCategory').value, wt=document.getElementById('wlWorkType').value;
  const muggleDate=document.getElementById('wlDate').value;
@@ -2007,9 +2205,9 @@ async function submitWorkLog(ev){
     return;
   }
 
-  document.getElementById('workLogForm').reset();clearWorkPhoto();clearTargetSelection();initWorkLogForm();rebuildWorkLogLookups();
+  document.getElementById('workLogForm').reset();clearWorkPhoto();clearTargetSelection();initWorkLogForm();rebuildWorkLogLookups(); workLogFormDirty=false; workLogEditVersion++;
  }catch(err){status.textContent='บันทึกไม่สำเร็จ: '+err.message;status.className='form-status error';hideUploadProcessing();}
- finally{btn.dataset.submitting='0';btn.disabled=false;}
+ finally{workLogSaveInFlight=false;btn.dataset.submitting='0';btn.disabled=false;}
 }
 
 async function syncData(){
@@ -2035,10 +2233,11 @@ async function syncData(){
      fetchSheet("MEMBER"),
      fetchSheetOptional("DELETED WORK LOG"),
      fetchSheetOptional("DELETE REQUESTS"),
-     fetchSheetOptional("FERMENTATION")
+     fetchSheetOptional("FERMENTATION"),
+     fetchSheetOptional("FERMENTATION HISTORY")
    ]);
 
-   const [b,p,w,mem,del,reqs,ferm]=results;
+   const [b,p,w,mem,del,reqs,ferm,fermHist]=results;
    if(b.status==='fulfilled' && b.value.length) beasts=b.value;
    if(p.status==='fulfilled') plants=p.value;
    if(w.status==='fulfilled') worklogs=w.value;
@@ -2049,8 +2248,9 @@ async function syncData(){
    if(del.status==='fulfilled') deletedWorklogs=del.value||[];
    if(reqs.status==='fulfilled') deleteRequests=reqs.value||[];
    if(ferm.status==='fulfilled') fermentationRows=ferm.value||[];
+   if(fermHist.status==='fulfilled') fermentationHistoryRows=fermHist.value||[];
 
-   rebuildWorkLogLookups();
+   if(!workLogFormDirty && !workLogSaveInFlight) rebuildWorkLogLookups();
    render();
    syncInfo.textContent="เชื่อมต่อ Google Sheets แล้ว • อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH");
 
@@ -2070,7 +2270,7 @@ async function syncData(){
    syncInFlight=false;
  }
 }
-render(); initWorkLogForm(); syncData(); setInterval(syncData,SYNC_MS); showPage('home');
+render(); initWorkLogForm(); bindWorkLogDirtyTracking(); syncData(); setInterval(syncData,SYNC_MS); showPage('home');
 
 /* ===== TEAM / VIVARIUM GATE NAVIGATION =====
    TEAM zones are now native pages inside this same app.

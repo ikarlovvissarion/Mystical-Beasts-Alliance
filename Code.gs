@@ -50,6 +50,7 @@ function setupMBA() {
   getOrCreateSheet_(ss, 'DELETE REQUESTS');
   getOrCreateSheet_(ss, 'DELETED INVENTORY HISTORY');
   getOrCreateSheet_(ss, 'FERMENTATION');
+  getOrCreateSheet_(ss, 'FERMENTATION HISTORY');
   try { folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
   return {ok:true, spreadsheet:ss.getName(), folder:folder.getName(), folderId:folder.getId()};
 }
@@ -62,6 +63,8 @@ function healthCheck_() {
     result.spreadsheetName = ss.getName();
     result.workLog = !!ss.getSheetByName('WORK LOG');
     result.inventory = !!ss.getSheetByName('INVENTORY');
+    result.fermentation = !!ss.getSheetByName('FERMENTATION');
+    result.fermentationHistory = !!ss.getSheetByName('FERMENTATION HISTORY');
   } catch (e) { result.ok=false; result.spreadsheetError=String(e.message||e); }
   try {
     const folder = DriveApp.getFolderById(result.folderId);
@@ -83,6 +86,9 @@ function doPost(e) {
     const data = typeof payloadText === 'string'
       ? JSON.parse(payloadText)
       : payloadText;
+    if (data.action === 'saveFermentationBatch') {
+      return json_(saveFermentationBatch_(data));
+    }
     if (data.action === 'saveFermentation') {
       return json_(saveFermentation_(data));
     }
@@ -96,6 +102,7 @@ function doPost(e) {
     if (data.action === 'deleteInventoryHistory') {
       throw new Error('ประวัติ Inventory เชื่อมกับ WORK LOG โดยตรง และไม่สามารถลบแยกจาก WORK LOG ได้');
     }
+    if (data.action === 'deleteFermentationHistory') return json_(deleteFermentationHistory_(data));
     if (data.action === 'requestDelete') return json_(requestDeleteWork_(data));
     if (data.action === 'approveDeleteRequest') return json_(approveDeleteRequest_(data));
     if (data.action === 'rejectDeleteRequest') return json_(rejectDeleteRequest_(data));
@@ -175,6 +182,161 @@ function migrateFermentationWeekDayColumns_(sheet, headers) {
   }
 }
 
+function saveFermentationBatch_(data) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = getOrCreateSheet_(ss, 'FERMENTATION');
+    const headers = ensureHeaders_(sheet, [
+      'ถังใบที่', 'Week / วันที่ (มักเกิ้ล)', 'Week', 'วันที่ (มักเกิ้ล)',
+      'วันเดือนปี', 'เวลา (น.)', 'สถานะ', 'ปริมาณ', 'หน่วย', 'อัปเดตเมื่อ', 'รูปการทำงาน', 'รูปการทำงาน 2', 'รูปการทำงาน 3', 'รูปการทำงาน 4', 'รูปการทำงาน 5'
+    ]);
+    migrateFermentationWeekDayColumns_(sheet, headers);
+
+    const recordDate = String(data.recordDate || '').trim();
+    const recordTime = String(data.recordTime || '').trim();
+    const updatedAt = String(data.updatedAt || '');
+    const batchId = String(data.batchId || ('FER-' + Utilities.getUuid().slice(0,8).toUpperCase())).trim();
+    const barrels = Array.isArray(data.barrels) ? data.barrels : [];
+    const photos = Array.isArray(data.photos) ? data.photos : (data.photo ? [data.photo] : []);
+    const allowedStatuses = [
+      'พร้อมใช้ปรุงอาหาร', 'ยังไม่ได้ตักฟอง', 'ตักฟองออกหมดแล้ว', 'ยังไม่กรอง',
+      'รสชาติตรงตามสูตรแล้ว', 'รสชาติยังไม่ตรงตามสูตร', 'ต้องกรองใหม่อีกครั้ง'
+    ];
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(recordDate)) throw new Error('วันเดือนปีไม่ถูกต้อง');
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(recordTime)) throw new Error('เวลาต้องเป็นรูปแบบ 24 ชั่วโมง เช่น 14:30');
+    if (barrels.length !== 8) throw new Error('ต้องส่งข้อมูลถังหมักครบทั้ง 8 ถัง');
+    if (!photos.length || photos.length > 5) throw new Error('กรุณาแนบรูปภาพการตรวจสอบ 1–5 รูป');
+
+    const seen = new Set();
+    barrels.forEach((item, index) => {
+      const barrelNo = Number(item.barrelNo);
+      const week = normalizeFermentationWeek_(item.week);
+      const muggleDate = normalizeFermentationDay_(item.muggleDate);
+      const status = String(item.status || '').trim();
+      const quantity = Number(item.quantity);
+      if (!(barrelNo >= 1 && barrelNo <= 8 && Number.isInteger(barrelNo))) throw new Error(`ถังรายการที่ ${index + 1} ไม่ถูกต้อง`);
+      if (seen.has(barrelNo)) throw new Error(`ถังใบที่ ${barrelNo} ซ้ำกัน`);
+      seen.add(barrelNo);
+      if (!week) throw new Error(`ถังใบที่ ${barrelNo}: Week ไม่ถูกต้อง`);
+      if (!muggleDate) throw new Error(`ถังใบที่ ${barrelNo}: วันที่ต้องเป็นเลข 1–31`);
+      if (!allowedStatuses.includes(status)) throw new Error(`ถังใบที่ ${barrelNo}: สถานะไม่ถูกต้อง`);
+      if (!(Number.isFinite(quantity) && quantity >= 0 && quantity <= 3000)) throw new Error(`ถังใบที่ ${barrelNo}: ปริมาณต้องอยู่ระหว่าง 0–3000 G`);
+    });
+    for (let n = 1; n <= 8; n++) if (!seen.has(n)) throw new Error(`ไม่มีข้อมูลถังใบที่ ${n}`);
+
+    // อัปโหลดรูป 1–5 รูป แล้วใช้ชุดรูปเดียวกันกับทั้ง 8 แถว
+    const photoUrls = photos.map((photo, index) => {
+      const url = saveWorkPhoto_(photo, 'FERMENTATION-' + recordDate.replace(/-/g, '') + '-' + recordTime.replace(':', '') + '-' + (index + 1));
+      if (!url) throw new Error(`อัปโหลดรูปการตรวจสอบรูปที่ ${index + 1} ไม่สำเร็จ`);
+      return url;
+    });
+
+    const values = sheet.getLastRow() > 1
+      ? sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues()
+      : [];
+    const barrelCol = headers.indexOf('ถังใบที่');
+    const rowMap = new Map();
+    values.forEach((row, i) => { const n = Number(row[barrelCol]); if (n >= 1 && n <= 8 && !rowMap.has(n)) rowMap.set(n, i + 2); });
+
+    barrels.forEach(item => {
+      const barrelNo = Number(item.barrelNo);
+      const week = normalizeFermentationWeek_(item.week);
+      const muggleDate = normalizeFermentationDay_(item.muggleDate);
+      const status = String(item.status).trim();
+      const quantity = Number(item.quantity);
+      const out = Array(headers.length).fill('');
+      const put = (header, value) => { const col = headers.indexOf(header); if (col >= 0) out[col] = value; };
+      put('ถังใบที่', barrelNo);
+      put('Week / วันที่ (มักเกิ้ล)', `Week ${week} — วันที่ ${muggleDate}`);
+      put('Week', week); put('วันที่ (มักเกิ้ล)', muggleDate);
+      put('วันเดือนปี', recordDate); put('เวลา (น.)', recordTime);
+      put('สถานะ', status); put('ปริมาณ', quantity); put('หน่วย', 'G');
+      put('อัปเดตเมื่อ', updatedAt || Utilities.formatDate(new Date(), Session.getScriptTimeZone() || MUGGLE_TIME_ZONE, 'dd/MM/yyyy HH:mm') + ' น.');
+      put('รูปการทำงาน', photoUrls[0] || '');
+      for (let i = 1; i < 5; i++) put('รูปการทำงาน ' + (i + 1), photoUrls[i] || '');
+      const row = rowMap.get(barrelNo);
+      const range = row ? sheet.getRange(row, 1, 1, headers.length) : sheet.getRange(sheet.getLastRow() + 1, 1, 1, headers.length);
+      range.setNumberFormat('@'); range.setValues([out]);
+    });
+
+    // เก็บประวัติแยกจาก FERMENTATION เพื่อไม่ให้การอัปเดตสถานะล่าสุดทับประวัติเดิม
+    const historySheet = getOrCreateSheet_(ss, 'FERMENTATION HISTORY');
+    const historyHeaders = ensureHeaders_(historySheet, [
+      'Batch ID','วันเดือนปี','เวลา (น.)','ถังใบที่','Week','วันที่ (มักเกิ้ล)',
+      'สถานะ','ปริมาณ','หน่วย','รูปการทำงาน','รูปการทำงาน 2','รูปการทำงาน 3','รูปการทำงาน 4','รูปการทำงาน 5','บันทึกเมื่อ','เหตุผลการลบ'
+    ]);
+    const historyValues = barrels.map(item => {
+      const row = Array(historyHeaders.length).fill('');
+      const putH = (header, value) => { const col = historyHeaders.indexOf(header); if (col >= 0) row[col] = value; };
+      const barrelNo = Number(item.barrelNo);
+      const week = normalizeFermentationWeek_(item.week);
+      const muggleDate = normalizeFermentationDay_(item.muggleDate);
+      const status = String(item.status).trim();
+      const quantity = Number(item.quantity);
+      putH('Batch ID', batchId);
+      putH('วันเดือนปี', recordDate);
+      putH('เวลา (น.)', recordTime);
+      putH('ถังใบที่', barrelNo);
+      putH('Week', week);
+      putH('วันที่ (มักเกิ้ล)', muggleDate);
+      putH('สถานะ', status);
+      putH('ปริมาณ', quantity);
+      putH('หน่วย', 'G');
+      putH('รูปการทำงาน', photoUrls[0] || '');
+      for (let i = 1; i < 5; i++) putH('รูปการทำงาน ' + (i + 1), photoUrls[i] || '');
+      putH('บันทึกเมื่อ', updatedAt || Utilities.formatDate(new Date(), Session.getScriptTimeZone() || MUGGLE_TIME_ZONE, 'dd/MM/yyyy HH:mm') + ' น.');
+      return row;
+    });
+    if (historyValues.length) historySheet.getRange(historySheet.getLastRow()+1,1,historyValues.length,historyHeaders.length).setValues(historyValues);
+    SpreadsheetApp.flush();
+    return {ok:true, saved:8, recordDate, recordTime, photoUrls, batchId};
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+function deleteFermentationHistory_(data) {
+  if (String(data.password || '') !== ADMIN_PASSWORD) throw new Error('Password ไม่ถูกต้อง');
+  const batchId = String(data.batchId || '').trim();
+  const reason = String(data.reason || '').trim();
+  if (!batchId) throw new Error('ไม่พบรหัสชุดประวัติ');
+  if (!reason) throw new Error('กรุณาระบุเหตุผลการลบ');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('FERMENTATION HISTORY');
+    if (!sheet) throw new Error('ไม่พบแท็บ FERMENTATION HISTORY');
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) throw new Error('ยังไม่มีประวัติการตรวจสอบ');
+    const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0].map(String);
+    const batchCol = headers.indexOf('Batch ID');
+    const reasonCol = headers.indexOf('เหตุผลการลบ');
+    if (batchCol < 0) throw new Error('ไม่พบคอลัมน์ Batch ID');
+    const values = sheet.getRange(2,1,lastRow-1,sheet.getLastColumn()).getValues();
+    const keep = [];
+    let deleted = 0;
+    values.forEach(row => {
+      if (String(row[batchCol] || '').trim() === batchId) {
+        deleted++;
+      } else {
+        keep.push(row);
+      }
+    });
+    if (!deleted) throw new Error('ไม่พบประวัติชุดที่ต้องการลบ');
+    if (lastRow > 1) sheet.getRange(2,1,lastRow-1,sheet.getLastColumn()).clearContent();
+    if (keep.length) sheet.getRange(2,1,keep.length,sheet.getLastColumn()).setValues(keep);
+    SpreadsheetApp.flush();
+    return {ok:true, batchId, deletedRows:deleted, reason};
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function saveFermentation_(data) {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -203,9 +365,7 @@ function saveFermentation_(data) {
       'ยังไม่กรอง',
       'รสชาติตรงตามสูตรแล้ว',
       'รสชาติยังไม่ตรงตามสูตร',
-      'ต้องกรองใหม่อีกครั้ง',
-      'กรองแล้ว',
-      'รสชาติตรงตามสูตรแล้ว'
+      'ต้องกรองใหม่อีกครั้ง'
     ];
 
     if (!(barrelNo >= 1 && barrelNo <= 8 && Number.isInteger(barrelNo))) {
