@@ -566,7 +566,63 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 @keyframes bubbleUp{0%{opacity:0;transform:translateY(12px) scale(.6)}25%{opacity:.8}80%{opacity:.35}100%{opacity:0;transform:translateY(-55px) scale(1.15)}}@keyframes barrelBreathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(.2deg)}}
 @media(max-width:1050px){.fermentation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fermentation-input-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.fermentation-zone{padding:22px 14px}.fermentation-heading{align-items:center}.fermentation-heading h3{font-size:25px}.fermentation-display-zone,.fermentation-input-zone{padding:14px}.fermentation-grid{grid-template-columns:1fr}.fermentation-input-form{grid-template-columns:1fr}.fermentation-barrel-stage{height:150px}}
+
+/* ===== MAGIZOOPEDIA — ZOOPEDIA-INSPIRED ARCHIVE VIEW ===== */
+#magizoopedia{padding-bottom:56px}
+.magizoopedia-shell{width:100%;max-width:1440px;margin:0 auto}
+.magizoopedia-heading{display:flex;justify-content:space-between;align-items:flex-end;padding:44px 0 20px;border-bottom:1px solid #a17a38;margin-bottom:20px}
+.magizoopedia-heading h2{font-size:38px;font-weight:500;margin:0;letter-spacing:-.5px}
+.magizoopedia-heading-note{margin:5px 0 0;color:#765727;font-size:12px}
+.magizoopedia-app{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:680px;border:1px solid #9c712c;background:#efe1c1;box-shadow:0 18px 40px #4b35191c,inset 0 0 0 5px #a77e3710;overflow:hidden}
+.magizoopedia-sidebar{display:flex;flex-direction:column;min-width:0;background:linear-gradient(180deg,#f4e8ca,#e8d6ad);border-right:1px solid #a17a38;padding:16px 13px 14px}
+.magizoopedia-search{display:flex;align-items:center;gap:8px;height:42px;padding:0 11px;border:1px solid #b18a4e;border-radius:22px;background:#fff9e9cc;box-shadow:inset 0 1px 0 #fff}
+.magizoopedia-search span{font-size:24px;line-height:1;color:#7b5a2b;transform:rotate(-15deg)}
+.magizoopedia-search input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#4b3519;font:inherit;font-size:12px}
+.magizoopedia-search input::placeholder{color:#8d7a5c}
+.magizoopedia-filter-label{margin:15px 4px 6px;font-size:9px;letter-spacing:2px;color:#806333}
+.magizoopedia-select-wrap{position:relative}
+.magizoopedia-select-wrap:after{content:"⌄";position:absolute;right:12px;top:7px;color:#765727;pointer-events:none}
+.magizoopedia-select-wrap select{width:100%;height:36px;padding:0 32px 0 11px;border:1px solid #b18a4e;border-radius:5px;background:#f9efd7;color:#4b3519;font:inherit;font-size:11px;appearance:none}
+.magizoopedia-pills{display:flex;gap:6px;flex-wrap:wrap}
+.magizoopedia-pills button{padding:7px 9px;border:1px solid #b18a4e;border-radius:16px;background:#f9efd7;color:#6f5125;font-size:10px;transition:.16s}
+.magizoopedia-pills button:hover,.magizoopedia-pills button.active{background:#ead7ad;box-shadow:inset 0 0 0 1px #fff6}
+.magizoopedia-list-head{display:flex;justify-content:space-between;align-items:center;margin:17px 3px 8px;padding-bottom:8px;border-bottom:1px solid #c4a66d;color:#6f5125;font-size:10px;letter-spacing:1.5px}
+.magizoopedia-list-head b{min-width:23px;height:23px;border:1px solid #b18a4e;border-radius:50%;display:grid;place-items:center;font-size:9px;letter-spacing:0;background:#f8edd3}
+.magizoopedia-list{display:flex;flex-direction:column;gap:6px;overflow:auto;padding-right:2px}
+.magizoopedia-list::-webkit-scrollbar{width:5px}.magizoopedia-list::-webkit-scrollbar-thumb{background:#b18a4e;border-radius:8px}
+.magizoopedia-entry{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:6px;text-align:left;border:1px solid transparent;border-radius:9px;background:#f8edd3b8;color:#4b3519;transition:.16s}
+.magizoopedia-entry:hover{border-color:#b18a4e;background:#f8edd3}
+.magizoopedia-entry.active{border-color:#8f6a2d;background:#ead7ad;box-shadow:inset 4px 0 0 #9c712c}
+.magizoopedia-entry-thumb{width:48px;height:48px;border-radius:50%;overflow:hidden;border:1px solid #a17a38;background:#d8c49b;display:grid;place-items:center;flex:0 0 48px}
+.magizoopedia-entry-thumb img{width:100%;height:100%;object-fit:cover}.magizoopedia-entry-thumb .placeholder{font-size:25px}
+.magizoopedia-entry-copy{min-width:0}.magizoopedia-entry-copy b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.magizoopedia-entry-copy span{display:block;font-size:9px;color:#806333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.magizoopedia-main{min-width:0;display:flex;flex-direction:column;background:#ead9b5}
+.magizoopedia-toolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:10px 18px;background:#f5e8ca;border-bottom:1px solid #b18a4e}
+.magizoopedia-tabs{display:flex;gap:5px;flex-wrap:wrap}.magizoopedia-tabs button{padding:8px 13px;border:1px solid transparent;border-radius:16px;color:#745424;font-size:10px}.magizoopedia-tabs button.active{border-color:#b18a4e;background:#ead7ad;color:#4b3519;font-weight:600}
+.magizoopedia-status{font-size:9px;letter-spacing:1.5px;color:#927026;white-space:nowrap}
+.magizoopedia-detail{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);min-height:0;flex:1}
+.magizoopedia-visual{position:relative;min-height:610px;background:#d8c49b;overflow:hidden;border-right:1px solid #9c712c}
+.magizoopedia-visual-frame{position:absolute;inset:0;padding:18px;background:linear-gradient(180deg,#d7c59b,#bca978)}
+.magizoopedia-visual-frame:after{content:"";position:absolute;inset:18px;border:1px solid #ead7ad66;pointer-events:none;z-index:2}
+.magizoopedia-hero-img{width:100%;height:100%;object-fit:cover;display:block}
+.magizoopedia-visual .placeholder{width:100%;height:100%;font-size:110px;background:radial-gradient(circle at 50% 35%,#f5e8c8,#b9a171)}
+.magizoopedia-id-plate{position:absolute;left:34px;top:34px;z-index:4;padding:7px 11px;border:1px solid #d7bd83;background:#3f2a12e8;color:#f9efd7;font-size:10px;letter-spacing:2px}
+.magizoopedia-visual-caption{position:absolute;left:34px;right:34px;bottom:34px;z-index:4;padding:18px 20px;border:1px solid #ead7ad;background:#3f2a12d9;color:#fff5dd;backdrop-filter:blur(3px)}
+.magizoopedia-visual-caption .kicker{font-size:9px;letter-spacing:2px;color:#ead7ad}.magizoopedia-visual-caption h3{margin:3px 0 0;font-size:30px;font-weight:500}.magizoopedia-visual-caption p{margin:2px 0 0;font-size:11px;color:#f4e7c9}
+.magizoopedia-info{padding:24px 24px 30px;overflow:auto;background:linear-gradient(180deg,#f2e5c7,#ead9b5)}
+.magizoopedia-info-head{display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid #b18a4e;padding-bottom:16px}.magizoopedia-info-icon{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;border:1px solid #a17a38;background:#f8edd3;font-size:23px}.magizoopedia-info h3{margin:0;font-size:28px;font-weight:500;line-height:1.1}.magizoopedia-info .latin{font-size:11px;color:#806333;margin-top:3px}.magizoopedia-rank{margin-left:auto;border:1px solid #b18a4e;background:#ead7ad;padding:5px 9px;font-size:9px;white-space:nowrap}
+.magizoopedia-statline{padding:15px 0;border-bottom:1px solid #c4a66d}.magizoopedia-statline small{display:block;font-size:8px;letter-spacing:1.3px;color:#927026;margin-bottom:6px}.magizoopedia-statbar{display:flex;gap:5px}.magizoopedia-statbar i{height:8px;flex:1;border:1px solid #b18a4e;border-radius:10px;background:#f8edd3}.magizoopedia-statbar i.on{background:#8d6a32}
+.magizoopedia-facts{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #c4a66d}.magizoopedia-fact{padding:13px 9px;border-bottom:1px solid #c4a66d}.magizoopedia-fact:nth-child(odd){border-right:1px solid #c4a66d}.magizoopedia-fact small{display:block;font-size:8px;color:#927026;letter-spacing:1px}.magizoopedia-fact b{display:block;margin-top:4px;font-size:12px;font-weight:500}
+.magizoopedia-section{padding:16px 0;border-bottom:1px solid #c4a66d}.magizoopedia-section h4{margin:0 0 7px;font-size:13px;font-weight:600}.magizoopedia-section h4 span{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:6px;border:1px solid #b18a4e;border-radius:50%;background:#f8edd3;font-size:12px}.magizoopedia-section p{margin:0;font-size:11px;line-height:1.75;color:#59431f}
+.magizoopedia-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.magizoopedia-link{padding:10px;border:1px solid #b18a4e;background:#f8edd3;text-align:left}.magizoopedia-link b{display:block;font-size:10px}.magizoopedia-link span{display:block;font-size:9px;color:#806333;margin-top:2px}
+.magizoopedia-empty{padding:45px 20px;text-align:center;color:#806333;font-size:12px}.magizoopedia-empty strong{display:block;font-size:24px;margin-bottom:8px;color:#6f5125}
+@media(max-width:1050px){.magizoopedia-app{grid-template-columns:250px}.magizoopedia-detail{grid-template-columns:1fr}.magizoopedia-info{border-top:1px solid #9c712c}.magizoopedia-visual{min-height:520px;border-right:0}.magizoopedia-info{max-height:none}}
+@media(max-width:700px){.magizoopedia-heading{padding-top:28px}.magizoopedia-heading h2{font-size:30px}.magizoopedia-app{display:block}.magizoopedia-sidebar{border-right:0;border-bottom:1px solid #9c712c;max-height:none}.magizoopedia-list{max-height:270px}.magizoopedia-toolbar{align-items:flex-start;flex-direction:column}.magizoopedia-status{display:none}.magizoopedia-visual{min-height:430px}.magizoopedia-visual-frame{padding:10px}.magizoopedia-visual-frame:after{inset:10px}.magizoopedia-id-plate{left:24px;top:24px}.magizoopedia-visual-caption{left:24px;right:24px;bottom:24px}.magizoopedia-info{padding:18px}.magizoopedia-facts{grid-template-columns:1fr}.magizoopedia-fact:nth-child(odd){border-right:0}.magizoopedia-links{grid-template-columns:1fr}}
 </style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3M6ZpYl9X9r0nK2Q6wY5Y6lXxv7mA=" crossorigin="" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
 <button type="button" id="pageBackButton" aria-label="ย้อนกลับ" title="ย้อนกลับ">ย้อนกลับ</button>
@@ -585,6 +641,7 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 <button onclick="openVivariumGate()">VIVARIUM</button>
 <button onclick="showPage('inventory')">INVENTORY</button>
 <button onclick="showPage('worklog')">WORK LOG</button>
+<button onclick="showPage('magizoopedia')">MAGIZOOPEDIA</button>
 <button onclick="openAdmin()">ADMIN</button>
 </nav>
 </header>
@@ -775,6 +832,46 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
   </div>
   <div id="workLogGrid" class="table-wrap"></div>
 </div>
+</section>
+
+<section id="magizoopedia" class="page">
+  <div class="magizoopedia-shell">
+    <div class="magizoopedia-heading">
+      <div>
+        <p class="eyebrow">CENTRAL REFERENCE ARCHIVE</p>
+        <h2>Magizoopedia</h2>
+        <p class="magizoopedia-heading-note">สารานุกรมกลางของ Mystical Beasts Alliance — Species &amp; Breed Archive</p>
+      </div>
+      <span id="magizoopediaCount" class="count-badge">0</span>
+    </div>
+
+    <div class="magizoopedia-app">
+      <aside class="magizoopedia-sidebar">
+        <div class="magizoopedia-search">
+          <span>⌕</span>
+          <input id="magizoopediaSearch" type="search" placeholder="ค้นหา Species / Breed..." autocomplete="off">
+        </div>
+
+        <div class="magizoopedia-list-head">
+          <span>SPECIES / BREED</span><b id="magizoopediaListCount">0</b>
+        </div>
+        <div id="magizoopediaList" class="magizoopedia-list"></div>
+      </aside>
+
+      <div class="magizoopedia-main">
+        <div class="magizoopedia-toolbar">
+          <div class="magizoopedia-tabs" id="magizoopediaTabs">
+            <button type="button" class="active" data-mz-tab="general">ข้อมูลทั่วไป</button>
+            <button type="button" data-mz-tab="habitat">ถิ่นที่อยู่อาศัย</button>
+            <button type="button" data-mz-tab="breed">ข้อมูลสายพันธุ์</button>
+          </div>
+          <span class="magizoopedia-status">✦ SPECIES / BREED ARCHIVE</span>
+        </div>
+
+        <div id="magizoopediaDetail" class="magizoopedia-detail"></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section id="admin" class="page">
@@ -2559,10 +2656,184 @@ updateBackButtonState();
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){['teamGate','vivariumGate'].forEach(closeGate);}});
 
+
+
+/* ===== MAGIZOOPEDIA UI =====
+   Scope: BEASTS -> Species / Breed only.
+   No PLANTS, Category A/B/C, Owner, Age, Sex, Color, Work Log,
+   or other BEASTS operational fields are used by this archive.
+*/
+let magizoopediaState={search:'',tab:'general',selectedKey:''};
+let magizoopediaMapState={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,baseX:0,baseY:0};
+
+function magizoopediaItems(){
+ const groups=new Map();
+ (Array.isArray(beasts)?beasts:[]).forEach((c)=>{
+   const species=String(c?.Species||'').trim();
+   const breed=String(c?.Breed||'').trim();
+   if(!species && !breed) return;
+   const key=(species||'ไม่ระบุ Species')+'::'+(breed||'ไม่ระบุ Breed');
+   if(!groups.has(key)) groups.set(key,{kind:'BEASTS',key,species:species||'ไม่ระบุ Species',breed:breed||'ไม่ระบุ Breed',records:[]});
+   groups.get(key).records.push(c);
+ });
+ return Array.from(groups.values()).sort((a,b)=>{
+   const aa=(a.species+' '+a.breed).toLowerCase(), bb=(b.species+' '+b.breed).toLowerCase();
+   return aa.localeCompare(bb,'th');
+ });
+}
+function magizoopediaName(item){ return String(item?.species||'ไม่ทราบ Species'); }
+function magizoopediaSubtitle(item){ return String(item?.breed||'ไม่ระบุ Breed'); }
+function magizoopediaMatches(item){
+ const q=magizoopediaState.search.trim().toLowerCase();
+ if(!q) return true;
+ return (magizoopediaName(item)+' '+magizoopediaSubtitle(item)).toLowerCase().includes(q);
+}
+function magizoopediaEscImage(item){
+ const src=String(item?.records?.find(x=>String(x?.Image||'').trim())?.Image||'').trim();
+ return src ? `<img src="${esc(src)}" alt="${esc(magizoopediaName(item))}">` : `<div class="placeholder">🐾</div>`;
+}
+function magizoopediaSelect(key){ magizoopediaState.selectedKey=key; renderMagizoopedia(); }
+function magizoopediaLocations(item){
+ const values=[];
+ (item?.records||[]).forEach(r=>{
+   const v=String(r?.['Origin/Native Habitat']||'').trim();
+   if(v && v!=='-' && !values.includes(v)) values.push(v);
+ });
+ return values;
+}
+function magizoopediaExactMapPoints(item){
+ const points=[];
+ (item?.records||[]).forEach(r=>{
+   const lat=Number(r?.Latitude ?? r?.latitude ?? r?.Lat ?? r?.lat ?? r?.['ละติจูด']);
+   const lng=Number(r?.Longitude ?? r?.longitude ?? r?.Lng ?? r?.lng ?? r?.['ลองจิจูด'] ?? r?.['ลองจิจูด (Longitude)']);
+   if(Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180){
+     const key=`${lat},${lng}`;
+     if(!points.some(p=>p.key===key)) points.push({lat,lng,key});
+   }
+ });
+ return points;
+}
+function magizoopediaMapPoint(label){
+ const s=String(label||'').toLowerCase();
+ const points=[
+  ['ฝรั่งเศส',46.2,2.2],['france',46.2,2.2],['อังกฤษ',52.4,-1.5],['สหราชอาณาจักร',55,-3],['united kingdom',55,-3],['england',52.4,-1.5],
+  ['เยอรมนี',51.2,10.4],['germany',51.2,10.4],['อิตาลี',42.8,12.5],['italy',42.8,12.5],['สเปน',40.3,-3.7],['spain',40.3,-3.7],['โปรตุเกส',39.5,-8],['portugal',39.5,-8],
+  ['นอร์เวย์',64.5,11],['norway',64.5,11],['สวีเดน',62,15],['sweden',62,15],['รัสเซีย',61,100],['russia',61,100],['จีน',35,103],['china',35,103],
+  ['ญี่ปุ่น',36.2,138.3],['japan',36.2,138.3],['ไทย',15.8,100.9],['thailand',15.8,100.9],['อินเดีย',22.5,79],['india',22.5,79],['ออสเตรเลีย',-25.3,133.8],['australia',-25.3,133.8],
+  ['แอฟริกาใต้',-30.6,22.9],['south africa',-30.6,22.9],['อียิปต์',26.8,30.8],['egypt',26.8,30.8],['สหรัฐอเมริกา',39.8,-98.6],['united states',39.8,-98.6],['usa',39.8,-98.6],
+  ['แคนาดา',56.1,-106.3],['canada',56.1,-106.3],['เม็กซิโก',23.6,-102.5],['mexico',23.6,-102.5],['บราซิล',-10.8,-51.9],['brazil',-10.8,-51.9],['อาร์เจนตินา',-38.4,-63.6],['argentina',-38.4,-63.6]
+ ];
+ const hit=points.find(([name])=>s.includes(name));
+ return hit?{lat:hit[1],lng:hit[2]}:null;
+}
+function magizoopediaResetMap(){
+ if(window.magizoopediaLeafletMap) window.magizoopediaLeafletMap.setView([20,0],2);
+}
+function magizoopediaZoom(delta){
+ const m=window.magizoopediaLeafletMap; if(!m)return;
+ delta>0?m.zoomIn(1):m.zoomOut(1);
+}
+function magizoopediaMapSvg(item){
+ const locations=magizoopediaLocations(item);
+ return `<div class="magizoopedia-map-stage" id="magizoopediaMapStage"><div id="magizoopediaLeafletMap" class="magizoopedia-leaflet-map"></div>
+   <div class="magizoopedia-map-controls"><button type="button" onclick="magizoopediaZoom(1)">＋</button><button type="button" onclick="magizoopediaZoom(-1)">−</button><button type="button" onclick="magizoopediaResetMap()">↺</button></div>
+   <div class="magizoopedia-map-hint">แผนที่โลกจริง · ลากเพื่อเลื่อน · ล้อเมาส์เพื่อ Zoom · พิกัดถิ่นที่อยู่อาศัยจะแสดงเป็นตราสัญลักษณ์</div></div>`;
+}
+function renderMagizoopediaMap(){
+ const el=document.getElementById('magizoopediaLeafletMap'); if(!el || typeof L==='undefined')return;
+ if(window.magizoopediaLeafletMap){ window.magizoopediaLeafletMap.remove(); window.magizoopediaLeafletMap=null; }
+ const item=magizoopediaState.selectedKey?magizoopediaItems().find(x=>x.key===magizoopediaState.selectedKey):null;
+ const map=L.map(el,{worldCopyJump:true,minZoom:1,maxZoom:12,scrollWheelZoom:true}).setView([20,0],2);
+ const themedTiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'© OpenStreetMap contributors'
+}).addTo(map);
+ (item?magizoopediaLocations(item):[]).forEach(loc=>{
+   const p=magizoopediaMapPoint(loc); if(!p)return;
+   L.marker([p.lat,p.lng]).addTo(map).bindPopup(`<b>${esc(loc)}</b>`);
+ });
+ window.magizoopediaLeafletMap=map;
+ setTimeout(()=>map.invalidateSize(),50);
+}
+function magizoopediaGeneral(item){
+ return `<div class="magizoopedia-section"><h4><span>●</span>ข้อมูลทั่วไป</h4>
+   <div class="magizoopedia-facts"><div class="magizoopedia-fact"><small>SPECIES</small><b>${esc(item.species)}</b></div><div class="magizoopedia-fact"><small>BREED</small><b>${esc(item.breed)}</b></div></div>
+   <p class="magizoopedia-note">ส่วนนี้อ้างอิงเฉพาะข้อมูล Species และ Breed ของ Beasts ตามที่มีอยู่ในฐานข้อมูลปัจจุบัน</p></div>`;
+}
+function magizoopediaHabitat(item){
+ const locations=magizoopediaLocations(item);
+ return `<div class="magizoopedia-section magizoopedia-habitat-section"><h4><span>⌂</span>ถิ่นที่อยู่อาศัย</h4>
+   ${magizoopediaMapSvg(item)}
+   <div class="magizoopedia-location-list">${locations.length?locations.map(x=>`<span>✦ ${esc(x)}</span>`).join(''):'<span>ยังไม่มีข้อมูลถิ่นกำเนิดในรายการนี้</span>'}</div>
+   <p class="magizoopedia-note">หากฐานข้อมูลมีพิกัด Latitude / Longitude ระบบจะล็อคมุมมองเริ่มต้นไปยังตำแหน่งนั้นทันที หากไม่มีพิกัดจริง ระบบจะแสดงตำแหน่งระดับประเทศจากข้อมูลถิ่นกำเนิดที่จับคู่ได้ โดยไม่สร้างพิกัดละเอียดขึ้นมาเอง</p></div>`;
+}
+function magizoopediaBreed(item){
+ const count=(item.records||[]).length;
+ return `<div class="magizoopedia-section"><h4><span>✦</span>ข้อมูลสายพันธุ์</h4>
+   <div class="magizoopedia-lineage-grid">
+    <div><small>SPECIES</small><b>${esc(item.species)}</b></div><div><small>BREED</small><b>${esc(item.breed)}</b></div><div><small>บันทึกในกลุ่มสายพันธุ์</small><b>${count} รายการ</b></div>
+   </div>
+  </div>
+  <div class="magizoopedia-section"><h4><span>⌘</span>การสืบวงศ์</h4><p>ฐานข้อมูล Species / Breed ปัจจุบันยังไม่มีฟิลด์สำหรับพ่อแม่ ลำดับบรรพบุรุษ หรือสายการสืบพันธุ์ จึงยังไม่แสดงความสัมพันธ์ที่ไม่ได้บันทึกไว้</p></div>
+  <div class="magizoopedia-section"><h4><span>◇</span>พันธุกรรม</h4><p>ฐานข้อมูลปัจจุบันยังไม่มีข้อมูล genotype, allele หรือ genetic markers ของสายพันธุ์นี้ จึงแสดงเฉพาะ Species และ Breed ที่มีอยู่จริงในข้อมูลต้นทาง</p></div>`;
+}
+function magizoopediaDetail(item){
+ if(!item)return `<div class="magizoopedia-empty"><strong>✦</strong>ไม่พบ Species / Breed<br>ลองเปลี่ยนคำค้นหา</div>`;
+ const tab=magizoopediaState.tab;
+ let section=tab==='habitat'?magizoopediaHabitat(item):tab==='breed'?magizoopediaBreed(item):magizoopediaGeneral(item);
+ return `<div class="magizoopedia-visual"><div class="magizoopedia-visual-frame">${magizoopediaEscImage(item)}</div><span class="magizoopedia-id-plate">SPECIES / BREED</span><div class="magizoopedia-visual-caption"><span class="kicker">MAGICAL BEAST</span><h3>${esc(item.species)}</h3><p>${esc(item.breed)}</p></div></div><article class="magizoopedia-info"><div class="magizoopedia-info-head"><div class="magizoopedia-info-icon">🐾</div><div><h3>${esc(item.species)}</h3><div class="latin">${esc(item.breed)}</div></div><span class="magizoopedia-rank">BEAST</span></div>${section}</article>`;
+}
+function renderMagizoopedia(){
+ const list=document.getElementById('magizoopediaList'),detail=document.getElementById('magizoopediaDetail'); if(!list||!detail)return;
+ const filtered=magizoopediaItems().filter(magizoopediaMatches);
+ if(!filtered.some(x=>x.key===magizoopediaState.selectedKey))magizoopediaState.selectedKey=filtered[0]?.key||'';
+ const selected=filtered.find(x=>x.key===magizoopediaState.selectedKey)||null;
+ const count=document.getElementById('magizoopediaCount');if(count)count.textContent=String(filtered.length);
+ const listCount=document.getElementById('magizoopediaListCount');if(listCount)listCount.textContent=String(filtered.length);
+ list.innerHTML=filtered.length?filtered.map(item=>`<button type="button" class="magizoopedia-entry ${item.key===magizoopediaState.selectedKey?'active':''}" onclick="magizoopediaSelect('${esc(item.key)}')"><span class="magizoopedia-entry-thumb">${magizoopediaEscImage(item)}</span><span class="magizoopedia-entry-copy"><b>${esc(item.species)}</b><span>${esc(item.breed)}</span></span></button>`).join(''):`<div class="magizoopedia-empty"><strong>✦</strong>ไม่พบข้อมูล</div>`;
+ detail.innerHTML=magizoopediaDetail(selected);
+ if(magizoopediaState.tab==='habitat') setTimeout(renderMagizoopediaMap,0);
+}
+function initMagizoopedia(){
+ const search=document.getElementById('magizoopediaSearch');
+ if(search&&search.dataset.bound!=='1'){search.dataset.bound='1';search.addEventListener('input',e=>{magizoopediaState.search=e.target.value;renderMagizoopedia();});}
+ document.querySelectorAll('[data-mz-tab]').forEach(btn=>{if(btn.dataset.bound==='1')return;btn.dataset.bound='1';btn.addEventListener('click',()=>{magizoopediaState.tab=btn.dataset.mzTab;document.querySelectorAll('[data-mz-tab]').forEach(x=>x.classList.toggle('active',x===btn));magizoopediaMapState={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,baseX:0,baseY:0};renderMagizoopedia();});});
+}
+initMagizoopedia();
 </script>
 </body>
 </html>
 <style>
 .gate-doors.team .door-frame{box-shadow:0 12px 28px rgba(150,110,120,.14), inset 0 0 0 1px rgba(255,255,255,.65)}
 .gate-doors.team .door-panel{box-shadow:inset 0 0 22px rgba(255,255,255,.28)}
+
+/* ===== MAGIZOOPEDIA SPECIES / BREED REVISION ===== */
+.magizoopedia-note{margin:12px 0 0;font-size:10px;line-height:1.75;color:#6b5129}
+.magizoopedia-habitat-section{min-height:520px}
+.magizoopedia-map-stage{position:relative;margin-top:12px;height:440px;border:1px solid #8f6a32;border-radius:8px;overflow:hidden;background:#c8b47d;touch-action:none;cursor:grab;box-shadow:inset 0 0 35px rgba(70,45,15,.24)}
+.magizoopedia-map-stage:after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,244,211,.02) 35%,rgba(70,45,15,.18) 100%);mix-blend-mode:multiply}
+.magizoopedia-leaflet-map{background:#fffaf0}
+.magizoopedia-leaflet-map .leaflet-tile-pane{filter:sepia(1) saturate(1.15) hue-rotate(335deg) brightness(.78) contrast(1.02)}
+.magizoopedia-leaflet-map .leaflet-tile{mix-blend-mode:multiply}
+.magizoopedia-leaflet-map .leaflet-overlay-pane{background:#fffaf0}
+.magizoopedia-leaflet-map .leaflet-overlay-pane{filter:sepia(.18) saturate(.9)}
+.magizoopedia-leaflet-map .leaflet-control-zoom{border:1px solid #8f6a32!important;box-shadow:0 3px 10px rgba(63,42,18,.22)}
+.magizoopedia-leaflet-map .leaflet-control-zoom a{background:#f4e5c2;color:#4b3519;border-color:#b18a4e}
+.magizoopedia-leaflet-map .leaflet-control-attribution{background:rgba(248,237,211,.86);color:#5e4726}
+.magizoopedia-map-stage:active{cursor:grabbing}
+.magizoopedia-leaflet-map .leaflet-control-attribution{font-size:9px}
+.magizoopedia-leaflet-map{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.map-sea{fill:#c6b47f}
+.map-graticule path{stroke:#8f7a4c;stroke-width:1;stroke-dasharray:5 8;opacity:.3;fill:none}
+.map-land path{fill:#ead7ad;stroke:#86652e;stroke-width:2;filter:drop-shadow(0 4px 4px rgba(64,42,15,.15))}
+.magizoopedia-map-marker circle:first-child{fill:#8b302d;stroke:#f9efd7;stroke-width:2}
+.magizoopedia-map-marker circle:nth-child(2){fill:#f9efd7}
+.magizoopedia-map-marker text{font:14px Prompt,sans-serif;fill:#4b3519;paint-order:stroke;stroke:#ead7ad;stroke-width:4px;stroke-linejoin:round}
+.map-empty-mark text{font:15px Prompt,sans-serif;fill:#6b5129}
+.magizoopedia-map-controls{position:absolute;right:12px;top:12px;display:flex;gap:5px;z-index:5}
+.magizoopedia-map-controls button{width:34px;height:34px;border:1px solid #a17a38;border-radius:6px;background:#f8edd3dd;color:#4b3519;font-size:17px;box-shadow:0 2px 7px rgba(63,42,18,.18)}
+.magizoopedia-map-hint{position:absolute;left:12px;bottom:10px;padding:5px 8px;border:1px solid #b18a4e;background:#f8edd3d9;color:#6f5125;font-size:9px;z-index:5}
+.magizoopedia-location-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.magizoopedia-location-list span{padding:6px 9px;border:1px solid #b18a4e;border-radius:14px;background:#f8edd3;color:#6b5129;font-size:9px}
+.magizoopedia-lineage-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.magizoopedia-lineage-grid>div{padding:12px;border:1px solid #c4a66d;background:#f8edd3}.magizoopedia-lineage-grid small{display:block;font-size:8px;letter-spacing:1px;color:#927026}.magizoopedia-lineage-grid b{display:block;margin-top:5px;font-size:11px;font-weight:600}
+@media(max-width:700px){.magizoopedia-lineage-grid{grid-template-columns:1fr}.magizoopedia-map-stage{height:340px}.magizoopedia-map-marker text{font-size:11px}}
 </style>
