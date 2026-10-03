@@ -617,12 +617,10 @@ html.upload-locked,body.upload-locked{overflow:hidden!important}
 .magizoopedia-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.magizoopedia-link{padding:10px;border:1px solid #b18a4e;background:#f8edd3;text-align:left}.magizoopedia-link b{display:block;font-size:10px}.magizoopedia-link span{display:block;font-size:9px;color:#806333;margin-top:2px}
 .magizoopedia-empty{padding:45px 20px;text-align:center;color:#806333;font-size:12px}.magizoopedia-empty strong{display:block;font-size:24px;margin-bottom:8px;color:#6f5125}
 @media(max-width:1050px){.magizoopedia-app{grid-template-columns:250px}.magizoopedia-detail{grid-template-columns:1fr}.magizoopedia-info{border-top:1px solid #9c712c}.magizoopedia-visual{min-height:520px;border-right:0}.magizoopedia-info{max-height:none}}
-@media(max-width:700px){.magizoopedia-heading{padding-top:28px}.magizoopedia-heading h2{font-size:30px}.magizoopedia-app{display:block}.magizoopedia-sidebar{border-right:0;border-bottom:1px solid #9c712c;max-height:none}.magizoopedia-list{max-height:270px}.magizoopedia-toolbar{align-items:flex-start;flex-direction:column}.magizoopedia-status{display:none}.magizoopedia-visual{min-height:430px}.magizoopedia-visual-frame{padding:10px}.magizoopedia-visual-frame:after{inset:10px}.magizoopedia-id-plate{left:24px;top:24px}.magizoopedia-visual-caption{left:24px;right:24px;bottom:24px}.magizoopedia-info{padding:18px}.magizoopedia-facts{grid-template-columns:1fr}.magizoopedia-fact:nth-child(odd){border-right:0}.magizoopedia-links{grid-template-columns:1fr}}
+@media(max-width:700px){.magizoopedia-heading{padding-top:28px}.magizoopedia-heading h2{font-size:30px}.magizoopedia-app{display:block}.magizoopedia-sidebar{border-right:0;border-bottom:1px solid #9c712c;max-height:none}.magizoopedia-list{max-height:270px}.magizoopedia-toolbar{align-items:flex-start;flex-direction:column}.magizoopedia-status{display:none}.magizoopedia-visual{min-height:430px}.magizoopedia-map-stage{height:480px}.magizoopedia-visual-frame{padding:10px}.magizoopedia-visual-frame:after{inset:10px}.magizoopedia-id-plate{left:24px;top:24px}.magizoopedia-visual-caption{left:24px;right:24px;bottom:24px}.magizoopedia-info{padding:18px}.magizoopedia-facts{grid-template-columns:1fr}.magizoopedia-fact:nth-child(odd){border-right:0}.magizoopedia-links{grid-template-columns:1fr}}
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3M6ZpYl9X9r0nK2Q6wY5Y6lXxv7mA=" crossorigin="" />
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
 <button type="button" id="pageBackButton" aria-label="ย้อนกลับ" title="ย้อนกลับ">ย้อนกลับ</button>
@@ -2727,33 +2725,86 @@ function magizoopediaMapPoint(label){
  return hit?{lat:hit[1],lng:hit[2]}:null;
 }
 function magizoopediaResetMap(){
- if(window.magizoopediaLeafletMap) window.magizoopediaLeafletMap.setView([20,0],2);
+ const svg=document.getElementById('magizoopediaWorldSvg');
+ if(svg) svg.style.transform='none';
 }
-function magizoopediaZoom(delta){
- const m=window.magizoopediaLeafletMap; if(!m)return;
- delta>0?m.zoomIn(1):m.zoomOut(1);
-}
+function magizoopediaZoom(delta){ /* โลกจำลองตั้งใจล็อกไว้ให้เห็นครบทั้งโลก */ }
 function magizoopediaMapSvg(item){
- const locations=magizoopediaLocations(item);
- return `<div class="magizoopedia-map-stage" id="magizoopediaMapStage"><div id="magizoopediaLeafletMap" class="magizoopedia-leaflet-map"></div>
-   <div class="magizoopedia-map-controls"><button type="button" onclick="magizoopediaZoom(1)">＋</button><button type="button" onclick="magizoopediaZoom(-1)">−</button><button type="button" onclick="magizoopediaResetMap()">↺</button></div>
-   <div class="magizoopedia-map-hint">แผนที่โลกจริง · ลากเพื่อเลื่อน · ล้อเมาส์เพื่อ Zoom · พิกัดถิ่นที่อยู่อาศัยจะแสดงเป็นตราสัญลักษณ์</div></div>`;
+ return `<div class="magizoopedia-map-stage" id="magizoopediaMapStage">
+   <div class="magizoopedia-map-title"><span>✦</span> WORLD HABITAT MAP</div>
+   <svg id="magizoopediaWorldSvg" class="magizoopedia-world-svg" viewBox="0 0 1400 650" preserveAspectRatio="xMidYMid meet" aria-label="แผนที่โลกจำลอง">
+     <defs>
+       <radialGradient id="mzSea" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#d9c998"/><stop offset="1" stop-color="#a99562"/></radialGradient>
+       <linearGradient id="mzLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0dfb7"/><stop offset="1" stop-color="#d5bd86"/></linearGradient>
+       <filter id="mzShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#3f2a12" flood-opacity=".22"/></filter>
+       <pattern id="mzPaper" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r=".7" fill="#fff5dc" opacity=".18"/><circle cx="13" cy="12" r=".6" fill="#6b5129" opacity=".08"/></pattern>
+     </defs>
+     <rect x="18" y="18" width="1364" height="614" rx="22" fill="url(#mzSea)" stroke="#7f5e2b" stroke-width="3" filter="url(#mzShadow)"/>
+     <rect x="18" y="18" width="1364" height="614" rx="22" fill="url(#mzPaper)"/>
+     <g class="map-graticule">
+       <path d="M70 180 Q700 120 1330 180 M70 275 Q700 235 1330 275 M70 375 Q700 415 1330 375 M70 470 Q700 530 1330 470"/>
+       <path d="M260 45 Q190 325 260 605 M430 35 Q385 325 430 615 M700 30 Q700 325 700 620 M970 35 Q1015 325 970 615 M1140 45 Q1210 325 1140 605"/>
+     </g>
+     <g class="map-land" filter="url(#mzShadow)">
+       <!-- North America -->
+       <path d="M120 130 L165 88 235 76 282 96 320 132 307 164 270 170 248 198 210 214 196 254 158 270 135 242 108 220 92 181 112 157 Z"/>
+       <path d="M265 210 L306 203 332 224 321 254 292 267 272 246 Z"/>
+       <!-- South America -->
+       <path d="M345 285 L385 300 410 335 407 380 389 414 381 462 354 510 326 532 311 501 318 456 305 414 315 374 300 339 Z"/>
+       <!-- Europe -->
+       <path d="M620 145 L650 127 682 134 701 154 688 174 659 171 638 183 615 171 Z"/>
+       <!-- Africa -->
+       <path d="M650 220 L694 207 733 230 746 276 733 325 716 371 687 415 661 389 650 346 633 309 638 264 Z"/>
+       <!-- Asia -->
+       <path d="M705 126 L760 98 825 87 895 102 956 121 1022 150 1072 181 1051 213 1005 220 969 207 930 225 887 208 846 220 810 198 771 203 742 184 712 177 Z"/>
+       <!-- India / SE Asia -->
+       <path d="M819 214 L848 226 861 254 842 280 817 265 807 239 Z"/>
+       <path d="M887 221 L916 229 929 250 913 270 892 260 881 241 Z"/>
+       <!-- Japan / islands -->
+       <path d="M1040 213 l18 13 7 24 -14 20 -13 -14 6 -22 -10 -12 Z"/>
+       <!-- Australia -->
+       <path d="M1010 438 L1050 416 1110 421 1150 448 1141 485 1101 511 1050 505 1019 480 994 463 Z"/>
+       <!-- Greenland -->
+       <path d="M330 55 L375 45 416 64 421 104 389 127 350 115 325 88 Z"/>
+       <!-- Arctic / islands -->
+       <path d="M492 93 l30 -13 38 10 12 25 -28 14 -39 -7 Z"/>
+       <path d="M1170 260 l28 -8 25 17 -8 27 -29 6 -20 -18 Z"/>
+     </g>
+     <g class="map-labels">
+       <text x="200" y="300">NORTH AMERICA</text><text x="355" y="555">SOUTH AMERICA</text>
+       <text x="665" y="455">AFRICA</text><text x="660" y="118">EUROPE</text>
+       <text x="865" y="115">ASIA</text><text x="1070" y="535">AUSTRALIA</text>
+     </g>
+     <g id="magizoopediaMapMarkers"></g>
+   </svg>
+   <div class="magizoopedia-map-hint">แผนที่โลกจำลอง · แสดงโลกครบทั้งผืน · 🐾 ตำแหน่งถิ่นที่อยู่อาศัย</div>
+ </div>`;
+}
+function magizoopediaMapMarkerSvg(p,label){
+ const x=70+((p.lng+180)/360)*1260;
+ const y=45+((90-p.lat)/180)*560;
+ const safe=esc(label||'ถิ่นที่อยู่อาศัย');
+ return `<g class="magizoopedia-map-marker" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
+   <circle r="15" class="marker-halo"></circle><circle r="12" class="marker-core"></circle>
+   <path class="marker-paw" d="M0 7c-5 0-7-4-5-7 1-2 4-2 5 0 1-2 4-2 5 0 2 3 0 7-5 7Zm-8-8c-3-2-3-6-1-7 2-1 4 1 4 4 0 2-1 4-3 3Zm16 0c-2 1-3-1-3-3 0-3 2-5 4-4 2 1 2 5-1 7ZM-4-9c-2-2-1-5 1-6 2 0 3 2 2 5-1 2-2 3-3 1Zm8 0c-1 2-2 1-3-1-1-3 0-5 2-5 2 1 3 4 1 6Z"></path>
+   <title>${safe}</title>
+ </g>`;
 }
 function renderMagizoopediaMap(){
- const el=document.getElementById('magizoopediaLeafletMap'); if(!el || typeof L==='undefined')return;
- if(window.magizoopediaLeafletMap){ window.magizoopediaLeafletMap.remove(); window.magizoopediaLeafletMap=null; }
+ const svg=document.getElementById('magizoopediaWorldSvg');
+ const markerLayer=document.getElementById('magizoopediaMapMarkers');
+ if(!svg || !markerLayer)return;
  const item=magizoopediaState.selectedKey?magizoopediaItems().find(x=>x.key===magizoopediaState.selectedKey):null;
- const map=L.map(el,{worldCopyJump:true,minZoom:1,maxZoom:12,scrollWheelZoom:true}).setView([20,0],2);
- const themedTiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19,
-  attribution:'© OpenStreetMap contributors'
-}).addTo(map);
- (item?magizoopediaLocations(item):[]).forEach(loc=>{
-   const p=magizoopediaMapPoint(loc); if(!p)return;
-   L.marker([p.lat,p.lng]).addTo(map).bindPopup(`<b>${esc(loc)}</b>`);
- });
- window.magizoopediaLeafletMap=map;
- setTimeout(()=>map.invalidateSize(),50);
+ const points=magizoopediaExactMapPoints(item||{});
+ const mapped=[];
+ if(points.length){
+   points.forEach(p=>mapped.push(magizoopediaMapMarkerSvg(p,'พิกัดถิ่นที่อยู่อาศัย')));
+ }else{
+   (item?magizoopediaLocations(item):[]).forEach(loc=>{
+     const p=magizoopediaMapPoint(loc); if(p)mapped.push(magizoopediaMapMarkerSvg(p,loc));
+   });
+ }
+ markerLayer.innerHTML=mapped.join('');
 }
 function magizoopediaGeneral(item){
  return `<div class="magizoopedia-section"><h4><span>●</span>ข้อมูลทั่วไป</h4>
@@ -2809,30 +2860,19 @@ initMagizoopedia();
 
 /* ===== MAGIZOOPEDIA SPECIES / BREED REVISION ===== */
 .magizoopedia-note{margin:12px 0 0;font-size:10px;line-height:1.75;color:#6b5129}
-.magizoopedia-habitat-section{min-height:520px}
-.magizoopedia-map-stage{position:relative;margin-top:12px;height:440px;border:1px solid #8f6a32;border-radius:8px;overflow:hidden;background:#c8b47d;touch-action:none;cursor:grab;box-shadow:inset 0 0 35px rgba(70,45,15,.24)}
-.magizoopedia-map-stage:after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,244,211,.02) 35%,rgba(70,45,15,.18) 100%);mix-blend-mode:multiply}
-.magizoopedia-leaflet-map{background:#fffaf0}
-.magizoopedia-leaflet-map .leaflet-tile-pane{filter:sepia(1) saturate(1.15) hue-rotate(335deg) brightness(.78) contrast(1.02)}
-.magizoopedia-leaflet-map .leaflet-tile{mix-blend-mode:multiply}
-.magizoopedia-leaflet-map .leaflet-overlay-pane{background:#fffaf0}
-.magizoopedia-leaflet-map .leaflet-overlay-pane{filter:sepia(.18) saturate(.9)}
-.magizoopedia-leaflet-map .leaflet-control-zoom{border:1px solid #8f6a32!important;box-shadow:0 3px 10px rgba(63,42,18,.22)}
-.magizoopedia-leaflet-map .leaflet-control-zoom a{background:#f4e5c2;color:#4b3519;border-color:#b18a4e}
-.magizoopedia-leaflet-map .leaflet-control-attribution{background:rgba(248,237,211,.86);color:#5e4726}
-.magizoopedia-map-stage:active{cursor:grabbing}
-.magizoopedia-leaflet-map .leaflet-control-attribution{font-size:9px}
-.magizoopedia-leaflet-map{position:absolute;inset:0;width:100%;height:100%;z-index:1}
-.map-sea{fill:#c6b47f}
-.map-graticule path{stroke:#8f7a4c;stroke-width:1;stroke-dasharray:5 8;opacity:.3;fill:none}
-.map-land path{fill:#ead7ad;stroke:#86652e;stroke-width:2;filter:drop-shadow(0 4px 4px rgba(64,42,15,.15))}
-.magizoopedia-map-marker circle:first-child{fill:#8b302d;stroke:#f9efd7;stroke-width:2}
-.magizoopedia-map-marker circle:nth-child(2){fill:#f9efd7}
-.magizoopedia-map-marker text{font:14px Prompt,sans-serif;fill:#4b3519;paint-order:stroke;stroke:#ead7ad;stroke-width:4px;stroke-linejoin:round}
-.map-empty-mark text{font:15px Prompt,sans-serif;fill:#6b5129}
-.magizoopedia-map-controls{position:absolute;right:12px;top:12px;display:flex;gap:5px;z-index:5}
-.magizoopedia-map-controls button{width:34px;height:34px;border:1px solid #a17a38;border-radius:6px;background:#f8edd3dd;color:#4b3519;font-size:17px;box-shadow:0 2px 7px rgba(63,42,18,.18)}
-.magizoopedia-map-hint{position:absolute;left:12px;bottom:10px;padding:5px 8px;border:1px solid #b18a4e;background:#f8edd3d9;color:#6f5125;font-size:9px;z-index:5}
+.magizoopedia-habitat-section{min-height:700px}
+.magizoopedia-map-stage{position:relative;margin-top:12px;width:100%;height:620px;border:1px solid #8f6a32;border-radius:10px;overflow:hidden;background:#a99562;box-shadow:inset 0 0 45px rgba(70,45,15,.24),0 4px 12px rgba(63,42,18,.12)}
+.magizoopedia-map-title{position:absolute;left:16px;top:14px;padding:7px 11px;border:1px solid #b18a4e;background:#f8edd3ee;color:#4b3519;font-size:11px;letter-spacing:1.5px;font-weight:700;z-index:5;box-shadow:0 2px 8px rgba(63,42,18,.18)}
+.magizoopedia-map-title span{color:#8b302d;margin-right:5px}
+.magizoopedia-world-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.map-graticule path{stroke:#806d43;stroke-width:1;stroke-dasharray:5 8;opacity:.28;fill:none}
+.map-land path{fill:url(#mzLand);stroke:#86652e;stroke-width:2.2;stroke-linejoin:round}
+.map-labels text{font:600 12px Prompt,Arial,sans-serif;letter-spacing:1.8px;fill:#806333;opacity:.58;text-anchor:middle}
+.magizoopedia-map-marker{cursor:default}
+.magizoopedia-map-marker .marker-halo{fill:#f9efd7;opacity:.9;stroke:#7a2927;stroke-width:2}
+.magizoopedia-map-marker .marker-core{fill:#8b302d;stroke:#f9efd7;stroke-width:2}
+.magizoopedia-map-marker .marker-paw{fill:#f9efd7;stroke:#4b3519;stroke-width:.5;transform:scale(.9)}
+.magizoopedia-map-hint{position:absolute;left:16px;bottom:14px;padding:6px 9px;border:1px solid #b18a4e;background:#f8edd3e8;color:#6f5125;font-size:10px;z-index:5;box-shadow:0 2px 7px rgba(63,42,18,.12)}
 .magizoopedia-location-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.magizoopedia-location-list span{padding:6px 9px;border:1px solid #b18a4e;border-radius:14px;background:#f8edd3;color:#6b5129;font-size:9px}
 .magizoopedia-lineage-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.magizoopedia-lineage-grid>div{padding:12px;border:1px solid #c4a66d;background:#f8edd3}.magizoopedia-lineage-grid small{display:block;font-size:8px;letter-spacing:1px;color:#927026}.magizoopedia-lineage-grid b{display:block;margin-top:5px;font-size:11px;font-weight:600}
 @media(max-width:700px){.magizoopedia-lineage-grid{grid-template-columns:1fr}.magizoopedia-map-stage{height:340px}.magizoopedia-map-marker text{font-size:11px}}
